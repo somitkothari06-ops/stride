@@ -190,3 +190,11 @@ body { background-color:#f6f3eb; background-image:radial-gradient(#17265312 .8px
 .app-shell .sidebar nav { background:#f2efe6; border-color:#ddd7c9; }
 .app-shell .nav-item.active { box-shadow:0 3px 0 #172653; }
 @media(prefers-reduced-motion:reduce) { .btn,.app-shell .btn { transition:none; } }
+
+/* A compact introduction that leaves the focus card in charge. */
+.app-shell .today-heading { border-left:4px solid #244bff; padding:4px 0 4px 20px; margin-bottom:20px; }
+.app-shell .today-heading .eyebrow { font-size:13px; font-weight:650; letter-spacing:0; text-transform:none; color:#405276; margin:0 0 8px; }
+.app-shell .today-heading h1 { font-size:32px; font-weight:750; line-height:1.2; letter-spacing:-1px; margin:0; }
+.app-shell .today-heading>div>p:last-child { font-size:15px; line-height:1.6; color:#405276; margin:8px 0 0; }
+.app-shell .date-line { font-size:12px; margin-bottom:20px; }
+@media(max-width:700px) { .app-shell .today-heading { padding-left:16px; } .app-shell .today-heading h1 { font-size:28px; } }

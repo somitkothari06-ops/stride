@@ -460,11 +460,11 @@ export default function WorkspaceApp() {
 
           {view === "today" && (
             <>
-              <div className="page-heading">
+              <div className="page-heading today-heading">
                 <div>
-                  <p className="eyebrow">LET’S MAKE TODAY COUNT</p>
-                  <h1>A little focus. Real progress.</h1>
-                  <p>Start with one thing, {state.profile.name}.</p>
+                  <p className="eyebrow">Your daily starting point</p>
+                  <h1>Find your focus.</h1>
+                  <p>One useful task. A little time. Start there.</p>
                 </div>
                 <button
                   className="availability"

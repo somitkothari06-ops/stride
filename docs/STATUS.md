@@ -70,3 +70,5 @@ Raised buttons and warm background (October 25):
 - Task and attempt summaries now link to My work and Memory; the time summary still opens study preferences.
 - OpenCode GLM free high reviewed the source-only CSS. Its two suggestions were not applied: global disabled opacity already exists, and the dictation control already carries the shared btn class.
 - Twenty-nine tests, TypeScript and production build passed on the Devlab.
+
+Compact Today introduction (October 25): replaced the oversized slogan and uppercase overline with a short 32px heading (28px on mobile), sentence-case label, one-line supporting copy and a cobalt rule. Browser screenshot verified hierarchy against the blue focus card. OpenCode reviewed the source-only diff with no established defect. All 29 tests, TypeScript and production build passed on the Devlab.
