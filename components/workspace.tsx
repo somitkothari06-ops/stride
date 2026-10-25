@@ -503,9 +503,9 @@ export default function WorkspaceApp() {
                 </div>
               )}
               <div className="day-context" aria-label="Your workspace at a glance">
-                <div><BookOpen size={18} /><span><strong>{active.length}</strong> open tasks</span></div>
+                <button onClick={() => setView("work")}><BookOpen size={18} /><span><strong>{active.length}</strong> open tasks</span><ArrowRight size={14} /></button>
                 <button onClick={() => setModal("profile")}><Clock3 size={18} /><span><strong>{state.profile.minutes} min</strong> to focus</span><Pencil size={13} /></button>
-                <div><ListChecks size={18} /><span><strong>{state.observations.filter((o) => !o.removed).length}</strong> {state.observations.filter((o) => !o.removed).length === 1 ? "attempt" : "attempts"} saved</span></div>
+                <button onClick={() => setView("memory")}><ListChecks size={18} /><span><strong>{state.observations.filter((o) => !o.removed).length}</strong> {state.observations.filter((o) => !o.removed).length === 1 ? "attempt" : "attempts"} saved</span><ArrowRight size={14} /></button>
               </div>
               <details className="quick-capture" onToggle={(e) => setCaptureOpen(e.currentTarget.open)}><summary><span>Have something on your mind?</span><span>Speak or type ↗</span></summary><VoiceCapture active={captureOpen} onWork={(text) => { setSource(text); setSourceType("Voice capture"); setCandidate(null); setModal("add"); void extractSource(text, "Voice capture"); }} onNote={async (text) => !!(await act({ action: "saveNote", text }, "Saving your thought"))} />{(state.notes || []).length > 0 && <div className="thought-inbox"><h3>Thought inbox</h3>{[...(state.notes || [])].reverse().map((note) => <article key={note.id}><p>{note.text}</p><button className="btn subtle" disabled={!!busy} onClick={() => void act({ action: "deleteNote", id: note.id }, "Removing thought")}>Remove<span className="sr-only"> thought</span></button></article>)}</div>}</details>
               <div className="dashboard-grid">

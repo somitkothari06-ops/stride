@@ -62,3 +62,11 @@ Voice capture and compact masthead (October 25):
 - Uses browser SpeechRecognition/webkitSpeechRecognition with English (India), explicit start/stop, a two-minute cap, partial-result review, permission/network errors and typed fallback. Browser services may process audio; Stride does not retain audio. Unsupported browsers still accept typed/device-dictated input. Live human audio accuracy is not yet verified.
 - OpenCode free DeepSeek high reviewed the source-only dictation component. Stale recognizer callbacks, partial-result handling and character-limit disclosure were addressed. No private data or keys supplied.
 - Devlab TypeScript, 29 existing tests and production build passed. Synthetic capture HTTP check passed persistence, isolation, bounds, separate note semantics, deletion and reset.
+
+Raised buttons and warm background (October 25):
+
+- Applied the reference button's bold type, rounded corners, solid lower edge and press feedback across main actions. Yellow primary actions and navy secondary actions retain their roles; quiet text/navigation controls stay compact.
+- Replaced the cool flat canvas with warm off-white and a faint 24px dot grid across landing, setup and workspace; reading cards remain solid surfaces.
+- Task and attempt summaries now link to My work and Memory; the time summary still opens study preferences.
+- OpenCode GLM free high reviewed the source-only CSS. Its two suggestions were not applied: global disabled opacity already exists, and the dictation control already carries the shared btn class.
+- Twenty-nine tests, TypeScript and production build passed on the Devlab.

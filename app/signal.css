@@ -158,3 +158,35 @@ h1, h2, h3, .brand, .landing-hero h1 {
 .thought-inbox p { white-space:pre-wrap; overflow-wrap:anywhere; font-size:16px; }
 @media(max-width:1100px) { .app-shell .sidebar { gap:12px; padding:16px 24px; } .app-shell .sidebar nav .nav-item { padding:10px 12px; font-size:14px; } }
 @media(max-width:700px) { .app-shell .sidebar { display:none; } .app-shell .sidebar.mobile-open { display:flex; padding:24px; } .app-shell .sidebar.mobile-open nav { flex-direction:column; } .app-shell .main-content { padding:20px 16px 96px; } .app-shell .topbar { padding:0 16px; } .app-shell .page-heading h1 { font-size:30px; } .app-shell .date-line>span:last-child { display:none; } .app-shell .day-context { gap:8px; } .app-shell .day-context>div,.app-shell .day-context>button { font-size:12px; } .app-shell .sample-strip { flex-wrap:wrap; gap:4px 8px; } .app-shell .sample-strip p { flex:1; min-width:160px; } .voice-capture { padding:24px 16px; } .capture-heading h2 { font-size:24px; } .capture-footer { align-items:stretch; flex-direction:column; gap:16px; } .quick-capture>summary { padding:16px; font-size:14px; } .quick-capture>summary>span:last-child { font-size:12px; } .landing>main>.voice-capture { margin:0 16px 40px; } }
+
+/* Warm graph paper and a shared, tactile action style. */
+:root { --bg:#f6f3eb; }
+body { background-color:#f6f3eb; background-image:radial-gradient(#17265312 .8px,transparent .8px); background-size:24px 24px; }
+.app-shell,.app-shell .main-shell,.landing,.story-page { background:transparent; }
+.app-shell .main-content { background:transparent; }
+.site-header,.app-shell .sidebar,.app-shell .topbar { background:#fffefa; }
+.btn,.app-shell .btn,.dictation .voice-button {
+  border:1px solid #172653; border-radius:8px; min-height:48px;
+  box-shadow:0 4px 0 #172653; font-weight:750; font-size:15px;
+  transition:transform 120ms ease,box-shadow 120ms ease,background-color 120ms ease;
+}
+.btn:hover:not(:disabled),.app-shell .btn:hover:not(:disabled) { transform:translateY(-1px); box-shadow:0 5px 0 #172653; }
+.btn:active:not(:disabled),.app-shell .btn:active:not(:disabled) { transform:translateY(3px); box-shadow:0 1px 0 #172653; }
+.btn:focus-visible,.app-shell button:focus-visible,.quick-capture>summary:focus-visible { outline:3px solid #244bff; outline-offset:5px; }
+.btn:disabled,.app-shell .btn:disabled { box-shadow:none; transform:none; }
+.btn.primary,.app-shell .btn.primary,.app-shell .add-button,.landing .btn.primary,.story-page .btn.primary {
+  background:#f3e86c; color:#172653; border-color:#172653;
+}
+.app-shell .next-step-card .btn.dark { box-shadow:0 4px 0 #172653; border:1px solid #172653; }
+.app-shell .progress-card .card-action { border-color:#172653; box-shadow:0 4px 0 #0d1736; }
+.app-shell .direction-card .card-action,.app-shell .upcoming .card-action { background:#172653; color:white; box-shadow:0 4px 0 #7786ae; }
+.app-shell .hero-secondary { box-shadow:0 4px 0 #101c43; border-color:#ffffff90; }
+.app-shell .day-context>button { border:1px solid #172653; border-radius:8px; box-shadow:0 3px 0 #172653; background:#fffefa; color:#172653; font-weight:600; padding:12px 16px; min-height:48px; }
+.app-shell .day-context>button:hover { background:#fff8b9; transform:translateY(-1px); }
+.app-shell .day-context>button:active { transform:translateY(2px); box-shadow:0 1px 0 #172653; }
+.app-shell .sample-strip { background:#e9e5d9; border:1px solid #d8d1bf; }
+.app-shell .sample-strip button { border:1px solid #172653; border-radius:6px; padding:8px 12px; background:#fffefa; box-shadow:0 2px 0 #172653; text-decoration:none; color:#172653; font-weight:700; margin:4px 0; }
+.app-shell .sample-tag { background:#172653; color:#fff; }
+.app-shell .sidebar nav { background:#f2efe6; border-color:#ddd7c9; }
+.app-shell .nav-item.active { box-shadow:0 3px 0 #172653; }
+@media(prefers-reduced-motion:reduce) { .btn,.app-shell .btn { transition:none; } }
