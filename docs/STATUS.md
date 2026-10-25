@@ -35,3 +35,14 @@ Recovery checkpoint, October 25, 2026:
 - A private snapshot of the live Devlab database completed and passed integrity verification without changing the live database. It remains on the same volume; no off-volume recovery claim is made.
 - The helper evaluation and reasoning-setting details are in [DEVELOPMENT-HELPERS.md](DEVELOPMENT-HELPERS.md). Four headless free-model review tasks completed; suggestions were reviewed, and the missing directory fsync they identified was fixed.
 - Scheduled off-volume backup and disaster recovery remain incomplete; see [RECOVERY.md](RECOVERY.md).
+
+Signal and course-context checkpoint, October 25, 2026:
+
+- Built five independent visual studies. The user selected Signal; the working app now uses the blue/yellow direction, clearer copy and larger text. Landing page `/`, About You `/about-you` and study app `/workspace` are separate routes.
+- Added an optional-story setup/review flow for background, experience, interests, uncertainty, ambitions, constraints and learning preferences. A blank career goal is valid. Bounded student-provided context is supplied to planning and preparation.
+- Added review-before-save imports for text PDF, PPTX, DOCX, TXT and MD. Imported text is bound to the current browser/session review, expires after 15 minutes or restart, and cannot be substituted during confirmation. Source text, not original files, is persisted after confirmation.
+- Practice can reference bounded matching-subject course excerpts. Public-course comparison uses selected passage IDs and server-attached quotations; model interpretation remains feedback, not certified semantic support.
+- Twenty-nine tests and the production build passed on Node 22. A synthetic HTTP profile check passed persistence, optional goals, session separation and clearing context. A live synthetic course check passed extraction, confirmation, tamper/foreign-session refusal, idempotent confirmation, cross-origin refusal, source-linked practice, quoted comparison and deletion invalidation.
+- Parser tests cover PDF text/page locators, reordered PowerPoint relationships, Word text sections and rejection of unreadable/oversized input. They do not establish OCR or broad document-layout fidelity.
+- The dependency audit reported zero known vulnerabilities after moving validation to Zod 4.6.7; compatibility checks passed. This is a point-in-time audit, not a security guarantee.
+- See [course details](COURSE-CONTEXT.md), [About You](ABOUT-YOU.md), [design studies](DESIGN-DIRECTIONS.md) and [workflow references](WORKFLOW-REFERENCES.md). Production identity, daily scheduling, Tavily, OCR and public judge access are still unfinished.

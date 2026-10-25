@@ -1,4 +1,6 @@
 import { z } from "zod";
+import type { CourseMaterial, CourseExcerpt } from "./course-types";
+import { LifeContextSchema, type LifeContext } from "./personal-context";
 
 export const IntakeSchema = z.object({
   title: z.string().min(1).max(160),
@@ -44,6 +46,7 @@ export type Plan = {
   createdAt: string;
 };
 export type Prepared = {
+  courseSources?: CourseExcerpt[];
   workId: string;
   title: string;
   context: string;
@@ -71,10 +74,13 @@ export type Direction = {
   updatedAt: string;
 };
 export type Workspace = {
+  materials?: CourseMaterial[];
   version: 1;
   revision: number;
   sample: boolean;
   profile: {
+    lifeContext?: LifeContext;
+    onboardingComplete?: boolean;
     name: string;
     year: string;
     goal: string;
@@ -109,6 +115,7 @@ export const ConfirmSchema = IntakeSchema.extend({
   uncertainty: z.string().max(500).default(""),
 });
 export const ActionSchema = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("aboutYou"), name: z.string().trim().min(1).max(60), year: z.enum(["2nd year", "3rd year"]), goal: z.string().max(120), minutes: z.number().int().min(5).max(180), context: LifeContextSchema }),
   z.object({
     action: z.literal("profile"),
     name: z.string().min(1).max(60),

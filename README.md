@@ -6,6 +6,10 @@ A personal workspace for second- and third-year CS/engineering students: decide 
 
 ## Working in this milestone
 
+- A Signal-style landing page at `/`, optional personal-story setup at `/about-you`, and the study app at `/workspace`.
+- Personal context covers experience, interests, uncertainty, ambitions, constraints and learning preferences. A career goal is optional.
+- Course library: review and confirm extracted PDF/PPTX/DOCX/TXT/MD text, reference relevant excerpts in practice, and compare with curated public-course summaries. See [formats and limits](docs/COURSE-CONTEXT.md).
+- Five independent visual studies at `/design-lab/index.html`; the user selected Signal for the working app.
 - Four responsive views: Today, My work, Memory, Direction.
 - Paste a notice or project excerpt, review extracted candidate fields, confirm a date, and save work.
 - Plans respect confirmed deadlines and available time; changed context marks old plans stale.
@@ -27,7 +31,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Open the URL printed by Next.js (normally port 3000). You can try the clearly labeled sample workspace with no keys. `Start fresh` clears the disposable records in the current browser session. Keep private student material out of shared/demo sessions.
+Open the URL printed by Next.js (normally port 3000). You can try the clearly labeled sample workspace at `/workspace` with no keys. `Start fresh` clears the disposable records in the current browser session. Keep private student material out of shared/demo sessions.
 
 For a production build:
 

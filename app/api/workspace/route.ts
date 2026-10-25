@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     try {
       session = await requireSession();
     } catch {
-      session = createSession();
+      session = createSession(new URL(request.url).searchParams.get("fresh") !== "1");
     }
     const response = NextResponse.json(
       { state: session.state, providers: providerStatus() },

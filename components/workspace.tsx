@@ -31,8 +31,9 @@ import {
 } from "lucide-react";
 import type { Intake, Mode, View, Work, Workspace } from "@/lib/types";
 import { nebiusPresentation, type Providers } from "@/lib/connection-status";
+import CourseLibrary from "./course-library";
 
-type Modal = "add" | "profile" | "integrations" | "edit" | null;
+type Modal = "add" | "profile" | "integrations" | "edit" | "course" | null;
 type Candidate = Intake & { source: string; sourceType: string; mode: Mode };
 const navigation = [
   { id: "today", name: "Today", icon: LayoutDashboard },
@@ -384,7 +385,7 @@ export default function WorkspaceApp() {
           </button>
           <button
             className="profile-button"
-            onClick={() => setModal("profile")}
+            onClick={() => window.location.assign("/about-you")}
           >
             <span className="avatar">{state.profile.name.slice(0, 1)}</span>
             <span>
@@ -406,7 +407,7 @@ export default function WorkspaceApp() {
             >
               <Menu size={20} />
             </button>
-            <span>Workspace</span>
+            <a href="/">Stride</a>
             <ChevronRight size={13} />
             <strong>{activeNav.name}</strong>
           </div>
@@ -456,9 +457,9 @@ export default function WorkspaceApp() {
             <>
               <div className="page-heading">
                 <div>
-                  <p className="eyebrow">A LITTLE PROGRESS, EVERY DAY</p>
-                  <h1>One good step starts here.</h1>
-                  <p>Hey {state.profile.name}. Let’s turn what’s on your plate into something you can start.</p>
+                  <p className="eyebrow">YOUR DAY, AT YOUR PACE</p>
+                  <h1>What will you work on today?</h1>
+                  <p>{state.profile.name}, here’s one manageable place to start.</p>
                 </div>
                 <button
                   className="availability"
@@ -560,7 +561,7 @@ export default function WorkspaceApp() {
                               : start(state.plan!.workId)
                           }
                         >
-                          {stale ? "Refresh next step" : "Start this session"}
+                          {stale ? "Refresh next step" : "Start a focused session"}
                           <ArrowRight size={16} />
                         </button>
                         <button
@@ -609,7 +610,7 @@ export default function WorkspaceApp() {
                 </section>
                 <section className="card upcoming">
                   <div className="section-title">
-                    <h2>Coming up next</h2>
+                    <h2>Deadlines to keep in view</h2>
                     <CalendarDays size={17} />
                   </div>
                   <p className="muted">Your nearest confirmed deadlines.</p>
@@ -697,8 +698,9 @@ export default function WorkspaceApp() {
               <div className="page-heading">
                 <div>
                   <p className="eyebrow">MAKE ONE THING MORE EXPLAINABLE</p>
-                  <h1>Make it make sense.</h1>
+                  <h1>Work through it, one step at a time.</h1>
                   <p>Pick one piece of coursework. Try it, explain it, and keep what you learn.</p>
+                  <button className="text-button" onClick={() => setModal("course")}><BookOpen size={15} /> Course library · syllabus, notes & past questions</button>
                 </div>
                 <button className="btn primary" onClick={openAdd}>
                   <Plus size={16} />
@@ -784,6 +786,7 @@ export default function WorkspaceApp() {
                             </p>
                           )}
                           <p className="practice-context">{prepared.context}</p>
+                          {!!prepared.courseSources?.length && <details className="source-details"><summary>Course excerpts referenced in this practice ({prepared.courseSources.length})</summary>{prepared.courseSources.map((source) => <div key={source.id}><h3>{source.title} · {source.locator}</h3><p>{source.text}</p></div>)}</details>}
                           <ol>
                             {prepared.steps.map((step, i) => (
                               <li key={i} className={checkedSteps.includes(i) ? "step-done" : ""}>
@@ -905,7 +908,7 @@ export default function WorkspaceApp() {
               <div className="page-heading">
                 <div>
                   <p className="eyebrow">YOUR CONTEXT, UNDER YOUR CONTROL</p>
-                  <h1>A record of real progress.</h1>
+                  <h1>Your progress, with the context.</h1>
                   <p>
                     See what’s remembered, where it came from, and what it
                     actually means.
@@ -1068,7 +1071,7 @@ export default function WorkspaceApp() {
               <div className="page-heading">
                 <div>
                   <p className="eyebrow">CONNECT THE DOTS, AT YOUR PACE</p>
-                  <h1>Where could your work take you?</h1>
+                  <h1>Explore what you could build towards.</h1>
                   <p>
                     Explore real requirements alongside the work you can
                     actually show.
@@ -1222,7 +1225,7 @@ export default function WorkspaceApp() {
           }}
         >
           <section
-            className={`modal ${modal === "add" ? "wide" : ""}`}
+            className={`modal ${modal === "add" || modal === "course" ? "wide" : ""}`}
             ref={dialogRef}
             role="dialog"
             aria-modal="true"
@@ -1236,7 +1239,7 @@ export default function WorkspaceApp() {
                     : "YOUR WORKSPACE"}
                 </p>
                 <h2 id="modal-title">
-                  {modal === "add"
+                  {modal === "course" ? "Your course library." : modal === "add"
                     ? candidate
                       ? "Check the details."
                       : "Add a piece of coursework."
@@ -1267,6 +1270,7 @@ export default function WorkspaceApp() {
                 {busy}…
               </div>
             )}
+            {modal === "course" && <CourseLibrary state={state} onState={setState} />}
             {modal === "add" &&
               (!candidate ? (
                 <form onSubmit={extract}>

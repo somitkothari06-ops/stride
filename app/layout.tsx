@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./signal.css";
 export const metadata: Metadata = {
   title: "Stride — make your work count",
   description:

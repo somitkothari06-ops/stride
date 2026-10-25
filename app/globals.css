@@ -1907,6 +1907,19 @@ summary {
 .sample-strip p { font-size: 12px; }
 .modal-description { color: #56694d; }
 .connection-empty p, .connection-item p, .setup-note p { font-size: 13px; }
+.course-library .material-upload, .document-review { background: #f2f6ed; border: 1px solid #dfe7d6; border-radius: 8px; padding: 24px; }
+.course-library .form-grid label { margin-top: 0; }
+.saved-materials, .course-comparison { border-top: 1px solid var(--line); padding-top: 24px; margin-top: 32px; }
+.saved-material { border-bottom: 1px solid var(--line); padding: 24px 0; }
+.saved-material .field-help { margin-bottom: 0; }
+.extracted-pages { max-height: 320px; overflow-y: auto; margin: 16px 0; border: 1px solid var(--line); background: #fff; padding: 16px; border-radius: 8px; }
+.extracted-pages details { padding: 8px 0; }
+.extracted-pages p { font-size: 13px; color: #43563b; white-space: pre-wrap; overflow-wrap: anywhere; margin: 12px 0; }
+.bridge-result { margin-top: 32px; }
+.course-claim { margin: 16px 0 24px; font-size: 13px; }
+.course-claim blockquote { margin: 12px 0; padding: 12px 16px; border-left: 2px solid #a2b68e; background: #f2f6ed; }
+.course-claim small, .course-claim a { color: #5b7050; font-size: 12px; }
+.course-library input[type="file"] { font-size: 13px; }
 @media (max-width: 980px) {
   .day-context { gap: 16px; flex-wrap: wrap; }
   .availability { display: none; }

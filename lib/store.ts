@@ -44,10 +44,10 @@ export function recordProviderCheck(
 export function sessionId(token: string) {
   return createHash("sha256").update(token).digest("hex");
 }
-export function createSession() {
+export function createSession(sample = true) {
   const token = randomBytes(32).toString("hex");
   const id = sessionId(token);
-  const state = initialWorkspace();
+  const state = initialWorkspace(sample);
   db()
     .prepare("INSERT INTO sessions(id,state,updated) VALUES(?,?,?)")
     .run(id, JSON.stringify(state), new Date().toISOString());

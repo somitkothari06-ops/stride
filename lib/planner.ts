@@ -166,13 +166,14 @@ export function initialWorkspace(sample = true, now = new Date()): Workspace {
     completed: false,
   });
   const state: Workspace = {
+    materials: [],
     version: 1,
     revision: 1,
     sample,
     profile: {
       name: "Alex",
       year: "2nd year",
-      goal: "Backend development internship",
+      goal: sample ? "Backend development internship" : "",
       minutes: 40,
       timezone: "Asia/Kolkata",
     },
