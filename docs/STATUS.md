@@ -53,3 +53,12 @@ Card contrast and typography refinement:
 - Kept the blue focus surface and gave deadlines a white surface with a strong border, Memory a navy surface and Direction a yellow surface. Increased heading/body weight and size, shortened dashboard copy and converted key card links into visible buttons.
 - Kept full observation feedback in Memory while making the dashboard summary compact. Planning reasons are available in a disclosure; stale plans have one refresh action rather than duplicate replan controls.
 - Twenty-nine tests and production build passed. The deployed page and font returned HTTP 200. Browser inspection confirmed the new surfaces, labels and the working Memory button.
+
+Voice capture and compact masthead (October 25):
+
+- Smaller segmented navigation and daily heading, compact demo notice and readable summary chips.
+- Landing-page introduction capture transfers an editable draft into personal setup; profile saving remains explicit. Dictation is also available on story/context fields.
+- Workspace speak-or-type panel separates coursework, personal introductions and thoughts. Coursework uses existing extraction/confirmation; thoughts persist separately, can be removed and are included in workspace exports/reset. They are not treated as learning evidence or deadlines automatically.
+- Uses browser SpeechRecognition/webkitSpeechRecognition with English (India), explicit start/stop, a two-minute cap, partial-result review, permission/network errors and typed fallback. Browser services may process audio; Stride does not retain audio. Unsupported browsers still accept typed/device-dictated input. Live human audio accuracy is not yet verified.
+- OpenCode free DeepSeek high reviewed the source-only dictation component. Stale recognizer callbacks, partial-result handling and character-limit disclosure were addressed. No private data or keys supplied.
+- Devlab TypeScript, 29 existing tests and production build passed. Synthetic capture HTTP check passed persistence, isolation, bounds, separate note semantics, deletion and reset.

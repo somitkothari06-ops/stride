@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { ArrowLeft, ArrowRight, Check, Compass } from "lucide-react";
 import { emptyLifeContext, type LifeContext } from "@/lib/personal-context";
 import type { Workspace } from "@/lib/types";
+import { Dictation } from "@/components/voice-capture";
 const stages = ["The basics", "Your story", "Your direction", "Your real life", "Review & begin"];
 export default function AboutYou() {
   const [loaded, setLoaded] = useState(false), [step, setStep] = useState(0), [busy, setBusy] = useState(false), [error, setError] = useState("");
@@ -17,13 +18,17 @@ export default function AboutYou() {
       const { state }: { state: Workspace } = await response.json();
       const p = state.profile;
       setName(p.onboardingComplete || p.name !== "Alex" ? p.name : ""); setYear(p.year); setMinutes(p.minutes); setGoal(state.sample && !p.onboardingComplete ? "" : p.goal);
-      setContext(p.lifeContext || { ...emptyLifeContext }); setExisting(!!p.onboardingComplete); setLoaded(true);
+      const savedContext = p.lifeContext || { ...emptyLifeContext };
+      let intro = ""; try { intro = sessionStorage.getItem("stride-intro-draft") || ""; } catch {}
+      setContext(intro ? { ...savedContext, story: `${savedContext.story}${savedContext.story ? "\n\n" : ""}${intro}`.slice(0, 10000) } : savedContext);
+      if (intro) setStep(1);
+      setExisting(!!p.onboardingComplete); setLoaded(true);
     } catch (e) { setError(e instanceof Error ? e.message : "Couldn't connect."); }
   }
   useEffect(() => { void load(); }, []);
   useEffect(() => { window.scrollTo({ top: 0, behavior: "instant" }); }, [step]);
   function field(key: keyof Omit<LifeContext, "direction">, label: string, hint: string, limit: number) {
-    return <div className="story-field"><label htmlFor={key}>{label}</label><p id={`${key}-hint`}>{hint}</p><textarea id={key} aria-describedby={`${key}-hint`} value={context[key]} maxLength={limit} rows={key === "story" ? 7 : 4} onChange={(e) => setContext({ ...context, [key]: e.target.value })} /><small>{context[key].length.toLocaleString()} / {limit.toLocaleString()} characters · optional</small></div>;
+    return <div className="story-field"><label htmlFor={key}>{label}</label><p id={`${key}-hint`}>{hint}</p><Dictation disabled={busy} onText={(chunk) => setContext((previous) => ({ ...previous, [key]: `${previous[key]}${previous[key] ? " " : ""}${chunk}`.slice(0, limit) }))} /><textarea id={key} aria-describedby={`${key}-hint`} value={context[key]} maxLength={limit} rows={key === "story" ? 7 : 4} onChange={(e) => setContext({ ...context, [key]: e.target.value })} /><small>{context[key].length.toLocaleString()} / {limit.toLocaleString()} characters · optional</small></div>;
   }
   async function submit(event: FormEvent) {
     event.preventDefault(); setError("");
@@ -33,6 +38,7 @@ export default function AboutYou() {
       const response = await fetch("/api/action", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "aboutYou", name, year, goal, minutes, context }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error?.message || "Couldn't save your context.");
+      try { sessionStorage.removeItem("stride-intro-draft"); } catch {}
       window.location.assign("/workspace");
     } catch (e) { setError(e instanceof Error ? e.message : "Couldn't connect. Your answers are still here."); }
     finally { setBusy(false); }

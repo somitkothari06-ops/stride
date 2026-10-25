@@ -41,3 +41,5 @@ Updated October 25, 2026. This is a development checkpoint, not a finished hacka
 6. Freeze a demonstrable stable version, rehearse the video and finish the submission package.
 
 These are team tasks. They have not automatically been assigned to the friend, and the current checkpoint does not mean either builder's entire role is complete. Coordinate file ownership before working in parallel.
+
+Voice capture now uses browser speech recognition with typed fallback. Before the demo, validate real microphone recognition and permission/error behavior in the target Safari/Chrome versions; mixed-language accuracy and a universal transcription backend remain open. See VOICE-CAPTURE.md.

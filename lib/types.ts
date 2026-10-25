@@ -74,6 +74,7 @@ export type Direction = {
   updatedAt: string;
 };
 export type Workspace = {
+  notes?: { id: string; text: string; createdAt: string }[];
   materials?: CourseMaterial[];
   version: 1;
   revision: number;
@@ -111,10 +112,13 @@ export const ConfirmSchema = IntakeSchema.extend({
     "Email",
     "Assignment",
     "Project",
+    "Voice capture",
   ]),
   uncertainty: z.string().max(500).default(""),
 });
 export const ActionSchema = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("saveNote"), text: z.string().trim().min(1).max(6000) }),
+  z.object({ action: z.literal("deleteNote"), id: z.string().min(1) }),
   z.object({ action: z.literal("aboutYou"), name: z.string().trim().min(1).max(60), year: z.enum(["2nd year", "3rd year"]), goal: z.string().max(120), minutes: z.number().int().min(5).max(180), context: LifeContextSchema }),
   z.object({
     action: z.literal("profile"),

@@ -32,6 +32,7 @@ import {
 import type { Intake, Mode, View, Work, Workspace } from "@/lib/types";
 import { nebiusPresentation, type Providers } from "@/lib/connection-status";
 import CourseLibrary from "./course-library";
+import VoiceCapture from "./voice-capture";
 
 type Modal = "add" | "profile" | "integrations" | "edit" | "course" | null;
 type Candidate = Intake & { source: string; sourceType: string; mode: Mode };
@@ -76,6 +77,7 @@ export default function WorkspaceApp() {
     model: null,
   });
   const [view, setView] = useState<View>("today");
+  const [captureOpen, setCaptureOpen] = useState(false);
   const [modal, setModal] = useState<Modal>(null);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
@@ -190,18 +192,21 @@ export default function WorkspaceApp() {
   }
   async function extract(e: FormEvent) {
     e.preventDefault();
+    await extractSource(source, sourceType);
+  }
+  async function extractSource(text: string, type: string) {
     setBusy("Reading your work");
     setError("");
     try {
       const response = await fetch("/api/intake", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ source }),
+        body: JSON.stringify({ source: text }),
       });
       const data = await response.json();
       if (!response.ok)
         throw new Error(data.error?.message || "Couldn't read that text.");
-      setCandidate({ ...data.candidate, source, sourceType, mode: data.mode });
+      setCandidate({ ...data.candidate, source: text, sourceType: type, mode: data.mode });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't connect.");
     } finally {
@@ -457,9 +462,9 @@ export default function WorkspaceApp() {
             <>
               <div className="page-heading">
                 <div>
-                  <p className="eyebrow">YOUR DAY, AT YOUR PACE</p>
-                  <h1>Your next good move.</h1>
-                  <p>One focused step at a time, {state.profile.name}.</p>
+                  <p className="eyebrow">LET’S MAKE TODAY COUNT</p>
+                  <h1>A little focus. Real progress.</h1>
+                  <p>Start with one thing, {state.profile.name}.</p>
                 </div>
                 <button
                   className="availability"
@@ -484,7 +489,7 @@ export default function WorkspaceApp() {
                     onClick={async () => {
                       if (
                         window.confirm(
-                          "Clear all coursework, attempts, course documents and personal context in this browser workspace?",
+                          "Clear all coursework, thoughts, attempts, course documents and personal context in this browser workspace?",
                         )
                       )
                         await act(
@@ -498,10 +503,11 @@ export default function WorkspaceApp() {
                 </div>
               )}
               <div className="day-context" aria-label="Your workspace at a glance">
-                <div><BookOpen size={18} /><span><strong>{active.length}</strong> pieces of work open</span></div>
-                <button onClick={() => setModal("profile")}><Clock3 size={18} /><span><strong>{state.profile.minutes} min</strong> available today</span><Pencil size={13} /></button>
-                <div><ListChecks size={18} /><span><strong>{state.observations.filter((o) => !o.removed).length}</strong> {state.observations.filter((o) => !o.removed).length === 1 ? "attempt" : "attempts"} remembered</span></div>
+                <div><BookOpen size={18} /><span><strong>{active.length}</strong> open tasks</span></div>
+                <button onClick={() => setModal("profile")}><Clock3 size={18} /><span><strong>{state.profile.minutes} min</strong> to focus</span><Pencil size={13} /></button>
+                <div><ListChecks size={18} /><span><strong>{state.observations.filter((o) => !o.removed).length}</strong> {state.observations.filter((o) => !o.removed).length === 1 ? "attempt" : "attempts"} saved</span></div>
               </div>
+              <details className="quick-capture" onToggle={(e) => setCaptureOpen(e.currentTarget.open)}><summary><span>Have something on your mind?</span><span>Speak or type ↗</span></summary><VoiceCapture active={captureOpen} onWork={(text) => { setSource(text); setSourceType("Voice capture"); setCandidate(null); setModal("add"); void extractSource(text, "Voice capture"); }} onNote={async (text) => !!(await act({ action: "saveNote", text }, "Saving your thought"))} />{(state.notes || []).length > 0 && <div className="thought-inbox"><h3>Thought inbox</h3>{[...(state.notes || [])].reverse().map((note) => <article key={note.id}><p>{note.text}</p><button className="btn subtle" disabled={!!busy} onClick={() => void act({ action: "deleteNote", id: note.id }, "Removing thought")}>Remove<span className="sr-only"> thought</span></button></article>)}</div>}</details>
               <div className="dashboard-grid">
                 <section className="next-step-card">
                   <div className="card-overline">
@@ -1276,6 +1282,7 @@ export default function WorkspaceApp() {
                       "Email",
                       "Assignment",
                       "Project",
+                      "Voice capture",
                     ].map((s) => (
                       <option key={s}>{s}</option>
                     ))}
@@ -1435,7 +1442,7 @@ export default function WorkspaceApp() {
                     </select>
                   </div>
                   <div>
-                    <label htmlFor="minutes">Minutes available today</label>
+                    <label htmlFor="minutes">Minutes to focus</label>
                     <input
                       id="minutes"
                       name="minutes"

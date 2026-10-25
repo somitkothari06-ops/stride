@@ -31,7 +31,17 @@ export async function POST(request: Request) {
       });
     let next;
 
-    if (input.action === "aboutYou") {
+    if (input.action === "saveNote") {
+      next = save((current) => {
+        if ((current.notes || []).length >= 100) throw new Error("INPUT_TOO_LARGE");
+        current.notes = [...(current.notes || []), { id: randomUUID(), text: input.text, createdAt: new Date().toISOString() }];
+      });
+    } else if (input.action === "deleteNote") {
+      next = save((current) => {
+        if (!(current.notes || []).some((note) => note.id === input.id)) throw new Error("NOT_FOUND");
+        current.notes = (current.notes || []).filter((note) => note.id !== input.id);
+      });
+    } else if (input.action === "aboutYou") {
       next = save((current) => {
         current.profile = { ...current.profile, name: input.name, year: input.year, goal: input.goal, minutes: input.minutes, lifeContext: input.context, onboardingComplete: true };
         current.revision++;
@@ -40,7 +50,7 @@ export async function POST(request: Request) {
       });
     } else if (input.action === "reset") {
       next = save((current) =>
-        Object.assign(current, initialWorkspace(input.sample)),
+        Object.assign(current, initialWorkspace(input.sample), { notes: [] }),
       );
     } else if (input.action === "profile") {
       next = save((current) => {
