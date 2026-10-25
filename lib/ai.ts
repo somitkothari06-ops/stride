@@ -1,14 +1,34 @@
 import { z } from "zod";
-import { consumeAllowance } from "./store";
-import { structuredTaskOptions } from "./provider-config";
+import {
+  consumeAllowance,
+  getProviderCheck,
+  recordProviderCheck,
+} from "./store";
+import { providerConfigId, structuredTaskOptions } from "./provider-config";
+
+function currentConfigId() {
+  if (!process.env.NEBIUS_API_KEY || !process.env.NEBIUS_MODEL_FAST)
+    return null;
+  return providerConfigId({
+    key: process.env.NEBIUS_API_KEY,
+    model: process.env.NEBIUS_MODEL_FAST,
+    baseUrl:
+      process.env.NEBIUS_BASE_URL || "https://api.tokenfactory.nebius.com/v1",
+    disableThinking: process.env.NEBIUS_DISABLE_THINKING,
+  });
+}
 
 export function providerStatus() {
+  const configId = currentConfigId();
+  const check = configId ? getProviderCheck(configId) : null;
   return {
     nebius: Boolean(
       process.env.NEBIUS_API_KEY && process.env.NEBIUS_MODEL_FAST,
     ),
     tavily: Boolean(process.env.TAVILY_API_KEY),
     model: process.env.NEBIUS_MODEL_FAST || null,
+    nebiusVerifiedAt: check?.verified_at || null,
+    nebiusLastFailureAt: check?.last_failure_at || null,
   };
 }
 export async function model<T>(
@@ -19,6 +39,7 @@ export async function model<T>(
 ): Promise<T> {
   if (!providerStatus().nebius) throw new Error("MODEL_UNAVAILABLE");
   consumeAllowance(session);
+  const configId = currentConfigId()!;
   try {
     const response = await fetch(
       `${(process.env.NEBIUS_BASE_URL || "https://api.tokenfactory.nebius.com/v1").replace(/\/$/, "")}/chat/completions`,
@@ -72,8 +93,10 @@ export async function model<T>(
       });
       throw new Error("MODEL_UNAVAILABLE");
     }
+    recordProviderCheck(configId, true);
     return validated.data;
   } catch {
+    recordProviderCheck(configId, false);
     throw new Error("MODEL_UNAVAILABLE");
   }
 }

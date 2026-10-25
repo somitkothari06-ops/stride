@@ -15,8 +15,31 @@ export function db() {
     instance.exec(
       "CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY, state TEXT NOT NULL, updated TEXT NOT NULL); CREATE TABLE IF NOT EXISTS usage (session TEXT NOT NULL, day TEXT NOT NULL, count INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(session,day));",
     );
+    instance.exec(
+      "CREATE TABLE IF NOT EXISTS provider_checks (config_id TEXT PRIMARY KEY, verified_at TEXT, last_failure_at TEXT)",
+    );
   }
   return instance;
+}
+export function getProviderCheck(configId: string) {
+  return db()
+    .prepare(
+      "SELECT verified_at,last_failure_at FROM provider_checks WHERE config_id=?",
+    )
+    .get(configId) as
+    | { verified_at: string | null; last_failure_at: string | null }
+    | undefined;
+}
+export function recordProviderCheck(
+  configId: string,
+  success: boolean,
+  at = new Date().toISOString(),
+) {
+  db()
+    .prepare(
+      "INSERT INTO provider_checks(config_id,verified_at,last_failure_at) VALUES(?,?,?) ON CONFLICT(config_id) DO UPDATE SET verified_at=COALESCE(excluded.verified_at,provider_checks.verified_at),last_failure_at=COALESCE(excluded.last_failure_at,provider_checks.last_failure_at)",
+    )
+    .run(configId, success ? at : null, success ? null : at);
 }
 export function sessionId(token: string) {
   return createHash("sha256").update(token).digest("hex");

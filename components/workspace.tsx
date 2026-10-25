@@ -30,8 +30,8 @@ import {
   PanelLeftClose,
 } from "lucide-react";
 import type { Intake, Mode, View, Work, Workspace } from "@/lib/types";
+import { nebiusPresentation, type Providers } from "@/lib/connection-status";
 
-type Providers = { nebius: boolean; tavily: boolean; model: string | null };
 type Modal = "add" | "profile" | "integrations" | "edit" | null;
 type Candidate = Intake & { source: string; sourceType: string; mode: Mode };
 const navigation = [
@@ -249,6 +249,7 @@ export default function WorkspaceApp() {
     month: "long",
   }).format(new Date());
   const activeNav = navigation.find((n) => n.id === view)!;
+  const connection = nebiusPresentation(providers);
 
   const workRows = (works: Work[], showSubject = true) =>
     works.length ? (
@@ -377,7 +378,7 @@ export default function WorkspaceApp() {
               onClick={() => setModal("integrations")}
             >
               <span />
-              {providers.nebius ? "AI key configured" : "Local guidance"}
+              {connection.shortLabel}
             </button>
             <button className="btn add-button" onClick={openAdd}>
               <Plus size={16} />
@@ -1189,7 +1190,7 @@ export default function WorkspaceApp() {
                       ? "A little context goes a long way."
                       : modal === "edit"
                         ? "Keep your context accurate."
-                        : "Connections, explained."}
+                        : "Your connections."}
                 </h2>
               </div>
               <button
@@ -1472,31 +1473,33 @@ export default function WorkspaceApp() {
             {modal === "integrations" && (
               <div className="connections">
                 <p className="modal-description">
-                  The app is running on your Nebius Devlab. Model inference and
-                  public search need separate server-side API keys.
+                  See which services are available and when live assistance last
+                  worked.
                 </p>
                 <div className="connection-item">
                   <span className="connection-logo">N</span>
                   <div>
-                    <h3>Nebius Token Factory</h3>
-                    <p>
-                      {providers.nebius
-                        ? `Configured model: ${providers.model}. A successful live request still needs verification.`
-                        : "Not configured. Local guidance uses built-in rules and authored prompts, not AI responses."}
-                    </p>
+                    <h3>Study assistance</h3>
+                    <p>NVIDIA · Nebius Token Factory</p>
+                    <p>{connection.description}</p>
+                    {providers.model && (
+                      <details>
+                        <summary>Model details</summary>
+                        <p>{providers.model}</p>
+                      </details>
+                    )}
                   </div>
-                  <span className="tag">
-                    {providers.nebius ? "Configured" : "Setup needed"}
-                  </span>
+                  <span className="tag">{connection.label}</span>
                 </div>
                 <div className="connection-item">
                   <span className="connection-logo tavily">T</span>
                   <div>
-                    <h3>Tavily</h3>
+                    <h3>Opportunity search</h3>
+                    <p>Tavily</p>
                     <p>
                       {providers.tavily
-                        ? "A key is configured for public role searches."
-                        : "Not configured. No live job results are shown."}
+                        ? "Configured for public role searches. Each result includes its source and retrieval time."
+                        : "Not connected yet. Live internship sources are unavailable."}
                     </p>
                   </div>
                   <span className="tag">
@@ -1506,21 +1509,19 @@ export default function WorkspaceApp() {
                 <div className="setup-note">
                   <ShieldCheck size={19} />
                   <div>
-                    <strong>Keep your keys private.</strong>
+                    <strong>Your work, your choices.</strong>
                     <p>
-                      Configure <code>NEBIUS_API_KEY</code>,{" "}
-                      <code>NEBIUS_MODEL_FAST</code>, and{" "}
-                      <code>TAVILY_API_KEY</code> in the server’s gitignored{" "}
-                      <code>.env.local</code> file. Restart the app after
-                      changes. Don’t paste credentials into chat or commit them
-                      to GitHub.
+                      Selected text is sent to connected AI services when you
+                      ask for help. Avoid passwords and unrelated personal
+                      details. Connections are managed on Stride’s server; you
+                      don't need to enter API keys here.
                     </p>
                   </div>
                 </div>
                 <p className="field-help">
-                  This first milestone stores a private workspace per browser
-                  session. Cross-device accounts and scheduled briefs are
-                  upcoming work.
+                  Development preview: this workspace is saved for this browser.
+                  Cross-device sign-in and automatic daily briefs are not
+                  available yet.
                 </p>
                 <button
                   className="btn subtle"

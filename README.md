@@ -60,7 +60,7 @@ After choosing a model, run one small paid structured-output check:
 node --env-file=.env.local scripts/check-provider.mjs --test
 ```
 
-Restart the app after environment changes. Then test extraction, preparation and explanation feedback with the real model. A “configured” badge means settings exist, not that inference has passed. Provider errors preserve stored work and do not silently relabel rule-based content as AI output.
+Restart the app after environment changes. Then test extraction, preparation and explanation feedback with the real model. The connection view distinguishes configuration from a validated live response and shows its timestamp. A changed key/model/configuration resets verification, and later failures are shown separately. Provider errors preserve stored work and do not silently relabel rule-based content as AI output.
 
 Without a key/model, local guidance uses simple explicit rules and authored practice prompts. Attempts are recorded as **self-report**, without correctness claims. No code/test execution is claimed by this milestone.
 
@@ -92,7 +92,7 @@ node scripts/live-smoke.mjs --allow-live
 
 This runs four live calls and checks extraction, plan constraints/source references, practice preparation, and the model-assessment label. It checks integration behavior, not educational efficacy.
 
-See [development notes](docs/DEVELOPMENT.md) and [milestone status](docs/STATUS.md).
+See [development notes](docs/DEVELOPMENT.md), [milestone status](docs/STATUS.md), and [what remains](docs/ROADMAP.md).
 
 ## Architecture and privacy boundary
 

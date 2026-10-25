@@ -9,6 +9,8 @@ import {
   mutate,
   consumeAllowance,
   sessionId,
+  getProviderCheck,
+  recordProviderCheck,
 } from "../lib/store";
 process.env.STRIDE_DATA_DIR = mkdtempSync(join(tmpdir(), "stride-test-"));
 
@@ -37,4 +39,18 @@ test("live call allowance is bounded per session", () => {
   const a = createSession();
   for (let n = 0; n < 40; n++) consumeAllowance(a.id);
   assert.throws(() => consumeAllowance(a.id), /DAILY_LIMIT/);
+});
+test("connection status keeps the last success and later failure separately", () => {
+  assert.equal(getProviderCheck("test-config-a"), undefined);
+  recordProviderCheck("test-config-a", true, "2026-10-25T08:00:00.000Z");
+  recordProviderCheck("test-config-a", false, "2026-10-25T08:01:00.000Z");
+  assert.equal(
+    getProviderCheck("test-config-a")?.verified_at,
+    "2026-10-25T08:00:00.000Z",
+  );
+  assert.equal(
+    getProviderCheck("test-config-a")?.last_failure_at,
+    "2026-10-25T08:01:00.000Z",
+  );
+  assert.equal(getProviderCheck("test-config-b"), undefined);
 });
