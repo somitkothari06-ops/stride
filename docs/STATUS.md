@@ -72,3 +72,5 @@ Raised buttons and warm background (October 25):
 - Twenty-nine tests, TypeScript and production build passed on the Devlab.
 
 Compact Today introduction (October 25): replaced the oversized slogan and uppercase overline with a short 32px heading (28px on mobile), sentence-case label, one-line supporting copy and a cobalt rule. Browser screenshot verified hierarchy against the blue focus card. OpenCode reviewed the source-only diff with no established defect. All 29 tests, TypeScript and production build passed on the Devlab.
+
+Today welcome replacement (October 25): removed the rejected slogan, accent rule and hidden duplicate time button. Today now has a compact personal greeting and date in an open horizontal row, stacked on mobile. The separate date/privacy row remains on other views. All 29 tests, TypeScript and build passed; browser screenshot verified the deployed layout.

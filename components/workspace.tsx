@@ -431,7 +431,7 @@ export default function WorkspaceApp() {
           </div>
         </header>
         <main className="main-content" id="main-content" tabIndex={-1} aria-busy={!!busy}>
-          <div className="date-line">
+          <div className={`date-line ${view === "today" ? "today-date-hidden" : ""}`}>
             <span>{dateText}</span>
             <span>
               <ShieldCheck size={13} />
@@ -460,24 +460,12 @@ export default function WorkspaceApp() {
 
           {view === "today" && (
             <>
-              <div className="page-heading today-heading">
+              <div className="today-welcome">
                 <div>
-                  <p className="eyebrow">Your daily starting point</p>
-                  <h1>Find your focus.</h1>
-                  <p>One useful task. A little time. Start there.</p>
+                  <h1>Hey, {state.profile.name}<span className="welcome-period">.</span></h1>
+                  <p>Here’s what’s on your plate.</p>
                 </div>
-                <button
-                  className="availability"
-                  onClick={() => setModal("profile")}
-                >
-                  <Clock3 size={17} />
-                  <span>
-                    <small>Time for today</small>
-                    <strong>
-                      {state.profile.minutes} minutes <Pencil size={12} />
-                    </strong>
-                  </span>
-                </button>
+                <div className="welcome-date"><CalendarDays size={18} /><span>{dateText}</span></div>
               </div>
               {state.sample && (
                 <div className="sample-strip">
