@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { consumeAllowance } from "./store";
+import { structuredTaskOptions } from "./provider-config";
 
 export function providerStatus() {
   return {
@@ -33,6 +34,7 @@ export async function model<T>(
           temperature: 0.2,
           max_tokens: 1800,
           response_format: { type: "json_object" },
+          ...structuredTaskOptions(process.env.NEBIUS_DISABLE_THINKING),
           messages: [
             {
               role: "system",
@@ -45,13 +47,32 @@ export async function model<T>(
         }),
       },
     );
-    if (!response.ok) throw new Error("MODEL_UNAVAILABLE");
+    if (!response.ok) {
+      console.warn("Stride inference rejected", { status: response.status });
+      throw new Error("MODEL_UNAVAILABLE");
+    }
     const result = await response.json();
+    if (result.choices?.[0]?.finish_reason === "length") {
+      console.warn("Stride inference truncated", {
+        completionTokens: result.usage?.completion_tokens,
+      });
+      throw new Error("MODEL_UNAVAILABLE");
+    }
     const raw = result.choices?.[0]?.message?.content;
     if (typeof raw !== "string") throw new Error("MODEL_UNAVAILABLE");
-    return schema.parse(
+    const validated = schema.safeParse(
       JSON.parse(raw.replace(/^```(?:json)?\s*|\s*```$/g, "")),
     );
+    if (!validated.success) {
+      console.warn("Stride inference schema mismatch", {
+        issues: validated.error.issues.map((issue) => ({
+          path: issue.path.join("."),
+          code: issue.code,
+        })),
+      });
+      throw new Error("MODEL_UNAVAILABLE");
+    }
+    return validated.data;
   } catch {
     throw new Error("MODEL_UNAVAILABLE");
   }

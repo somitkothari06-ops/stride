@@ -5,9 +5,18 @@ Implemented: assignment intake/confirmation, Today planning, authored guided pra
 Validation on the Nebius Devlab:
 
 - TypeScript check.
-- Nine planner/storage tests covering ambiguous/invalid dates, urgent replanning, time bounds, no-history/no-goal flow, calendar timezone, independent sessions, transaction rollback and call allowance.
+- Eleven planner/storage/provider-configuration tests covering ambiguous/invalid dates, urgent replanning, time bounds, no-history/no-goal flow, calendar timezone, independent sessions, transaction rollback and call allowance.
 - Production build.
 - HTTP smoke flow for persistence, separate sessions, preparation/attempts, dependent-record removal and cross-origin rejection.
 - Browser check: prepared a SQL session, saved a synthetic explanation as self-report, confirmed an urgent exam notice, refreshed the stale plan, and verified the recommendation switched to exam revision.
 
-These checks do not validate live model quality, API key access, Tavily response quality, production authentication or a public submission deployment. All sample coursework is synthetic. Model and search credentials have not been supplied at this checkpoint.
+Live integration update, October 25, 2026:
+
+- A dedicated Token Factory key was configured privately on the Devlab. No credential is stored in this repository.
+- The account-visible `nvidia/Nemotron-3_5-Lightning` model passed a small structured-output connection test.
+- Reasoning was explicitly disabled for short structured tasks after an initial output-limit failure.
+- Planner prompts were made explicit about JSON field types after validation caught a string where an array was expected. Invalid output was rejected rather than saved.
+- Live synthetic workflow passed: extraction (495 ms), source-linked planning (538 ms), practice preparation (872 ms), and labeled model assessment (451 ms). These are single-run observations, not latency guarantees or benchmarks.
+- Tavily is not configured. No live role-search quality is claimed.
+
+These checks do not establish model correctness across coursework, educational efficacy, production authentication or a public submission deployment. All test coursework is synthetic.

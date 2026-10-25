@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       });
     const candidate = await model(
       id,
-      "Extract one work item. Return {title,subject,kind,dueDate,summary,uncertainty}. kind is assignment|exam|project|revision. dueDate is YYYY-MM-DD or null. Relative dates without an original message date must be null. Ask about unclear fields in uncertainty. Student confirmation is required.",
+      "Extract one work item. Return JSON with title string, subject string, kind string, dueDate string or null, summary string and uncertainty string. Always include every field; use an empty string for uncertainty if none. kind is assignment|exam|project|revision. dueDate is YYYY-MM-DD or null. Relative dates without an original message date must be null. Ask about unclear fields in uncertainty. Student confirmation is required.",
       input,
       IntakeSchema,
     );

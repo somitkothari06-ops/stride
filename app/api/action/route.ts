@@ -97,7 +97,7 @@ export async function POST(request: Request) {
       if (plan && providerStatus().nebius) {
         const result = await model(
           id,
-          "Prepare ONE feasible next action for the supplied priority work. Respect available time; urgent coursework overrides career extras. Return {title,description,minutes,reasons,sourceIds}. minutes must fit availableMinutes. sourceIds may only use supplied IDs. Be concrete and concise.",
+          'Prepare ONE feasible next action for the supplied priority work. Respect available time; urgent coursework overrides career extras. Return JSON with exactly these field types: title string, description string, minutes integer, reasons array of 1-4 short strings, sourceIds array of strings. Example shape: {"title":"Practise one join","description":"Use the supplied toy data","minutes":15,"reasons":["A confirmed deadline is near"],"sourceIds":[]}. minutes must fit availableMinutes. sourceIds may only use supplied IDs. Be concrete and concise.',
           {
             priorityWork: selectWork(state),
             availableMinutes: state.profile.minutes,
@@ -142,7 +142,7 @@ export async function POST(request: Request) {
       if (providerStatus().nebius) {
         const result = await model(
           id,
-          "Prepare a small learning task based on this work. Return {title,context,steps,question}. Include a concrete toy example when useful. Do not complete a graded submission for the student or claim to have run code. Clearly identify synthetic examples. Keep 3-5 short steps and one explanation question.",
+          "Prepare a small learning task based on this work. Return JSON with title string, context string, steps array of 3-5 strings, and question string. steps must be an array, not a paragraph or numbered object. Include a concrete toy example when useful. Do not complete a graded submission for the student or claim to have run code. Clearly identify synthetic examples. Keep 3-5 short steps and one explanation question.",
           {
             work,
             availableMinutes: state.profile.minutes,
@@ -172,7 +172,7 @@ export async function POST(request: Request) {
       if (providerStatus().nebius) {
         const result = await model(
           id,
-          "Review this explanation cautiously against the supplied task. Return {title,feedback}. Identify a specific supported point, uncertainty, and one next practice suggestion. Never certify mastery/authorship or say tests ran. Call this model feedback, not verification.",
+          "Review this explanation cautiously against the supplied task. Return JSON with title string and feedback string; both must be plain strings, not nested objects or arrays. Identify a specific supported point, uncertainty, and one next practice suggestion. Never certify mastery/authorship or say tests ran. Call this model feedback, not verification.",
           {
             work,
             question:
@@ -218,7 +218,7 @@ export async function POST(request: Request) {
       if (sources.length && providerStatus().nebius) {
         const result = await model(
           id,
-          "Compare this small retrieved sample with observations. Return {summary,requirements:[{requirement,evidenceIds,nextStep}]}. Extract only requirements present in supplied excerpts; distinguish missing evidence from missing skill. evidenceIds are only supplied observation IDs; empty means not observed. Do not claim job readiness or that postings remain open. At most 5 requirements.",
+          "Compare this small retrieved sample with observations. Return JSON with summary string and requirements array of objects; each has requirement string, evidenceIds array of strings, and nextStep string. Extract only requirements present in supplied excerpts; distinguish missing evidence from missing skill. evidenceIds are only supplied observation IDs; empty means not observed. Do not claim job readiness or that postings remain open. At most 5 requirements.",
           {
             role: input.role,
             sources,

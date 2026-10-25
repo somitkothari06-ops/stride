@@ -2,7 +2,7 @@
 
 A personal workspace for second- and third-year CS/engineering students: decide what to do next, work through a focused exercise, and keep an honest record of progress.
 
-**Status: first working development milestone.** The app runs on an existing Nebius Devlab. Live model/search use requires privately configured keys and must be verified before a hackathon submission. This is not yet the final submission or a public production service.
+**Status: first working development milestone.** The app runs on an existing Nebius Devlab. Live NVIDIA inference is configured and verified on the team Devlab; other checkouts need their own private key. Tavily search is not configured yet. This is not yet the final submission or a public production service.
 
 ## Working in this milestone
 
@@ -45,7 +45,8 @@ Edit `.env.local` privately:
 
 - `NEBIUS_API_KEY`: an actual Token Factory key, not a promo code.
 - `NEBIUS_BASE_URL`: the provider's OpenAI-compatible base URL; default is `https://api.tokenfactory.nebius.com/v1`.
-- `NEBIUS_MODEL_FAST`: an exact account-visible NVIDIA model ID.
+- `NEBIUS_MODEL_FAST`: an exact account-visible NVIDIA model ID. Tested: `nvidia/Nemotron-3_5-Lightning`.
+- `NEBIUS_DISABLE_THINKING=true`: tested for short structured tasks on this Lightning endpoint. This requests direct answers instead of using the output budget for reasoning. Recheck support when changing models.
 
 List available eligible models without running inference:
 
@@ -83,6 +84,14 @@ node scripts/smoke.mjs
 
 The smoke script creates separate synthetic sessions, exercises persistence, planning, preparation and an attempt, checks deletion invalidation, and tests origin protection. It can invoke live providers if configured: use a keyless test instance for a no-cost local-guidance check. Override the target with `STRIDE_TEST_URL`.
 
+Explicitly opt into a small paid synthetic workflow against a configured running instance:
+
+```sh
+node scripts/live-smoke.mjs --allow-live
+```
+
+This runs four live calls and checks extraction, plan constraints/source references, practice preparation, and the model-assessment label. It checks integration behavior, not educational efficacy.
+
 See [development notes](docs/DEVELOPMENT.md) and [milestone status](docs/STATUS.md).
 
 ## Architecture and privacy boundary
@@ -95,7 +104,7 @@ The server is currently reached through an SSH tunnel. Before public launch, add
 
 ## Remaining submission work
 
-- Configure and verify live NVIDIA/Nebius inference and Tavily.
+- Configure and verify Tavily; broaden model quality evaluations. NVIDIA/Nebius extraction, planning, preparation and model assessment have passed a synthetic live workflow.
 - Replace browser-only identity with managed accounts for real users; design accessible isolated judge sessions.
 - Add safe scheduled brief preparation, source provenance improvements and duplicate/update handling.
 - Harden request idempotency, large-input handling, modal accessibility and model quality evaluations.

@@ -33,8 +33,11 @@ try {
       signal: AbortSignal.timeout(25000),
       body: JSON.stringify({
         model: selected,
-        max_tokens: 100,
+        max_tokens: 256,
         response_format: { type: "json_object" },
+        ...(process.env.NEBIUS_DISABLE_THINKING === "true"
+          ? { chat_template_kwargs: { enable_thinking: false } }
+          : {}),
         messages: [
           {
             role: "user",
@@ -45,6 +48,10 @@ try {
     });
     if (!test.ok) throw new Error(`Inference returned HTTP ${test.status}`);
     const output = await test.json();
+    if (output.choices?.[0]?.finish_reason === "length")
+      throw new Error(
+        "Output limit reached before the structured response completed. Check the model's reasoning settings.",
+      );
     const parsed = JSON.parse(output.choices?.[0]?.message?.content || "{}");
     if (parsed.ok !== true)
       throw new Error(
