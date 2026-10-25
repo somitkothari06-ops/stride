@@ -458,8 +458,8 @@ export default function WorkspaceApp() {
               <div className="page-heading">
                 <div>
                   <p className="eyebrow">YOUR DAY, AT YOUR PACE</p>
-                  <h1>What will you work on today?</h1>
-                  <p>{state.profile.name}, here’s one manageable place to start.</p>
+                  <h1>Your next good move.</h1>
+                  <p>One focused step at a time, {state.profile.name}.</p>
                 </div>
                 <button
                   className="availability"
@@ -478,14 +478,13 @@ export default function WorkspaceApp() {
                 <div className="sample-strip">
                   <span className="sample-tag">DEMO</span>
                   <p>
-                    This workspace includes sample coursework. Add your own, or
-                    start with a clean slate.
+                    Sample coursework. Add your own when you’re ready.
                   </p>
                   <button
                     onClick={async () => {
                       if (
                         window.confirm(
-                          "Clear the disposable records in this browser session and start fresh?",
+                          "Clear all coursework, attempts, course documents and personal context in this browser workspace?",
                         )
                       )
                         await act(
@@ -535,18 +534,17 @@ export default function WorkspaceApp() {
                       {stale ? (
                         <div className="stale-note">
                           <RefreshCw size={15} />
-                          Your context changed. Refresh this step before using
-                          it.
+                          Your context changed. Update your next step.
                         </div>
                       ) : (
-                        <div className="why-list"><strong>Why this comes first</strong>
+                        <details className="why-details"><summary>Why this step?</summary><div className="why-list">
                           {state.plan.reasons.slice(0, 2).map((r) => (
                             <span key={r}>
                               <Check size={13} />
                               {r}
                             </span>
                           ))}
-                        </div>
+                        </div></details>
                       )}
                       <div className="hero-bottom">
                         <button
@@ -564,19 +562,11 @@ export default function WorkspaceApp() {
                           {stale ? "Refresh next step" : "Start a focused session"}
                           <ArrowRight size={16} />
                         </button>
-                        <button
-                          className="text-button"
+                        {!stale && <button
+                          className="btn hero-secondary"
                           disabled={!!busy}
-                          onClick={() =>
-                            act(
-                              { action: "plan" },
-                              "Reconsidering your next step",
-                            )
-                          }
-                        >
-                          <RefreshCw size={13} />
-                          Rethink my plan
-                        </button>
+                          onClick={() => act({ action: "plan" }, "Reconsidering your next step")}
+                        ><RefreshCw size={16} /> Rethink plan</button>}
                       </div>
                     </>
                   ) : (
@@ -610,30 +600,30 @@ export default function WorkspaceApp() {
                 </section>
                 <section className="card upcoming">
                   <div className="section-title">
-                    <h2>Deadlines to keep in view</h2>
+                    <h2>Coming up</h2>
                     <CalendarDays size={17} />
                   </div>
-                  <p className="muted">Your nearest confirmed deadlines.</p>
+
                   {workRows(active.slice(0, 4))}
                   <button
-                    className="text-button all-work"
+                    className="btn card-action all-work"
                     onClick={() => go("work")}
                   >
-                    See all my work <ArrowRight size={14} />
+                    View all coursework <ArrowRight size={14} />
                   </button>
                 </section>
                 <section className="card progress-card">
                   <div className="section-title">
-                    <h2>Your progress has a memory.</h2>
+                    <h2>Your learning trail</h2>
                     <Leaf size={18} />
                   </div>
-                  <p className="muted">What you tried is worth remembering.</p>
+
                   {latestObservation ? (
                     <div className="latest-observation">
                       <span className="observation-dot" />
                       <div>
                         <strong>{latestObservation.title}</strong>
-                        <p>{latestObservation.feedback}</p>
+
                         <span className="tag">
                           {latestObservation.method === "self-report"
                             ? "Self-reported · not assessed"
@@ -647,10 +637,9 @@ export default function WorkspaceApp() {
                         <ListChecks size={23} />
                       </span>
                       <div>
-                        <strong>Your first attempt starts the story.</strong>
+                        <strong>Keep your first attempt.</strong>
                         <p>
-                          Save what you tried, what clicked, and what needs
-                          another look.
+                          Try a session, then save your explanation.
                         </p>
                       </div>
                     </div>
@@ -661,32 +650,29 @@ export default function WorkspaceApp() {
                       {state.observations.length === 1 ? "attempt" : "attempts"}
                     </span>
                     <button
-                      className="text-button"
+                      className="btn card-action"
                       onClick={() => go("memory")}
                     >
-                      Open memory <ArrowUpRight size={14} />
+                      View memory <ArrowUpRight size={14} />
                     </button>
                   </div>
                 </section>
                 <section className="direction-card">
                   <Compass size={25} />
                   <span className="tiny-overline">
-                    KEEP THE BIGGER PICTURE CLOSE
+                    BEYOND TODAY
                   </span>
                   <h2>
-                    Today's work.
-                    <br />
-                    Tomorrow's possibilities.
+                    Find your direction.
                   </h2>
                   <p>
-                    See where the work you can show meets the roles you're
-                    curious about.
+                    Explore roles and the work behind them.
                   </p>
                   <button
-                    className="text-button"
+                    className="btn card-action"
                     onClick={() => go("direction")}
                   >
-                    Explore my direction <ArrowUpRight size={15} />
+                    Explore options <ArrowUpRight size={15} />
                   </button>
                 </section>
               </div>

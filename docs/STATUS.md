@@ -46,3 +46,10 @@ Signal and course-context checkpoint, October 25, 2026:
 - Parser tests cover PDF text/page locators, reordered PowerPoint relationships, Word text sections and rejection of unreadable/oversized input. They do not establish OCR or broad document-layout fidelity.
 - The dependency audit reported zero known vulnerabilities after moving validation to Zod 4.6.7; compatibility checks passed. This is a point-in-time audit, not a security guarantee.
 - See [course details](COURSE-CONTEXT.md), [About You](ABOUT-YOU.md), [design studies](DESIGN-DIRECTIONS.md) and [workflow references](WORKFLOW-REFERENCES.md). Production identity, daily scheduling, Tavily, OCR and public judge access are still unfinished.
+
+Card contrast and typography refinement:
+
+- Replaced the external font import with a locally served variable Plus Jakarta Sans font; its OFL notice is included under `public/fonts/`.
+- Kept the blue focus surface and gave deadlines a white surface with a strong border, Memory a navy surface and Direction a yellow surface. Increased heading/body weight and size, shortened dashboard copy and converted key card links into visible buttons.
+- Kept full observation feedback in Memory while making the dashboard summary compact. Planning reasons are available in a disclosure; stale plans have one refresh action rather than duplicate replan controls.
+- Twenty-nine tests and production build passed. The deployed page and font returned HTTP 200. Browser inspection confirmed the new surfaces, labels and the working Memory button.

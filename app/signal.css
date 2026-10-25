@@ -15,3 +15,92 @@ body{font-size:16px;color:var(--ink);background:var(--bg)}
 @media(max-width:700px){.app-shell .sidebar{display:none;visibility:hidden}.app-shell .sidebar.mobile-open{display:flex;position:fixed;inset:0 auto 0 0;width:270px;min-height:100vh;flex-direction:column;align-items:stretch;justify-content:flex-start;transform:none;padding:32px 24px;background:white;border-right:2px solid #172653;visibility:visible}.app-shell .sidebar.mobile-open nav{flex-direction:column}.app-shell .sidebar.mobile-open .sidebar-bottom{display:flex;flex-direction:column;margin-top:auto;align-items:stretch}.app-shell .sidebar.mobile-open .sidebar-bottom>.nav-item{display:flex}.app-shell .topbar{padding:0 16px}.app-shell .main-content{padding:24px 16px 88px}.app-shell .page-heading h1{font-size:30px}.app-shell .page-heading>div>p:last-child{font-size:15px}.app-shell .next-step-card h2{font-size:28px}.app-shell .next-step-card{padding:24px}.app-shell .day-context>div,.app-shell .day-context>button{font-size:13px}.app-shell .mobile-tabs{background:white;border-color:#d6def0}.app-shell .mobile-tabs button{font-size:12px;color:#5e6c89}.app-shell .mobile-tabs button[aria-current="page"]{background:#eaf0ff;color:#244bff}.site-header nav a:not(:last-child){display:none}.site-header{padding:20px 24px;gap:12px;flex-wrap:wrap}.site-header .site-brand{font-size:32px}.site-header>.btn{font-size:13px!important;min-height:44px!important;padding:8px 16px!important}.landing-hero{padding:40px 24px;gap:40px}.landing-hero h1{font-size:54px;letter-spacing:-3px}.landing-lead{font-size:17px}.landing-example{padding:28px}.landing-example h2{font-size:30px}.landing-process,.landing-course,.landing-trust,.landing-final{padding:40px 24px}.landing-section-heading h2{font-size:30px}.landing-three{grid-template-columns:1fr;gap:32px}.landing-course{gap:32px}.landing-course h2{font-size:40px}.landing-final h2{font-size:40px}.site-footer{padding:24px;gap:16px}.site-footer p{width:100%}.site-footer a:last-child{margin:0}.story-sidebar h1{font-size:32px}.story-sidebar li{font-size:11px}.story-sidebar li>span{width:24px;height:24px}.story-main{padding:24px}.story-main h2{font-size:28px}.story-actions{flex-wrap:wrap}.story-actions>.btn.primary{width:100%;order:-1}.story-main .form-grid{grid-template-columns:1fr}.story-sidebar>p:not(.site-kicker){font-size:15px}.story-page .site-header>a:last-child{font-size:13px}}
 .app-shell .connection-badge{font-size:12px}.app-shell .add-button{font-size:14px}.app-shell .keyboard-hint{font-size:11px}
 @media(max-width:500px){.app-shell .topbar .connection-badge{display:none}.app-shell .breadcrumb{gap:8px}.app-shell .add-button{padding:8px 12px;font-size:13px}}
+
+/* Stronger type and four distinct study surfaces. */
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  src: url("/fonts/plus-jakarta-sans.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+}
+body, button, input, select, textarea {
+  font-family: "Plus Jakarta Sans", Arial, sans-serif;
+}
+h1, h2, h3, .brand, .landing-hero h1 {
+  font-family: "Plus Jakarta Sans", Arial, sans-serif;
+}
+.app-shell h1, .app-shell h2, .app-shell h3 { font-weight: 750; }
+.app-shell .page-heading h1 { font-size: 44px; letter-spacing: -1.8px; }
+.app-shell .main-content { padding-top: 24px; }
+.app-shell .date-line { margin-bottom: 16px; }
+.app-shell .page-heading { margin-bottom: 24px; }
+.app-shell .page-heading > div > p:last-child { font-size: 17px; color: #405276; }
+.app-shell .availability { display: none; }
+.app-shell .day-context { padding: 12px 0 20px; gap: 32px; }
+.app-shell .day-context > div, .app-shell .day-context > button { font-size: 15px; }
+.app-shell .day-context strong { font-weight: 750; }
+.app-shell .sample-strip { background: white; border: 1px dashed #9baad0; padding: 8px 16px; margin-bottom: 16px; }
+.app-shell .sample-strip p, .app-shell .sample-strip button { font-size: 14px; color: #405276; }
+.app-shell .dashboard-grid { gap: 24px; align-items: stretch; }
+.app-shell .next-step-card { min-height: 0; padding: 32px; }
+.app-shell .next-step-card h2 { font-size: 34px; font-weight: 750; letter-spacing: -1px; }
+.app-shell .next-step-card > p { font-size: 17px; line-height: 1.7; }
+.app-shell .hero-tags { margin-top: 24px; }
+.app-shell .hero-tags span { font-size: 14px; font-weight: 600; padding: 6px 12px; }
+.app-shell .card-overline { font-weight: 700; }
+.app-shell .why-details { margin-top: 24px; color: white; }
+.app-shell .why-details summary { font-size: 15px; font-weight: 650; padding: 8px 0; }
+.app-shell .why-details .why-list { margin-top: 8px; padding-top: 12px; }
+.app-shell .stale-note { font-size: 15px; margin-top: 16px; padding-top: 0; color: #fff2a6; }
+.app-shell .hero-bottom { justify-content: flex-start; gap: 12px; margin-top: 24px; }
+.app-shell .btn { border-radius: 6px; font-weight: 700; min-height: 48px; padding: 12px 20px; font-size: 15px; gap: 12px; }
+.app-shell .next-step-card .btn.dark { border-radius: 6px; font-size: 16px; font-weight: 750; box-shadow: 0 3px 0 #172653; }
+.app-shell .hero-secondary { border: 1px solid #ffffff70; color: white; background: transparent; }
+.app-shell .hero-secondary:hover { background: #ffffff15; }
+.app-shell .btn:active:not(:disabled) { transform: translateY(2px); }
+.app-shell .card, .app-shell .direction-card { padding: 28px; border: 2px solid #172653; border-radius: 6px; }
+.app-shell .section-title { margin-bottom: 16px; }
+.app-shell .section-title h2 { font-size: 24px; font-weight: 750; letter-spacing: -.7px; }
+.app-shell .upcoming { background: #fff; }
+.app-shell .upcoming .work-row { padding: 16px 0; min-height: 84px; border-bottom: 1px solid #cbd4e8; border-radius: 0; }
+.app-shell .upcoming .work-row:hover { background: #f2f5ff; }
+.app-shell .work-row-copy strong { font-size: 17px; font-weight: 700; }
+.app-shell .work-row-copy small, .app-shell .work-row-right small { font-size: 14px; color: #405276; }
+.app-shell .work-row-right small { font-weight: 650; }
+.app-shell .upcoming .work-icon { color: #244bff; border: 1px solid #b5c4ff; background: #e8eeff; width: 40px; height: 40px; }
+.app-shell .card-action { text-decoration: none; background: #172653; border: 1px solid #172653; color: white; width: fit-content; margin-top: 20px; }
+.app-shell .card-action:hover { background: #244bff; border-color: #244bff; }
+.app-shell .all-work { margin-bottom: 0; }
+.app-shell .progress-card { display: flex; flex-direction: column; background: #172653; color: white; }
+.app-shell .progress-card .section-title h2 { color: white; }
+.app-shell .progress-card .section-title > svg { color: #abbcff; }
+.app-shell .latest-observation { margin-top: 12px; gap: 16px; }
+.app-shell .latest-observation strong { display: block; font-size: 19px; line-height: 1.5; font-weight: 650; color: #fff; margin-bottom: 16px; }
+.app-shell .observation-dot { background: #f3e86c; width: 8px; height: 8px; }
+.app-shell .progress-card .tag { display: inline-flex; padding: 6px 12px; background: #ffffff0c; border: 1px solid #8498cb; color: #e8eeff; font-size: 13px; }
+.app-shell .progress-card .card-footer { margin-top: auto; padding-top: 24px; border-top: 0; gap: 16px; flex-wrap: wrap; }
+.app-shell .progress-card .card-footer > span { font-size: 14px; color: #d4ddf4; }
+.app-shell .progress-card .card-action { background: #fff; color: #172653; border-color: #fff; margin-top: 0; }
+.app-shell .progress-card .card-action:hover { background: #f3e86c; border-color: #f3e86c; }
+.app-shell .progress-card .memory-preview strong { color: #fff; font-size: 18px; }
+.app-shell .progress-card .memory-preview p { color: #d4ddf4; font-size: 15px; }
+.app-shell .direction-card { background: #f3e86c; display: flex; flex-direction: column; align-items: flex-start; }
+.app-shell .direction-card > svg { color: #172653; }
+.app-shell .direction-card .tiny-overline { color: #334060; font-size: 12px; font-weight: 750; letter-spacing: 1.5px; max-width: none; }
+.app-shell .direction-card h2 { color: #172653; font-size: 34px; font-weight: 750; line-height: 1.15; margin-top: 24px; max-width: 320px; }
+.app-shell .direction-card p { color: #334060; font-size: 17px; line-height: 1.6; max-width: 330px; margin: 16px 0 24px; }
+.app-shell .direction-card .card-action { margin-top: auto; }
+@media (max-width: 700px) {
+  .app-shell .page-heading h1 { font-size: 34px; }
+  .app-shell .page-heading > div > p:last-child { font-size: 16px; }
+  .app-shell .next-step-card h2 { font-size: 29px; }
+  .app-shell .next-step-card, .app-shell .card, .app-shell .direction-card { padding: 24px; }
+  .app-shell .direction-card h2 { font-size: 30px; }
+  .app-shell .hero-bottom .btn { width: 100%; }
+  .app-shell .day-context { gap: 12px 24px; }
+  .app-shell .work-row-copy strong { font-size: 16px; }
+  .app-shell .upcoming .work-row-copy strong { max-width: 190px; }
+}
+.app-shell .card-overline > span:last-child{font-size:13px}
+.app-shell .upcoming .work-row-copy strong{white-space:normal;overflow:visible;text-overflow:clip;max-width:none;line-height:1.45}
