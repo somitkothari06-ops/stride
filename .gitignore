@@ -3,6 +3,10 @@ node_modules/
 .env*
 !.env.example
 .data/
+.backups/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
 *.log
 *.tsbuildinfo
 .DS_Store

@@ -27,3 +27,11 @@ Connection status fix:
 - Verification resets when the key, model, endpoint or reasoning configuration changes; a later failure does not erase the last-success timestamp.
 - The student settings view now explains service availability without exposing environment-variable instructions.
 - See [the completion checklist](ROADMAP.md) for the unfinished project scope.
+
+Recovery checkpoint, October 25, 2026:
+
+- Added consistent live SQLite snapshots and integrity verification, with a restore command that requires a new directory.
+- Eighteen tests and TypeScript checks passed on the Devlab's Node 22 runtime, including committed WAL capture, independent snapshot restoration and rejection of corrupt sources/overwrite attempts.
+- A private snapshot of the live Devlab database completed and passed integrity verification without changing the live database. It remains on the same volume; no off-volume recovery claim is made.
+- The helper evaluation and reasoning-setting details are in [DEVELOPMENT-HELPERS.md](DEVELOPMENT-HELPERS.md). Four headless free-model review tasks completed; suggestions were reviewed, and the missing directory fsync they identified was fixed.
+- Scheduled off-volume backup and disaster recovery remain incomplete; see [RECOVERY.md](RECOVERY.md).

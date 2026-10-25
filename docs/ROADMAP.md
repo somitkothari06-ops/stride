@@ -13,6 +13,7 @@ Updated October 25, 2026. This is a development checkpoint, not a finished hacka
 - Separate opaque browser sessions keep their workspace records separate; storage survives normal page reloads.
 - Live-request status is stored against the exact provider configuration. Presence of a key is distinguished from a successful live response.
 - The production build and automated tests pass. A synthetic live integration flow has passed.
+- A private SQLite snapshot/verification/restore tool is available; restore requires a new directory and never overwrites the live database. See [recovery instructions](RECOVERY.md). Off-volume backup scheduling remains pending.
 
 ## Incomplete
 
@@ -24,7 +25,7 @@ Updated October 25, 2026. This is a development checkpoint, not a finished hacka
 | Public judge access | Development SSH tunnel only | Stable HTTPS URL usable from a fresh independent browser, isolated demo, documented access and hosting runway |
 | Broad file intake | Pasted text only | Tested supported screenshot/document path with clear limits and source preservation, if included |
 | Executed practice checks | Authored guided prompts/model feedback only | Optional constrained runner with reviewed fixtures and explicit execution conditions; never claim tests ran before this exists |
-| Production data operations | Transactional SQLite JSON per browser session | Versioned migrations, backup/restore, retention/deletion semantics, request idempotency and supervision suitable for the chosen deployment |
+| Production data operations | Transactional SQLite JSON per browser session; consistent snapshot tool and restore drill | Versioned migrations, off-volume scheduled backups, retention/deletion semantics, request idempotency and supervision suitable for the chosen deployment |
 | Product/model quality | Representative synthetic checks only | Unfamiliar real student tasks, adversarial/ambiguous cases, useful feedback, measured quality/latency/cost and fixes |
 | Accessibility and polish | Initial responsive interface | Focus/keyboard/mobile review, robust empty/error/loading paths and final complete-flow review |
 | Submission package | Initial README/license/source exist | Final demonstrated scope, judge instructions, authentic tool feedback, short public video and completed Devpost entry |
