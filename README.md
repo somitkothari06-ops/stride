@@ -1,0 +1,106 @@
+# Stride
+
+A personal workspace for second- and third-year CS/engineering students: decide what to do next, work through a focused exercise, and keep an honest record of progress.
+
+**Status: first working development milestone.** The app runs on an existing Nebius Devlab. Live model/search use requires privately configured keys and must be verified before a hackathon submission. This is not yet the final submission or a public production service.
+
+## Working in this milestone
+
+- Four responsive views: Today, My work, Memory, Direction.
+- Paste a notice or project excerpt, review extracted candidate fields, confirm a date, and save work.
+- Plans respect confirmed deadlines and available time; changed context marks old plans stale.
+- Prepare guided practice, submit an explanation, and record an observation.
+- Edit work, complete/reopen it, remove sources and dependent observations, and export the workspace.
+- Persistent SQLite storage on the Devlab, with independent opaque browser sessions.
+- Server-side Nebius and Tavily adapters, schema validation, timeouts and live-call allowances.
+- Explicit distinctions between sample data, rule-based guidance, self-report and model assessment.
+
+No ERP integration. No automatic Gmail/WhatsApp access. Source selection records where pasted material came from; it does not imply synchronization.
+
+## Run locally
+
+Use Node **22.13+** (tested on 22.23.4). The app uses the built-in experimental `node:sqlite` API; an experimental warning is expected on Node 22.
+
+```sh
+npm ci
+cp .env.example .env.local
+npm run dev
+```
+
+Open the URL printed by Next.js (normally port 3000). You can try the clearly labeled sample workspace with no keys. `Start fresh` clears the disposable records in the current browser session. Keep private student material out of shared/demo sessions.
+
+For a production build:
+
+```sh
+npm run check
+npm run build
+npm run start
+```
+
+Persistent data defaults to `.data/stride.sqlite`. Set `STRIDE_DATA_DIR` to a persistent directory when deploying. Keep the database, WAL files, logs and environment files out of Git. The current schema is initialized once with `CREATE TABLE IF NOT EXISTS`; future schema changes need versioned migrations.
+
+## Connect NVIDIA inference through Nebius
+
+Edit `.env.local` privately:
+
+- `NEBIUS_API_KEY`: an actual Token Factory key, not a promo code.
+- `NEBIUS_BASE_URL`: the provider's OpenAI-compatible base URL; default is `https://api.tokenfactory.nebius.com/v1`.
+- `NEBIUS_MODEL_FAST`: an exact account-visible NVIDIA model ID.
+
+List available eligible models without running inference:
+
+```sh
+node --env-file=.env.local scripts/check-provider.mjs
+```
+
+After choosing a model, run one small paid structured-output check:
+
+```sh
+node --env-file=.env.local scripts/check-provider.mjs --test
+```
+
+Restart the app after environment changes. Then test extraction, preparation and explanation feedback with the real model. A “configured” badge means settings exist, not that inference has passed. Provider errors preserve stored work and do not silently relabel rule-based content as AI output.
+
+Without a key/model, local guidance uses simple explicit rules and authored practice prompts. Attempts are recorded as **self-report**, without correctness claims. No code/test execution is claimed by this milestone.
+
+## Connect live role sources
+
+Set `TAVILY_API_KEY` server-side and restart. Direction retrieves a small public sample with URLs and retrieval times. If Nebius is also configured, it produces a bounded comparison linked to observation IDs. Inspect seniority, eligibility and freshness yourself; a search hit is not proof an opening remains available. Without Tavily, the app clearly shows setup is needed instead of invented job results.
+
+## Validation
+
+```sh
+npm run typecheck
+npm test
+npm run build
+```
+
+Against a running disposable instance:
+
+```sh
+node scripts/smoke.mjs
+```
+
+The smoke script creates separate synthetic sessions, exercises persistence, planning, preparation and an attempt, checks deletion invalidation, and tests origin protection. It can invoke live providers if configured: use a keyless test instance for a no-cost local-guidance check. Override the target with `STRIDE_TEST_URL`.
+
+See [development notes](docs/DEVELOPMENT.md) and [milestone status](docs/STATUS.md).
+
+## Architecture and privacy boundary
+
+Next.js/React frontend and Node server routes → schema validation → session-scoped workspace → SQLite. Optional provider adapters call Nebius and Tavily only on the server. An HttpOnly SameSite session cookie contains a random token; the database stores its SHA-256 hash. Clients do not select arbitrary workspace owners. Origin checks protect browser mutations, and writes are transactional.
+
+This is **browser-session isolation**, not cross-device account authentication. Losing the cookie loses access to that workspace. SQLite is not an encrypted vault. Content deletion removes it from active workspace context, but does not claim forensic erasure from WAL files/backups. Export user-owned data before abandoning a session.
+
+The server is currently reached through an SSH tunnel. Before public launch, add managed authentication, HTTPS/proxy hardening, durable migrations/backups, retention controls, stronger request/body/rate limits and deployment supervision. Test separate real users, not only browser sessions.
+
+## Remaining submission work
+
+- Configure and verify live NVIDIA/Nebius inference and Tavily.
+- Replace browser-only identity with managed accounts for real users; design accessible isolated judge sessions.
+- Add safe scheduled brief preparation, source provenance improvements and duplicate/update handling.
+- Harden request idempotency, large-input handling, modal accessibility and model quality evaluations.
+- Validate any optional image intake or constrained SQL execution separately.
+- Verify public deployment, stable data and evaluation-period hosting runway.
+- Test with classmates; record actual tool feedback; prepare the final demo video and Devpost materials.
+
+Do not present this development checkpoint as a finished hackathon entry. The source is MIT licensed; never publish keys, local databases, private SSH material or real student records.
