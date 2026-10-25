@@ -1048,28 +1048,26 @@ export default function WorkspaceApp() {
 
           {view === "direction" && (
             <>
-              <div className="page-heading">
+              <div className="page-heading direction-heading">
                 <div>
-                  <p className="eyebrow">CONNECT THE DOTS, AT YOUR PACE</p>
-                  <h1>Explore what you could build towards.</h1>
-                  <p>
-                    Explore real requirements alongside the work you can
-                    actually show.
-                  </p>
+                  <h1>Explore your options.</h1>
+                  <p>Find a role that interests you. See what it asks for.</p>
                 </div>
-                <Compass size={36} className="heading-icon" />
               </div>
-              <section className="card role-search">
+              <div className={`direction-tools ${providers.tavily ? "search-ready" : ""}`}>
+              <section className="card role-search" aria-label="Explore a role">
                 <form
                   onSubmit={async (e) => {
                     e.preventDefault();
+                    if (!providers.tavily || (role || state.profile.goal).trim().length < 3) return;
                     await act(
-                      { action: "direction", role: role || state.profile.goal },
+                      { action: "direction", role: (role || state.profile.goal).trim() },
                       "Finding public role sources and comparing observations",
                     );
                   }}
                 >
-                  <label htmlFor="role">A role you're curious about</label>
+                  <span className="role-search-label"><Compass size={18} /> YOUR NEXT POSSIBILITY</span>
+                  <label htmlFor="role">What would you like to explore?</label>
                   <div className="search-input-row">
                     <input
                       id="role"
@@ -1081,14 +1079,13 @@ export default function WorkspaceApp() {
                     />
                     <button
                       className="btn primary"
-                      disabled={!!busy || !providers.tavily}
+                      disabled={!!busy || !providers.tavily || (role || state.profile.goal).trim().length < 3}
                     >
-                      Explore roles <ArrowUpRight size={15} />
+                      {busy ? "Searching…" : "Find role sources"} <ArrowUpRight size={15} />
                     </button>
                   </div>
                   <p className="field-help">
-                    A small sample of public sources, not a complete job market
-                    or a prediction of your chances.
+                    {providers.tavily ? "A sample of public sources. Check eligibility and whether each role is still open." : "Live search is paused until Tavily is connected. You can still enter a role here."}
                   </p>
                 </form>
               </section>
@@ -1098,21 +1095,19 @@ export default function WorkspaceApp() {
                     <Link2 size={25} />
                   </span>
                   <div>
-                    <h2>Real sources need a real connection.</h2>
-                    <p>
-                      Tavily isn't configured yet. Once connected, this view
-                      will retrieve public role sources. We won't fill it with
-                      invented postings or readiness scores.
-                    </p>
+                    <span className="setup-status">SETUP NEEDED</span>
+                    <h2>Connect live search.</h2>
+                    <p>Add Tavily to find public role sources and compare their requirements with your saved work.</p>
                     <button
-                      className="text-button"
+                      className="btn primary"
                       onClick={() => setModal("integrations")}
                     >
-                      View connection setup <ArrowRight size={14} />
+                      Set up search <ArrowRight size={14} />
                     </button>
                   </div>
                 </div>
               )}
+              </div>
               {state.direction && (
                 <>
                   <section className="card direction-summary">
@@ -1180,8 +1175,7 @@ export default function WorkspaceApp() {
               <div className="direction-footnote">
                 <Flag size={17} />
                 <p>
-                  Sometimes the right next step is finishing tomorrow’s
-                  assignment. Career extras can wait.
+                  Coursework comes first. Explore when you have room.
                 </p>
               </div>
             </>

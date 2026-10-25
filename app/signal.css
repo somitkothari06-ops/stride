@@ -201,3 +201,29 @@ body { background-color:#f6f3eb; background-image:radial-gradient(#17265312 .8px
 .welcome-date { display:flex; align-items:center; gap:10px; flex-shrink:0; font-size:13px; font-weight:600; color:#405276; }
 .welcome-date svg { color:#172653; }
 @media(max-width:700px) { .today-welcome { align-items:flex-start; flex-direction:column-reverse; gap:16px; padding:0 0 20px; } .app-shell .today-welcome h1 { font-size:30px; } .welcome-date { font-size:12px; } }
+
+/* Direction uses the same confident surfaces as Today. */
+.app-shell .direction-heading { margin:8px 0 28px; }
+.app-shell .direction-heading h1 { font-size:34px; line-height:1.2; letter-spacing:-1px; }
+.app-shell .direction-heading>div>p:last-child { font-size:16px; margin-top:10px; }
+.direction-tools { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(280px,1fr); gap:24px; align-items:stretch; }
+.direction-tools>.role-search { margin:0; padding:28px; }
+.role-search-label { display:flex; align-items:center; gap:8px; font-size:11px; letter-spacing:1px; color:#405276; font-weight:750; margin-bottom:24px; }
+.app-shell .role-search label { font-size:19px; font-weight:700; margin:0 0 16px; }
+.direction-tools .search-input-row { flex-direction:column; align-items:flex-start; gap:16px; }
+.direction-tools .search-input-row input { width:100%; min-width:0; min-height:52px; flex:auto; padding:14px 16px; font-size:16px; border:1px solid #aab9d5; border-radius:8px; }
+.direction-tools .search-input-row input:focus { outline:2px solid #244bff; outline-offset:2px; }
+.app-shell .role-search .field-help { font-size:13px; line-height:1.7; color:#405276; margin-top:20px; }
+.app-shell .direction-tools .connection-empty { margin:0; max-width:none; border:2px solid #172653; border-radius:8px; padding:28px; gap:16px; background:#172653; align-items:flex-start; }
+.direction-tools .connection-empty>.trail-icon { width:40px; height:40px; flex-shrink:0; background:#ffffff18; color:#f3e86c; border-radius:8px; }
+.setup-status { font-size:10px; letter-spacing:1px; color:#f3e86c; font-weight:750; }
+.app-shell .direction-tools .connection-empty h2 { font-size:24px; line-height:1.25; color:white; margin:12px 0; }
+.direction-tools .connection-empty p { color:#d4ddf4; font-size:15px; line-height:1.75; margin:0 0 24px; }
+.direction-tools .connection-empty .btn { box-shadow:0 4px 0 #080f25; }
+.app-shell .direction-footnote { justify-content:flex-start; margin:24px 0 0; color:#405276; font-size:13px; }
+.app-shell .direction-footnote svg { color:#172653; flex-shrink:0; }
+@media(max-width:1000px) { .direction-tools { grid-template-columns:1fr; } .app-shell .direction-tools .connection-empty { padding:24px; } }
+@media(max-width:700px) { .app-shell .direction-heading h1 { font-size:28px; } .direction-tools>.role-search { padding:24px 20px; } .app-shell .direction-tools .connection-empty { padding:24px 20px; } .direction-tools .connection-empty>.trail-icon { display:none; } }
+
+.direction-tools.search-ready { grid-template-columns:1fr; }
+@media(min-width:701px) { .direction-tools.search-ready .search-input-row { flex-direction:row; align-items:stretch; } .direction-tools.search-ready .search-input-row input { flex:1; width:auto; } .direction-tools.search-ready .search-input-row .btn { flex-shrink:0; } }
