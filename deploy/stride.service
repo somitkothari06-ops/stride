@@ -1,0 +1,21 @@
+[Unit]
+Description=Stride web application in the existing Nebius Devlab
+After=docker.service
+Requires=docker.service
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/stride/devlab.env
+ExecStartPre=/usr/bin/docker exec --user coder --workdir /home/coder/stride ${STRIDE_CONTAINER} /home/coder/stride/scripts/run-server.sh stop
+ExecStart=/usr/bin/docker exec --user coder --workdir /home/coder/stride ${STRIDE_CONTAINER} /home/coder/stride/scripts/run-server.sh start
+ExecStop=/usr/bin/docker exec --user coder --workdir /home/coder/stride ${STRIDE_CONTAINER} /home/coder/stride/scripts/run-server.sh stop
+Restart=always
+RestartSec=5
+TimeoutStopSec=20
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

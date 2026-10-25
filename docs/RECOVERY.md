@@ -34,3 +34,5 @@ Check `/api/providers` and reopen a known workspace using its existing browser c
 A failed operation leaves an existing destination untouched. Check disk space, permissions, source validity and a new output path. Do not keep retrying by deleting the only known-good snapshot. If integrity fails, retain the original files privately and investigate before attempting a data repair. No automatic repair or destructive migration is provided.
 
 Automated tests cover committed WAL capture, a snapshot independent of later writes, restore into a new directory, private file permissions, refusal to overwrite, and rejection of missing/corrupt/incomplete databases. A synthetic restore drill and a live snapshot verification are separate evidence; neither establishes disaster recovery from loss of the entire Devlab.
+
+The current Devlab app is supervised by `stride.service`; stop/restart that unit during a recovery switch. Do not launch a parallel npm process. See [deployment and crash-recovery checks](DEPLOYMENT.md).

@@ -20,15 +20,15 @@ Updated October 25, 2026. This is a development checkpoint, not a finished hacka
 
 | Work | Current state | Completion evidence needed |
 |---|---|---|
-| Live internship grounding | Tavily adapter/interface exist; no configured key or real search verification | Valid account access, real relevant sources, eligibility/freshness handling, observed work linked honestly |
+| Live internship grounding | Key configured privately; live retrieval and source persistence verified, including Google/IBM/Atlassian internship hubs. AI failure retains labelled source-only results | Valid account access, real relevant sources, eligibility/freshness handling, observed work linked honestly |
 | Cross-device user accounts | Browser-cookie sessions only | Managed sign-in, shared identity across devices, account recovery and two-user authorization checks |
 | Automatic daily preparation | Not implemented | Authenticated scheduled job, opt-in, idempotent runs, freshness display and an observed closed-browser run |
 | Public judge access | Development SSH tunnel only | Stable HTTPS URL usable from a fresh independent browser, isolated demo, documented access and hosting runway |
 | Broad file intake | Confirmed text extraction from PDF/PPTX/DOCX/TXT/MD, with locators and warnings | OCR for scans/handwriting, layout/equation fidelity, stronger parser isolation and real-course trials |
 | Executed practice checks | Authored guided prompts/model feedback only | Optional constrained runner with reviewed fixtures and explicit execution conditions; never claim tests ran before this exists |
-| Production data operations | Transactional SQLite JSON per browser session; consistent snapshot tool and restore drill | Versioned migrations, off-volume scheduled backups, retention/deletion semantics, request idempotency and supervision suitable for the chosen deployment |
+| Production data operations | Transactional SQLite JSON per browser session; consistent snapshot tool and restore drill | Versioned migrations, off-volume scheduled backups, retention/deletion semantics and request idempotency; Devlab process supervision and crash recovery are now checked |
 | Product/model quality | Representative synthetic checks only | Unfamiliar real student tasks, adversarial/ambiguous cases, useful feedback, measured quality/latency/cost and fixes |
-| Accessibility and polish | Initial responsive interface | Focus/keyboard/mobile review, robust empty/error/loading paths and final complete-flow review |
+| Accessibility and polish | Shared visual pass and onboarding simplification checked; single audio notice, keyboard guards, source review and failure-state checks | Focus/keyboard/mobile review, robust empty/error/loading paths and final complete-flow review |
 | Submission package | Initial README/license/source exist | Final demonstrated scope, judge instructions, authentic tool feedback, short public video and completed Devpost entry |
 
 ## Suggested next work order
@@ -46,6 +46,8 @@ Voice capture now uses browser speech recognition with typed fallback. Before th
 
 ## Account setup checkpoint, October 25
 
-The team has not yet created Tavily or Supabase accounts. Tavily's official [Nebius Builders claim page](https://www.tavily.com/nebius-builders) advertises $25 free credit, no card required, once per customer. The hackathon's [official session update](https://nebiusglobalaihackathon.devpost.com/updates/46337-build-session-recording-resources-available-live-coding-your-first-app-with-nebius) also lists code BBDEVPOST; it does not state the amount, expiry or whether it stacks with other offers. The [standard free plan](https://www.tavily.com/pricing) provides 1,000 credits/month. Credits have not been redeemed or verified in the team's account. Keep API keys in the private local environment file, then transfer only the relevant value to the server; never overwrite the existing Nebius configuration with the local template.
+Tavily is now provisioned and its key is installed privately. Supabase provisioning remains the next external setup step. Tavily's official [Nebius Builders claim page](https://www.tavily.com/nebius-builders) advertises $25 free credit, no card required, once per customer. The hackathon's [official session update](https://nebiusglobalaihackathon.devpost.com/updates/46337-build-session-recording-resources-available-live-coding-your-first-app-with-nebius) also lists code BBDEVPOST; it does not state the amount, expiry or whether it stacks with other offers. The [standard free plan](https://www.tavily.com/pricing) provides 1,000 credits/month. The user's Tavily screenshot subsequently showed 4,125 allocated credits before testing; this is a historical screenshot, not a current balance check. Keep API keys in the private local environment file, then transfer only the relevant value to the server; never overwrite the existing Nebius configuration with the local template.
 
 Personal-setup voice-model replacement is deferred. Later evaluation should include fillers, accents, subject names and mispronunciations; preserve the original transcript and require review of dates/names/numbers rather than silently inventing corrections. The current shared-question UI and synthetic workflow checks are complete for this checkpoint.
+
+Current independent work completed: private health endpoint, managed app-process restart, PID-identity safety, fresh database snapshot and two crash-recovery drills. The app recovered with saved synthetic data intact. Public HTTPS judge access, authenticated accounts and opted-in scheduled briefs remain incomplete. See DEPLOYMENT.md.

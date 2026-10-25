@@ -2,7 +2,7 @@
 
 A personal workspace for second- and third-year CS/engineering students: decide what to do next, work through a focused exercise, and keep an honest record of progress.
 
-**Status: first working development milestone.** The app runs on an existing Nebius Devlab. Live NVIDIA inference is configured and verified on the team Devlab; other checkouts need their own private key. Tavily search is not configured yet. This is not yet the final submission or a public production service.
+**Status: first working development milestone.** The app runs on an existing Nebius Devlab. Live NVIDIA inference is configured and verified on the team Devlab; other checkouts need their own private key. Tavily live source retrieval is configured and verified on the team Devlab. AI comparison can fall back to clearly labelled source-only results. This is not yet the final submission or a public production service.
 
 ## Working in this milestone
 
@@ -70,7 +70,7 @@ Without a key/model, local guidance uses simple explicit rules and authored prac
 
 ## Connect live role sources
 
-Set `TAVILY_API_KEY` server-side and restart. Direction retrieves a small public sample with URLs and retrieval times. If Nebius is also configured, it produces a bounded comparison linked to observation IDs. Inspect seniority, eligibility and freshness yourself; a search hit is not proof an opening remains available. Without Tavily, the app clearly shows setup is needed instead of invented job results.
+Set `TAVILY_API_KEY` server-side and restart the managed app service; see [deployment and health checks](docs/DEPLOYMENT.md). Direction retrieves a small public sample with URLs and retrieval times. If Nebius is also configured, it produces a bounded comparison linked to observation IDs. Inspect seniority, eligibility and freshness yourself; a search hit is not proof an opening remains available. Without Tavily, the app clearly shows setup is needed instead of invented job results.
 
 ## Validation
 

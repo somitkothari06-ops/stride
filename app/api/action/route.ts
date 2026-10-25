@@ -13,6 +13,7 @@ import {
 import { model, providerStatus, searchRoles } from "@/lib/ai";
 import { courseExcerpts } from "@/lib/course-types";
 import { personalContext } from "@/lib/personal-context";
+import { roleComparison } from "@/lib/role-comparison";
 import { preparationContext } from "@/lib/preparation-context";
 
 export const runtime = "nodejs";
@@ -236,13 +237,15 @@ export async function POST(request: Request) {
       }[] = [];
       let mode: "guided" | "live" = "guided";
       if (sources.length && providerStatus().nebius) {
-        const result = await model(
+        const visibleObservations = state.observations.filter((o) => !o.removed);
+        const result = await roleComparison(sources.length, visibleObservations.map((o) => o.id), () => model(
           id,
-          "Compare this small retrieved sample with observations. Return JSON with summary string and requirements array of objects; each has requirement string, evidenceIds array of strings, and nextStep string. Extract only requirements present in supplied excerpts; distinguish missing evidence from missing skill. evidenceIds are only supplied observation IDs; empty means not observed. Do not claim job readiness or that postings remain open. At most 5 requirements.",
+          "Compare this small retrieved sample with observations. Return JSON with summary string and requirements array of objects; each has requirement string, evidenceIds array of strings, and nextStep string. Extract only requirements present in supplied excerpts; distinguish missing evidence from missing skill. evidenceIds must be a subset of validObservationIds. If validObservationIds is empty, every evidenceIds must be exactly []. Source URLs and source IDs are never observation IDs; empty means not observed. Do not claim job readiness or that postings remain open. At most 5 requirements.",
           {
             role: input.role,
             sources,
-            observations: state.observations.filter((o) => !o.removed),
+            observations: visibleObservations,
+            validObservationIds: visibleObservations.map((o) => o.id),
             availableMinutes: state.profile.minutes,
           },
           z.object({
@@ -257,17 +260,10 @@ export async function POST(request: Request) {
               )
               .max(5),
           }),
-        );
-        const valid = new Set(state.observations.map((o) => o.id));
-        if (
-          result.requirements.some((r) =>
-            r.evidenceIds.some((e) => !valid.has(e)),
-          )
-        )
-          throw new Error("MODEL_UNAVAILABLE");
+        ));
         summary = result.summary;
         requirements = result.requirements;
-        mode = "live";
+        mode = result.mode;
       }
       next = save((current) => {
         current.direction = {

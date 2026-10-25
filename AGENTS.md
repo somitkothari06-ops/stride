@@ -27,7 +27,7 @@ After each major change, complete the required checks, commit a clear checkpoint
 
 The user wants OpenCode used routinely without reminders. Delegate bounded source reviews, test ideas and isolated drafts to the installed free helpers when useful; keep prompts/results concise and independently verify every proposed change. This does not replace the required runtime checks.
 
-The application runs at `/home/coder/stride` inside the existing Nebius code-server container. The local preview uses an SSH tunnel; it is not a public judge deployment. Use the existing SSH key without printing it. Keep the server data directory explicit and preserve `.env.local` and `.data` when syncing source.
+The application runs at `/home/coder/stride` inside the existing Nebius code-server container. The host now supervises it with `stride.service`; use `sudo systemctl restart stride.service` rather than launching another background npm process. See `docs/DEPLOYMENT.md`. The local preview uses an SSH tunnel; it is not a public judge deployment. Use the existing SSH key without printing it. Keep the server data directory explicit and preserve `.env.local` and `.data` when syncing source.
 
 Never print credentials, copy `.env.local` into an agent prompt, commit data/backups, or send private student material to development helpers. Use a source-only disposable copy and an explicit free model for OpenCode tasks; see `docs/DEVELOPMENT-HELPERS.md`. Inspect results and run checks before applying patches. Never auto-install random GitHub harnesses or grant broad tool permissions because a README recommends it.
 
