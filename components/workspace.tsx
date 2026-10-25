@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import {
   ArrowUpRight,
   ArrowRight,
@@ -86,6 +86,39 @@ export default function WorkspaceApp() {
   const [answer, setAnswer] = useState("");
   const [role, setRole] = useState("");
   const [mobileNav, setMobileNav] = useState(false);
+  const [checkedSteps, setCheckedSteps] = useState<number[]>([]);
+  const dialogRef = useRef<HTMLElement>(null);
+
+  useEffect(() => { setCheckedSteps([]); }, [selectedId, state?.prepared]);
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "instant" }); }, [view]);
+  useEffect(() => {
+    if (!modal) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const dialog = dialogRef.current;
+    const focusable = () => Array.from(dialog?.querySelectorAll<HTMLElement>(
+      'button:not(:disabled), a[href], input:not(:disabled), textarea:not(:disabled), select:not(:disabled), summary, [tabindex="0"]',
+    ) || []).filter((element) => element.getClientRects().length);
+    (dialog?.querySelector<HTMLElement>("#source, [autofocus]") || dialog?.querySelector<HTMLElement>("input, textarea, select") || focusable()[0])?.focus();
+    const trap = (event: KeyboardEvent) => {
+      if (event.key !== "Tab") return;
+      const elements = focusable();
+      const first = elements[0], last = elements.at(-1);
+      if (!first) { event.preventDefault(); return; }
+      if (event.shiftKey && (document.activeElement === first || !dialog?.contains(document.activeElement))) {
+        event.preventDefault(); last?.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !dialog?.contains(document.activeElement))) {
+        event.preventDefault(); first.focus();
+      }
+    };
+    document.addEventListener("keydown", trap);
+    return () => {
+      document.body.style.overflow = overflow;
+      document.removeEventListener("keydown", trap);
+      previous?.focus();
+    };
+  }, [modal]);
 
   const load = useCallback(async () => {
     try {
@@ -104,15 +137,15 @@ export default function WorkspaceApp() {
   }, [load]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k" && !busy) {
         e.preventDefault();
         setModal("add");
       }
-      if (e.key === "Escape") setModal(null);
+      if (e.key === "Escape" && !busy) { setModal(null); setMobileNav(false); }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [busy]);
   useEffect(() => {
     if (toast) {
       const id = setTimeout(() => setToast(""), 3500);
@@ -255,7 +288,8 @@ export default function WorkspaceApp() {
     works.length ? (
       works.map((w) => (
         <button
-          className="work-row"
+          className={`work-row ${view === "work" && selected?.id === w.id ? "selected" : ""}`}
+          aria-current={view === "work" && selected?.id === w.id ? "true" : undefined}
           key={w.id}
           onClick={() => {
             setSelectedId(w.id);
@@ -293,6 +327,8 @@ export default function WorkspaceApp() {
 
   return (
     <div className="app-shell">
+      <a className="skip-link" href="#main-content">Skip to workspace</a>
+      {mobileNav && <button className="nav-scrim" aria-label="Close navigation" onClick={() => setMobileNav(false)} />}
       <aside className={`sidebar ${mobileNav ? "mobile-open" : ""}`}>
         <a
           className="brand"
@@ -318,6 +354,7 @@ export default function WorkspaceApp() {
             <button
               key={n.id}
               className={`nav-item ${view === n.id ? "active" : ""}`}
+              aria-current={view === n.id ? "page" : undefined}
               onClick={() => go(n.id)}
             >
               <n.icon size={18} />
@@ -363,7 +400,8 @@ export default function WorkspaceApp() {
           <div className="breadcrumb">
             <button
               className="icon-btn mobile-menu"
-              aria-label="Open navigation"
+              aria-label={mobileNav ? "Close navigation" : "Open navigation"}
+              aria-expanded={mobileNav}
               onClick={() => setMobileNav(!mobileNav)}
             >
               <Menu size={20} />
@@ -386,7 +424,7 @@ export default function WorkspaceApp() {
             </button>
           </div>
         </header>
-        <main className="main-content">
+        <main className="main-content" id="main-content" tabIndex={-1} aria-busy={!!busy}>
           <div className="date-line">
             <span>{dateText}</span>
             <span>
@@ -418,9 +456,9 @@ export default function WorkspaceApp() {
             <>
               <div className="page-heading">
                 <div>
-                  <p className="eyebrow">YOUR DAY, WITH A LITTLE DIRECTION</p>
-                  <h1>Good to see you, {state.profile.name}.</h1>
-                  <p>Less figuring out where to start. More moving forward.</p>
+                  <p className="eyebrow">A LITTLE PROGRESS, EVERY DAY</p>
+                  <h1>One good step starts here.</h1>
+                  <p>Hey {state.profile.name}. Let’s turn what’s on your plate into something you can start.</p>
                 </div>
                 <button
                   className="availability"
@@ -459,17 +497,22 @@ export default function WorkspaceApp() {
                   </button>
                 </div>
               )}
+              <div className="day-context" aria-label="Your workspace at a glance">
+                <div><BookOpen size={18} /><span><strong>{active.length}</strong> pieces of work open</span></div>
+                <button onClick={() => setModal("profile")}><Clock3 size={18} /><span><strong>{state.profile.minutes} min</strong> available today</span><Pencil size={13} /></button>
+                <div><ListChecks size={18} /><span><strong>{state.observations.filter((o) => !o.removed).length}</strong> {state.observations.filter((o) => !o.removed).length === 1 ? "attempt" : "attempts"} remembered</span></div>
+              </div>
               <div className="dashboard-grid">
                 <section className="next-step-card">
                   <div className="card-overline">
                     <span>
                       <span className="sun-dot" />
-                      YOUR NEXT SMALL STEP
+                      START HERE
                     </span>
                     <span>
                       {state.plan?.mode === "live"
-                        ? "Nemotron suggestion"
-                        : "Rule-based suggestion"}
+                        ? "AI suggestion"
+                        : "Local suggestion"}
                     </span>
                   </div>
                   {state.plan ? (
@@ -495,7 +538,7 @@ export default function WorkspaceApp() {
                           it.
                         </div>
                       ) : (
-                        <div className="why-list">
+                        <div className="why-list"><strong>Why this comes first</strong>
                           {state.plan.reasons.slice(0, 2).map((r) => (
                             <span key={r}>
                               <Check size={13} />
@@ -517,7 +560,7 @@ export default function WorkspaceApp() {
                               : start(state.plan!.workId)
                           }
                         >
-                          {stale ? "Refresh next step" : "Let's work on this"}
+                          {stale ? "Refresh next step" : "Start this session"}
                           <ArrowRight size={16} />
                         </button>
                         <button
@@ -566,10 +609,10 @@ export default function WorkspaceApp() {
                 </section>
                 <section className="card upcoming">
                   <div className="section-title">
-                    <h2>On the horizon</h2>
+                    <h2>Coming up next</h2>
                     <CalendarDays size={17} />
                   </div>
-                  <p className="muted">A little context for the days ahead.</p>
+                  <p className="muted">Your nearest confirmed deadlines.</p>
                   {workRows(active.slice(0, 4))}
                   <button
                     className="text-button all-work"
@@ -580,7 +623,7 @@ export default function WorkspaceApp() {
                 </section>
                 <section className="card progress-card">
                   <div className="section-title">
-                    <h2>Small steps leave a trail.</h2>
+                    <h2>Your progress has a memory.</h2>
                     <Leaf size={18} />
                   </div>
                   <p className="muted">What you tried is worth remembering.</p>
@@ -654,8 +697,8 @@ export default function WorkspaceApp() {
               <div className="page-heading">
                 <div>
                   <p className="eyebrow">MAKE ONE THING MORE EXPLAINABLE</p>
-                  <h1>A space to work things out.</h1>
-                  <p>Your assignments, questions, and small breakthroughs.</p>
+                  <h1>Make it make sense.</h1>
+                  <p>Pick one piece of coursework. Try it, explain it, and keep what you learn.</p>
                 </div>
                 <button className="btn primary" onClick={openAdd}>
                   <Plus size={16} />
@@ -724,6 +767,8 @@ export default function WorkspaceApp() {
                       </details>
                       {prepared ? (
                         <div className="prepared">
+                          <div className="practice-header"><span className="eyebrow">YOUR PRACTICE SESSION</span><span>{checkedSteps.length} of {prepared.steps.length} steps checked</span></div>
+                          <div className="practice-meter" role="progressbar" aria-label="Practice steps checked for this visit" aria-valuemin={0} aria-valuemax={prepared.steps.length} aria-valuenow={checkedSteps.length}><span style={{ width: `${checkedSteps.length / Math.max(1, prepared.steps.length) * 100}%` }} /></div>
                           <div className="section-title">
                             <h3>{prepared.title}</h3>
                             <span className="tag">
@@ -741,9 +786,12 @@ export default function WorkspaceApp() {
                           <p className="practice-context">{prepared.context}</p>
                           <ol>
                             {prepared.steps.map((step, i) => (
-                              <li key={i}>
-                                <span>{String(i + 1).padStart(2, "0")}</span>
-                                <p>{step}</p>
+                              <li key={i} className={checkedSteps.includes(i) ? "step-done" : ""}>
+                                <label className="practice-step">
+                                  <input type="checkbox" checked={checkedSteps.includes(i)} onChange={() => setCheckedSteps((previous) => previous.includes(i) ? previous.filter((n) => n !== i) : [...previous, i])} />
+                                  <span className="step-number" aria-hidden="true">{checkedSteps.includes(i) ? <Check size={16} /> : String(i + 1).padStart(2, "0")}</span>
+                                  <span>{step}</span>
+                                </label>
                               </li>
                             ))}
                           </ol>
@@ -762,9 +810,11 @@ export default function WorkspaceApp() {
                               }
                             }}
                           >
+                            <div className="reflection-heading"><span className="eyebrow">PUT IT IN YOUR OWN WORDS</span><h3>What did you figure out?</h3><p>Checking a step is just for this visit. Your saved explanation becomes part of your memory.</p></div>
                             <label htmlFor="attempt">{prepared.question}</label>
                             <textarea
                               id="attempt"
+                              aria-describedby="attempt-help"
                               value={answer}
                               onChange={(e) => setAnswer(e.target.value)}
                               minLength={10}
@@ -773,7 +823,7 @@ export default function WorkspaceApp() {
                               rows={5}
                               placeholder="Write your explanation, what you tried, and anything still unclear…"
                             />
-                            <p className="field-help">
+                            <p className="field-help" id="attempt-help">
                               {providers.nebius
                                 ? "Feedback will be model-assessed. It does not certify understanding or authorship."
                                 : "No model is connected yet. Your response will be saved as self-report, without a correctness claim."}
@@ -1161,6 +1211,9 @@ export default function WorkspaceApp() {
         </main>
       </div>
 
+      <nav className="mobile-tabs" aria-label="Mobile navigation">
+        {navigation.map((n) => <button key={n.id} aria-current={view === n.id ? "page" : undefined} onClick={() => go(n.id)}><n.icon size={20} /><span>{n.name}</span></button>)}
+      </nav>
       {modal && (
         <div
           className="modal-overlay"
@@ -1170,6 +1223,7 @@ export default function WorkspaceApp() {
         >
           <section
             className={`modal ${modal === "add" ? "wide" : ""}`}
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-title"
@@ -1185,9 +1239,9 @@ export default function WorkspaceApp() {
                   {modal === "add"
                     ? candidate
                       ? "Check the details."
-                      : "Make room for your next thing."
+                      : "Add a piece of coursework."
                     : modal === "profile"
-                      ? "A little context goes a long way."
+                      ? "Your study preferences."
                       : modal === "edit"
                         ? "Keep your context accurate."
                         : "Your connections."}
