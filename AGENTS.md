@@ -13,8 +13,11 @@ Stride helps second- and third-year engineering students turn coursework into a 
 
 ## Development and verification
 
+After each major change, complete the required checks, commit a clear checkpoint and push to the existing GitHub remote. The user explicitly requested this; do not wait for another reminder. Never include secrets or student data.
+
 - Node 22.13+ is required. The deployed Devlab uses Node 22; check there when local runtime behavior differs.
 - Run `npm run check` and `npm run build` for application changes. For UI changes, inspect the running result, verify changed controls and capture a screenshot. A build alone does not establish visual quality.
+- Visual direction: warm dotted paper, solid white/navy/cobalt surfaces, yellow primary actions, Plus Jakarta Sans and raised buttons. The user wants remaining visual inconsistencies handled proactively across affected pages and dialogs, rather than repeated screenshot-specific patches. Keep help concise and use disclosures for secondary detail.
 - Keep fixes bounded. Reproduce a helper's claimed defect before changing behavior; free-model output is advice, not evidence.
 - Preserve input on errors and distinguish loading, empty, unavailable and successful states. Do not manufacture streaming, progress, job listings, grades or model verification.
 - Source references must point to supplied material or a verified external page. Missing evidence is not proof of missing ability. Compare documented curricula and tasks, not students or university prestige.

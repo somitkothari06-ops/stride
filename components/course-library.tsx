@@ -39,8 +39,9 @@ export default function CourseLibrary({ state, onState }: { state: Workspace; on
     if (result) { onState(result.state); setDraft(null); setBridge(null); }
   }
   return <div className="course-library"><datalist id="course-subjects">{[...new Set(state.works.map((w) => w.subject))].map((s) => <option key={s} value={s} />)}</datalist>
-    <p className="modal-description">Bring your syllabus, lecture notes, slides and previous-year questions. Check the extracted text before using it to personalise practice.</p>
-    <p className="field-help">Text PDFs, PPTX, DOCX, TXT and MD · 8 MB each · up to 100 pages/slides · 12 documents. Scanned pages need OCR. Diagrams and equations may be missed. Originals are temporary; only confirmed extracted text is saved. Relevant excerpts may be sent to Nebius during practice and comparison.</p>
+    <p className="modal-description">Add your syllabus, notes, slides or past questions. Review the extracted text before saving.</p>
+    <p className="field-help">Scanned pages need OCR. Diagrams and equations may be missed.</p>
+    <details className="upload-details"><summary>File formats, limits &amp; how your text is used</summary><p>Text PDFs, PPTX, DOCX, TXT and MD · 8 MB each · up to 100 pages/slides · 12 documents. Originals are temporary; only confirmed extracted text is saved. Relevant excerpts may be sent to Nebius during practice and comparison.</p></details>
     {error && <p className="error-banner" role="alert">{error}</p>}
     {busy && <p className="progress-banner" role="status">{busy}…</p>}
     {draft ? <section className="document-review">
@@ -63,7 +64,7 @@ export default function CourseLibrary({ state, onState }: { state: Workspace; on
         if (result) { onState(result.state); setBridge(null); }
       }}><Trash2 size={16} /></button></div>{material.warnings.map((warning) => <p className="warning-text" key={warning}>{warning}</p>)}<details><summary>Inspect extracted source text</summary><div className="extracted-pages">{material.pages.map((p) => <details key={p.locator}><summary>{p.locator}</summary><p>{p.text}</p></details>)}</div></details></article>)}
     </section>
-    <section className="course-comparison"><span className="eyebrow">YOUR COURSE, WITH A WIDER PERSPECTIVE</span><h3>Find one useful next stretch.</h3><p className="field-help">Compare a small sample of your confirmed text with a reviewed summary of a named public course. This is a comparison of materials, not students or universities. Exact source quotes are checked; their interpretation is still model feedback.</p>
+    <section className="course-comparison"><span className="eyebrow">YOUR COURSE, WITH A WIDER PERSPECTIVE</span><h3>Find one useful next stretch.</h3><p className="field-help">Compare a sample of your confirmed text with a named public course reference.</p><details className="upload-details"><summary>What this comparison means</summary><p>Uses a reviewed course summary, not a complete review of the external course. This compares materials, not students or universities. Exact source quotes are checked; their interpretation is still model feedback.</p></details>
       <label htmlFor="compare-subject">Subject to compare</label><input id="compare-subject" list="course-subjects" value={subject} onChange={(e) => setSubject(e.target.value)} maxLength={80} placeholder="Database systems" />
       <label htmlFor="benchmark-course">Public course reference</label><select id="benchmark-course" value={benchmark} onChange={(e) => setBenchmark(e.target.value)}>{courseBenchmarks.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</select>
       <p className="field-help"><a href={courseBenchmarks.find((b) => b.id === benchmark)!.url} target="_blank" rel="noopener noreferrer">Inspect the public course source <ExternalLink size={12} /></a> · reference checked 25 October 2026; not a full course-content review.</p>

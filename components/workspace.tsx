@@ -677,9 +677,8 @@ export default function WorkspaceApp() {
             <>
               <div className="page-heading">
                 <div>
-                  <p className="eyebrow">MAKE ONE THING MORE EXPLAINABLE</p>
-                  <h1>Work through it, one step at a time.</h1>
-                  <p>Pick one piece of coursework. Try it, explain it, and keep what you learn.</p>
+                  <h1>Your coursework.</h1>
+                  <p>Pick a task. Try it, explain it, and keep what you learn.</p>
                   <button className="text-button" onClick={() => setModal("course")}><BookOpen size={15} /> Course library · syllabus, notes & past questions</button>
                 </div>
                 <button className="btn primary" onClick={openAdd}>
@@ -887,11 +886,9 @@ export default function WorkspaceApp() {
             <>
               <div className="page-heading">
                 <div>
-                  <p className="eyebrow">YOUR CONTEXT, UNDER YOUR CONTROL</p>
-                  <h1>Your progress, with the context.</h1>
+                  <h1>Your learning, remembered.</h1>
                   <p>
-                    See what’s remembered, where it came from, and what it
-                    actually means.
+                    Your coursework, attempts, and the context behind them.
                   </p>
                 </div>
                 <button className="btn subtle" onClick={exportData}>
@@ -1506,8 +1503,7 @@ export default function WorkspaceApp() {
             {modal === "integrations" && (
               <div className="connections">
                 <p className="modal-description">
-                  See which services are available and when live assistance last
-                  worked.
+                  AI assistance and live search status.
                 </p>
                 <div className="connection-item">
                   <span className="connection-logo">N</span>
@@ -1544,17 +1540,12 @@ export default function WorkspaceApp() {
                   <div>
                     <strong>Your work, your choices.</strong>
                     <p>
-                      Selected text is sent to connected AI services when you
-                      ask for help. Avoid passwords and unrelated personal
-                      details. Connections are managed on Stride’s server; you
-                      don't need to enter API keys here.
+                      Relevant text goes to connected services when you ask for help. Avoid passwords or unrelated private details.
                     </p>
                   </div>
                 </div>
                 <p className="field-help">
-                  Development preview: this workspace is saved for this browser.
-                  Cross-device sign-in and automatic daily briefs are not
-                  available yet.
+                  Saved for this browser. Cross-device sign-in and daily briefs are still being built.
                 </p>
                 <button
                   className="btn subtle"

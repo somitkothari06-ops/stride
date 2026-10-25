@@ -45,7 +45,17 @@ export function Dictation({ onText, disabled = false, onListening }: { onText: (
     try { r.start(); setListening(true); listeningCallback.current?.(true); setMessage("Listening… Speak naturally. Stop when you’re done."); timeout.current = setTimeout(() => r.stop(), 120000); }
     catch { setListening(false); listeningCallback.current?.(false); setMessage("Couldn’t start the microphone. Try again, or type below."); }
   }
-  return <div className="dictation"><button type="button" className={`btn voice-button ${listening ? "is-listening" : ""}`} disabled={disabled || supported === null} aria-pressed={listening} onClick={() => listening ? recognition.current?.stop() : start()}>{listening ? <Square size={18} /> : <Mic size={18} />}{listening ? "Stop listening" : "Speak instead"}</button><p className="voice-status" role="status">{message || (supported === false ? "Voice isn’t supported here. You can still type below." : "English (India) · up to 2 minutes per recording")}</p><small>Starts only when you tap. Your browser may send audio to its speech service. Stride saves text, not audio.</small></div>;
+  return <div className="dictation">
+    <div className="dictation-toolbar">
+      <button type="button" className={`btn voice-button ${listening ? "is-listening" : ""}`} disabled={disabled || supported !== true} aria-pressed={listening} onClick={() => listening ? recognition.current?.stop() : start()}>
+        {listening ? <Square size={18} /> : <Mic size={18} />}
+        {listening ? "Stop listening" : supported === false ? "Voice unavailable" : "Start speaking"}
+      </button>
+      <span className="dictation-language">English (India) · 2 min max</span>
+    </div>
+    <p className="voice-status" role="status">{message || (supported === false ? "Voice isn’t supported here. Type below or use your device’s keyboard dictation." : "")}</p>
+    <details className="voice-privacy"><summary>Your browser may send audio to its speech service</summary><p>Listening starts only when you tap. Your browser may send audio to its provider for recognition. Stride saves text, not audio. Check the transcript before using it.</p></details>
+  </div>;
 }
 export default function VoiceCapture({ landing = false, active = true, onWork, onNote }: { landing?: boolean; active?: boolean; onWork?: (text: string) => void; onNote?: (text: string) => Promise<boolean> }) {
   const [kind, setKind] = useState<"intro" | "work" | "note">(landing ? "intro" : "work"), [text, setText] = useState(""), [busy, setBusy] = useState(false), [listening, setListening] = useState(false), [notice, setNotice] = useState("");
@@ -58,5 +68,27 @@ export default function VoiceCapture({ landing = false, active = true, onWork, o
     } else if (kind === "work") onWork?.(text);
     else { setBusy(true); try { if (await onNote?.(text)) { setText(""); setNotice("Saved to your thought inbox below."); } else setNotice("Couldn’t save. Your text is still here."); } finally { setBusy(false); } }
   }
-  return <section className="voice-capture" aria-labelledby={`${id}-title`}><div className="capture-heading"><div><p className="eyebrow">SAY IT WHILE IT’S ON YOUR MIND</p><h2 id={`${id}-title`}>{landing ? "Start with your story." : "Talk it through. Keep it here."}</h2></div><Mic size={28} aria-hidden="true" /></div><p>{landing ? "What you’re studying, what you’ve tried, or what you’re still figuring out." : "A deadline, an idea, or something you don’t want to forget."}</p>{!landing && <fieldset className="capture-options" disabled={busy || listening}><legend>What would you like to capture?</legend>{([["work", "Coursework"], ["note", "Thought"], ["intro", "About me"]] as const).map(([value, label]) => <label key={value}><input type="radio" name={`${id}-kind`} checked={kind === value} onChange={() => { setKind(value); setNotice(""); }} />{label}</label>)}</fieldset>}<Dictation disabled={busy || !active} onListening={setListening} onText={(chunk) => setText((previous) => `${previous}${previous ? " " : ""}${chunk}`.slice(0, 6000))} /><label className="transcript-label" htmlFor={`${id}-text`}>Your words · edit anything</label><textarea id={`${id}-text`} value={text} onChange={(e) => setText(e.target.value)} maxLength={6000} rows={3} disabled={busy} placeholder={kind === "work" ? "My operating systems assignment is due on 29 October…" : kind === "intro" ? "I’m in my second year, and I like building things…" : "I want to try building a small game this weekend…"} /><small>{text.length.toLocaleString()} / 6,000 characters{text.length >= 6000 ? " · Limit reached. Further words won’t be added; save this entry first." : ""}</small><div className="capture-footer"><span>{kind === "work" ? "One item at a time. Review the details and date before saving." : kind === "intro" ? "Opens your personal setup. Nothing is saved to your profile yet." : "A private note, kept separately from coursework and assessed work."}</span><button type="button" className="btn primary" disabled={busy || listening || text.trim().length < (kind === "work" ? 10 : 1)} onClick={useText}>{busy ? "Saving…" : kind === "work" ? "Organise coursework" : kind === "intro" ? "Use my introduction" : "Save thought"}<ArrowRight size={17} /></button></div>{notice && <p role="status">{notice}</p>}</section>;
+  return <section className={`voice-capture ${landing ? "landing-capture" : "workspace-capture"}`} aria-labelledby={`${id}-title`}>
+    <div className="capture-intro">
+      <span className="capture-mark"><Mic size={26} aria-hidden="true" /></span>
+      <h2 id={`${id}-title`}>{landing ? "Make this your space." : "Keep that thought."}</h2>
+      <p>{landing ? "Tell us what you’re studying, what you’ve tried, and what you’d like help with." : "Capture a deadline, an idea, or a little more about yourself."}</p>
+      <span className="capture-aside-note">{landing ? "A few sentences is enough. You can change this later." : "Speak naturally or type. You choose what to save."}</span>
+    </div>
+    <div className="capture-body">
+      {!landing && <fieldset className="capture-options" disabled={busy || listening}>
+        <legend>Save this as</legend>
+        {([["work", "Coursework"], ["note", "Thought"], ["intro", "About me"]] as const).map(([value, label]) => <label key={value}><input type="radio" name={`${id}-kind`} checked={kind === value} onChange={() => { setKind(value); setNotice(""); }} />{label}</label>)}
+      </fieldset>}
+      <Dictation disabled={busy || !active} onListening={setListening} onText={(chunk) => setText((previous) => `${previous}${previous ? " " : ""}${chunk}`.slice(0, 6000))} />
+      <label className="transcript-label" htmlFor={`${id}-text`}>{landing ? "Your introduction" : "Your words"}<span> · edit anything</span></label>
+      <textarea id={`${id}-text`} value={text} onChange={(e) => setText(e.target.value)} maxLength={6000} rows={4} disabled={busy} placeholder={kind === "work" ? "My operating systems assignment is due on 29 October…" : kind === "intro" ? "I’m in my second year. I enjoy building things, but I’m still exploring…" : "I want to try building a small game this weekend…"} />
+      <small className="capture-count">{text.length.toLocaleString()} / 6,000{text.length >= 6000 ? " · Limit reached. Save this entry before adding more." : " characters"}</small>
+      <div className="capture-footer">
+        <span>{kind === "work" ? "Review the task and date before saving." : kind === "intro" ? "Review in personal setup before saving." : "Saved as a thought, separate from coursework."}</span>
+        <button type="button" className="btn primary" disabled={busy || listening || text.trim().length < (kind === "work" ? 10 : 1)} onClick={useText}>{busy ? "Saving…" : kind === "work" ? "Review coursework" : kind === "intro" ? "Continue with this" : "Save thought"}<ArrowRight size={17} /></button>
+      </div>
+      {notice && <p className="capture-notice" role="status">{notice}</p>}
+    </div>
+  </section>;
 }
