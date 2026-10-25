@@ -9,7 +9,7 @@ type Recognition = {
   onend: (() => void) | null; start(): void; stop(): void; abort(): void;
 };
 type SpeechWindow = Window & { SpeechRecognition?: new () => Recognition; webkitSpeechRecognition?: new () => Recognition };
-export function Dictation({ onText, disabled = false, onListening }: { onText: (text: string) => void; disabled?: boolean; onListening?: (active: boolean) => void }) {
+export function Dictation({ onText, disabled = false, onListening, showPrivacy = true, compact = false }: { onText: (text: string) => void; disabled?: boolean; onListening?: (active: boolean) => void; showPrivacy?: boolean; compact?: boolean }) {
   const [listening, setListening] = useState(false), [message, setMessage] = useState("");
   const [supported, setSupported] = useState<boolean | null>(null);
   const recognition = useRef<Recognition | null>(null), callback = useRef(onText), listeningCallback = useRef(onListening), committed = useRef(0), interimText = useRef(""), timeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -51,11 +51,14 @@ export function Dictation({ onText, disabled = false, onListening }: { onText: (
         {listening ? <Square size={18} /> : <Mic size={18} />}
         {listening ? "Stop listening" : supported === false ? "Voice unavailable" : "Start speaking"}
       </button>
-      <span className="dictation-language">English (India) · 2 min max</span>
+      {!compact && <span className="dictation-language">English (India) · 2 min max</span>}
     </div>
     <p className="voice-status" role="status">{message || (supported === false ? "Voice isn’t supported here. Type below or use your device’s keyboard dictation." : "")}</p>
-    <details className="voice-privacy"><summary>Your browser may send audio to its speech service</summary><p>Listening starts only when you tap. Your browser may send audio to its provider for recognition. Stride saves text, not audio. Check the transcript before using it.</p></details>
+    {showPrivacy && <SpeechPrivacy />}
   </div>;
+}
+export function SpeechPrivacy() {
+  return <details className="voice-privacy"><summary>About voice input &amp; privacy</summary><p>English (India), up to 2 minutes at a time. Your browser may send audio to its provider for recognition. Listening starts only when you tap; Stride saves text, not audio. Check the transcript before using it.</p></details>;
 }
 export default function VoiceCapture({ landing = false, active = true, onWork, onNote }: { landing?: boolean; active?: boolean; onWork?: (text: string) => void; onNote?: (text: string) => Promise<boolean> }) {
   const [kind, setKind] = useState<"intro" | "work" | "note">(landing ? "intro" : "work"), [text, setText] = useState(""), [busy, setBusy] = useState(false), [listening, setListening] = useState(false), [notice, setNotice] = useState("");

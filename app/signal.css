@@ -345,3 +345,18 @@ a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,
 .app-shell .course-comparison>h3,.app-shell .material-list .section-title h3 { font-size:20px; }
 
 .voice-status:empty { margin:0; }
+
+/* Questions lead; one shared voice notice keeps setup light. */
+.story-main .story-field { margin:32px 0; padding-top:24px; border-top:1px solid #dce2f0; }
+.story-main .story-field>label { display:block; font-size:23px; font-weight:750; letter-spacing:-.6px; line-height:1.35; color:#172653; margin:0 0 8px; }
+.story-main .story-field>p { font-size:14px; margin:0 0 16px; color:#405276; line-height:1.6; }
+.story-main .story-field .dictation { margin:16px 0; }
+.story-main .story-field textarea { background:#fffefa; border:1px solid #a5b1cb; border-radius:8px; padding:16px; font-size:16px; line-height:1.7; min-height:104px; }
+.story-main .story-field>small { font-size:11px; margin-top:8px; color:#5e6c89; }
+.story-main .direction-options legend { font-size:20px; font-weight:750; line-height:1.4; }
+.story-main .direction-options strong { font-size:16px; font-weight:750; }
+.story-voice-note { margin:0 0 24px; }
+.story-voice-note .voice-privacy { margin:0; }
+.story-voice-note summary { font-size:12px; color:#5e6c89; }
+.story-main .story-intro { margin-bottom:20px; }
+@media(max-width:700px) { .story-main .story-field>label { font-size:21px; } .story-main .direction-options legend { font-size:19px; } }

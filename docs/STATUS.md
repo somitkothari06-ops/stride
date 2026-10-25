@@ -87,3 +87,12 @@ Shared visual polish pass (October 25):
 - Final Devlab TypeScript, 29 tests and production build passed. Browser inspection covered landing voice input, desktop and narrow layout, personal story fields, My work, Memory, connection dialog and course library. No profile or coursework was changed by these visual checks. Narrow rendered content width matched its viewport (no horizontal overflow at that checked size); this is not a complete accessibility/device audit.
 
 Final voice review restored a persistently mounted speech-status live region for assistive technology and made the possible browser-provider audio transmission explicit in the visible disclosure label. The add-work dialog was also visually checked; no extraction call or data save was made.
+
+Lower-friction onboarding and preparation reliability (October 25):
+
+- One shared voice/privacy disclosure per personal-setup page replaces the repeated line below every question; per-field language metadata is removed. Questions are now 23px bold on desktop, 21px on mobile, with short hints and smaller optional counts.
+- Recording gates other microphones and Back/Continue so navigation does not discard the last spoken chunk. A landing introduction no longer skips required name entry for a new student; server validation is retained.
+- OpenCode GLM reviewed the onboarding guards with no established defect. Browser inspection confirmed the larger questions and exactly one privacy notice; no personal answers were changed.
+- A synthetic live check initially failed because preparation returned an invalid course reference with zero uploaded excerpts. The server rejected it. Preparation context now exposes only the course excerpt ID namespace, excludes unrelated work/observation/material IDs, and explicitly requires an empty source list when no excerpts exist. Unknown IDs remain rejected.
+- Added two context-boundary regression tests. All 31 tests, TypeScript and production build passed. Profile and thought HTTP checks passed. After the fix, the full live extraction/planning/preparation/assessment flow and live source-linked course comparison passed; course intake checks covered confirmation, ownership/origin checks and invalidation.
+- These synthetic checks do not establish general model accuracy or human microphone performance. Account provisioning, Tavily live verification, public judge access and scheduled briefs remain open.

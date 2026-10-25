@@ -43,3 +43,9 @@ Updated October 25, 2026. This is a development checkpoint, not a finished hacka
 These are team tasks. They have not automatically been assigned to the friend, and the current checkpoint does not mean either builder's entire role is complete. Coordinate file ownership before working in parallel.
 
 Voice capture now uses browser speech recognition with typed fallback. Before the demo, validate real microphone recognition and permission/error behavior in the target Safari/Chrome versions; mixed-language accuracy and a universal transcription backend remain open. See VOICE-CAPTURE.md.
+
+## Account setup checkpoint, October 25
+
+The team has not yet created Tavily or Supabase accounts. Tavily's official [Nebius Builders claim page](https://www.tavily.com/nebius-builders) advertises $25 free credit, no card required, once per customer. The hackathon's [official session update](https://nebiusglobalaihackathon.devpost.com/updates/46337-build-session-recording-resources-available-live-coding-your-first-app-with-nebius) also lists code BBDEVPOST; it does not state the amount, expiry or whether it stacks with other offers. The [standard free plan](https://www.tavily.com/pricing) provides 1,000 credits/month. Credits have not been redeemed or verified in the team's account. Keep API keys in the private local environment file, then transfer only the relevant value to the server; never overwrite the existing Nebius configuration with the local template.
+
+Personal-setup voice-model replacement is deferred. Later evaluation should include fillers, accents, subject names and mispronunciations; preserve the original transcript and require review of dates/names/numbers rather than silently inventing corrections. The current shared-question UI and synthetic workflow checks are complete for this checkpoint.
