@@ -33,8 +33,8 @@ Updated October 25, 2026. This is a development checkpoint, not a finished hacka
 
 ## Suggested next work order
 
-1. Finish the live direction/role-grounding path once Tavily access is available. Use a small real sample and keep academic constraints in control.
-2. Select and configure managed account identity; migrate browser-only assumptions without exposing existing records.
+1. Improve live role-source relevance and validate a small real sample; Tavily retrieval is connected. Keep academic constraints in control.
+2. Implement Supabase account identity on the linked project; test guest claiming, logout and two-user isolation before enabling cross-device workspaces.
 3. Implement scheduled daily preparation with persistent state and safe retries.
 4. Establish public judge access and evaluation-period hosting before treating a development tunnel as deployment.
 5. Complete failure recovery, data operations and meaningful student/model trials.
@@ -46,7 +46,7 @@ Voice capture now uses browser speech recognition with typed fallback. Before th
 
 ## Account setup checkpoint, October 25
 
-Tavily is now provisioned and its key is installed privately. Supabase provisioning remains the next external setup step. Tavily's official [Nebius Builders claim page](https://www.tavily.com/nebius-builders) advertises $25 free credit, no card required, once per customer. The hackathon's [official session update](https://nebiusglobalaihackathon.devpost.com/updates/46337-build-session-recording-resources-available-live-coding-your-first-app-with-nebius) also lists code BBDEVPOST; it does not state the amount, expiry or whether it stacks with other offers. The [standard free plan](https://www.tavily.com/pricing) provides 1,000 credits/month. The user's Tavily screenshot subsequently showed 4,125 allocated credits before testing; this is a historical screenshot, not a current balance check. Keep API keys in the private local environment file, then transfer only the relevant value to the server; never overwrite the existing Nebius configuration with the local template.
+Tavily is now provisioned and its key is installed privately. Supabase was provisioned and CLI-linked on October 26; app identity integration remains pending. Tavily's official [Nebius Builders claim page](https://www.tavily.com/nebius-builders) advertises $25 free credit, no card required, once per customer. The hackathon's [official session update](https://nebiusglobalaihackathon.devpost.com/updates/46337-build-session-recording-resources-available-live-coding-your-first-app-with-nebius) also lists code BBDEVPOST; it does not state the amount, expiry or whether it stacks with other offers. The [standard free plan](https://www.tavily.com/pricing) provides 1,000 credits/month. The user's Tavily screenshot subsequently showed 4,125 allocated credits before testing; this is a historical screenshot, not a current balance check. Keep API keys in the private local environment file, then transfer only the relevant value to the server; never overwrite the existing Nebius configuration with the local template.
 
 Personal-setup voice-model replacement is deferred. Later evaluation should include fillers, accents, subject names and mispronunciations; preserve the original transcript and require review of dates/names/numbers rather than silently inventing corrections. The current shared-question UI and synthetic workflow checks are complete for this checkpoint.
 

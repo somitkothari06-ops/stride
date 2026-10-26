@@ -106,3 +106,10 @@ Tavily connection and runtime reliability (October 25):
 - A consistent private SQLite snapshot passed integrity verification before supervision was enabled. Synthetic recovery drills killed the app and its Docker-exec supervisor client separately; both restarted with a new Node PID and preserved saved workspace content. The test marker was removed.
 - OpenCode reviewed source-only lifecycle/fallback code; PID-reuse and orphan-client concerns were addressed. Unknown unmanaged port conflicts are left for investigation rather than killing arbitrary processes. Invalid PID records are quarantined safely.
 - All 38 tests, TypeScript and production build passed. See DEPLOYMENT.md for restart, rollback and explicit smoke checks. Human audio trials, Supabase, scheduled briefs and public judge access are still pending.
+
+## Supabase connection checkpoint, October 26, 2026
+
+- Official Homebrew Supabase CLI 2.122.0 installed and authenticated through the user's browser approval. Existing healthy Stride project in Mumbai linked; no replacement project or paid upgrade created.
+- Public URL and publishable/anon client key saved in ignored local and Devlab environment files with mode 600. Auth settings returned HTTP 200 with email authentication enabled. No service-role key was used.
+- CLI configuration initialized in `supabase/`; local link metadata stays ignored. This is connection setup only: app login, account ownership, guest claiming, logout and cross-device access are not implemented yet. No remote schema migration was applied.
+- OpenCode reviewed a source-only copy. The proposed next milestone keeps SQLite workspaces and adds validated Supabase identity, an atomic guest claim and two-user isolation tests. This recommendation still requires implementation and verification.
