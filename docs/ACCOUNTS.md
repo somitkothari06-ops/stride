@@ -2,6 +2,14 @@
 
 Optional Supabase identity opens the same workspace across devices connected to the same Stride backend. Coursework remains in the existing persistent SQLite database; it has not moved to Supabase Postgres. Guest mode requires no account.
 
+## Google and GitHub
+
+The login page offers both providers. Enabled status comes from Supabase's public Auth settings, not hardcoded success flags. Disabled providers are labelled **Setup needed** and cannot start a broken flow. The same buttons handle signup and sign-in; account identity and linking are handled by Supabase, never by matching unverified email text in Stride.
+
+The app starts a server-held S256 PKCE flow with a 10-minute opaque browser cookie. The one-time attempt is bound to its origin and its initial guest/account cookies. Provider access tokens are not returned to browser JavaScript or stored as GitHub API credentials. Callback exchange verifies the Supabase identity and uses the existing account/guest-claim rules. Attempts are claimed atomically to prevent replay, retained during exchange so logout can cancel them, then removed before account-session creation. Cancellation, expired links and mismatched browsers return safely to login without changing the workspace.
+
+For credential setup and exact callback URLs, see [OAuth provider setup](OAUTH-SETUP.md). A successful authorize redirect is not evidence that provider consent and callback login completed; verify the complete flow with a real account.
+
 ## Flow and ownership
 
 1. Open `/login` or choose **Save my workspace** in the workspace navigation.
@@ -13,7 +21,7 @@ The browser receives a random HttpOnly, SameSite=Lax cookie, not provider access
 
 ## Configuration and deployment
 
-Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in the ignored environment file. The names follow Supabase's convention; this implementation consumes them only on the server. Never configure a service-role/admin key there.
+Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in the ignored environment file. The names follow Supabase's convention; this implementation consumes them only on the server. Never configure a service-role/admin key there. For public deployment, pin `STRIDE_PUBLIC_ORIGIN` to the HTTPS origin. Optional additional origins must be explicitly listed in `STRIDE_AUTH_ADDITIONAL_ORIGINS`; no wildcard host is accepted. With no public origin configured, only the documented localhost/127.0.0.1 preview ports are allowed. This prevents the internal Next.js listen address or an arbitrary forwarded host from becoming an OAuth redirect.
 
 The official CLI is linked to the existing Stride project. Run `supabase config diff` before `supabase config push`; the sparse committed configuration declares only preview redirect URLs and required email confirmation. Do not replace it with generated defaults and push those defaults to the hosted project.
 

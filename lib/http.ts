@@ -40,6 +40,7 @@ export function failure(error: unknown) {
   const code = error instanceof Error ? error.message : "UNKNOWN";
   const known: Record<string, [number, string]> = {
     AUTH_EXPIRED: [401, "Sign in again to open your saved workspace. Your work is safe."],
+    OAUTH_NOT_CONFIGURED: [503, "This sign-in provider still needs its one-time setup. Use email or guest mode for now."],
     AUTH_NOT_CONFIGURED: [503, "Account login is not connected yet. Guest mode is available."],
     AUTH_FAILED: [401, "Couldn't sign in. Check your email and password, and confirm your email first."],
     AUTH_SIGNUP_FAILED: [400, "Couldn't create this account. Signup email is currently limited to project testers. Use guest mode, or sign in if you already have an account."],

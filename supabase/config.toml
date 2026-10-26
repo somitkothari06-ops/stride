@@ -5,7 +5,7 @@ project_id = "stride"
 
 [auth]
 site_url = "http://127.0.0.1:3100/login"
-additional_redirect_urls = ["http://127.0.0.1:3100/login", "http://localhost:3100/login"]
+additional_redirect_urls = ["http://127.0.0.1:3100/login", "http://localhost:3100/login", "http://127.0.0.1:3100/api/account/oauth/callback", "http://localhost:3100/api/account/oauth/callback"]
 
 [auth.email]
 enable_confirmations = true

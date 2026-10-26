@@ -21,7 +21,7 @@ Updated October 25, 2026. This is a development checkpoint, not a finished hacka
 | Work | Current state | Completion evidence needed |
 |---|---|---|
 | Live internship grounding | Key configured privately; live retrieval and source persistence verified, including Google/IBM/Atlassian internship hubs. AI failure retains labelled source-only results | Valid account access, real relevant sources, eligibility/freshness handling, observed work linked honestly |
-| Cross-device user accounts | Supabase login, one-time guest claim and device logout implemented; live synthetic two-device/user checks pass | Public email delivery, password recovery, stable HTTPS origin and real confirmation flow |
+| Cross-device user accounts | Supabase password login and social flows implemented; GitHub enabled, Google setup pending; live synthetic two-device/user checks pass | Google provider credentials, real social consent/return checks, public email delivery, password recovery and stable HTTPS origin |
 | Automatic daily preparation | Not implemented | Authenticated scheduled job, opt-in, idempotent runs, freshness display and an observed closed-browser run |
 | Public judge access | Development SSH tunnel only | Stable HTTPS URL usable from a fresh independent browser, isolated demo, documented access and hosting runway |
 | Broad file intake | Confirmed text extraction from PDF/PPTX/DOCX/TXT/MD, with locators and warnings | OCR for scans/handwriting, layout/equation fidelity, stronger parser isolation and real-course trials |

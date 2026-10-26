@@ -434,3 +434,24 @@ a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,
 @media(max-width: 700px) { .study-loop-cards { grid-template-columns: 1fr; } .study-loop-cards article { min-height: 280px; padding: 28px; } .loop-card-top { margin-bottom: 24px; } .landing-course.course-remix { grid-template-columns: 1fr; } .course-example { padding: 20px; margin-right: 7px; } .course-file-tag { display: none; } .landing-control { grid-template-columns: 1fr; gap: 16px; } .landing-control details { margin-top: 0; } .landing-control details > div { grid-template-columns: 1fr; gap: 12px; } }
 
 .landing-process .landing-section-heading { margin-bottom: 32px; }
+
+.social-signin { display: grid; gap: 12px; width: 100%; }
+.social-button { display: flex; align-items: center; justify-content: flex-start; gap: 13px; min-height: 58px; border: 1.5px solid #172653; border-radius: 11px; padding: 14px 18px; font: inherit; font-size: 16px; font-weight: 800; box-shadow: 0 4px 0 #172653; cursor: pointer; transition: transform .1s, box-shadow .1s; }
+.social-google { color: #172653; background: white; }
+.social-github { color: white; background: #172653; box-shadow: 0 4px 0 #0c1636; }
+.social-button:not(:disabled):hover { transform: translateY(-1px); }
+.social-button:not(:disabled):active { transform: translateY(3px); box-shadow: none; }
+.social-button:disabled { cursor: not-allowed; box-shadow: none; opacity: .68; }
+.social-button small { font-size: 11px; font-weight: 700; margin-left: auto; white-space: nowrap; }
+.google-mark { font-size: 24px; font-weight: 800; color: #4285f4; width: 22px; line-height: 1; text-align: center; }
+.account-divider { display: flex; align-items: center; gap: 14px; width: 100%; color: #657192; font-size: 13px; }
+.account-divider span { flex: 1; height: 1px; background: #dce1f0; }
+.social-retry { padding: 4px; border: 0; background: transparent; color: #244bff; font: inherit; font-weight: 800; text-decoration: underline; }
+@media(max-width: 450px) { .social-button { gap: 10px; font-size: 14px; padding: 14px 12px; flex-wrap: wrap; } .social-button small { font-size: 10px; } }
+
+.account-email-choice { width: 100%; border-top: 1px solid #dce1f0; padding-top: 18px; }
+.account-email-choice summary { display: flex; align-items: center; gap: 10px; list-style: none; cursor: pointer; font-size: 15px; font-weight: 800; padding: 10px 0; min-height: 44px; color: #172653; }
+.account-email-choice summary::-webkit-details-marker { display: none; }
+.account-email-choice summary > svg:last-child { margin-left: auto; transition: transform .15s; }
+.account-email-choice[open] summary > svg:last-child { transform: rotate(180deg); }
+.account-email-choice form { margin-top: 16px; }
