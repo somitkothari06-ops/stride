@@ -1,6 +1,6 @@
 import { DatabaseSync } from "node:sqlite";
 import { createHash, randomBytes } from "node:crypto";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, chmodSync } from "node:fs";
 import { join } from "node:path";
 import { initialWorkspace } from "./planner";
 import type { Workspace } from "./types";
@@ -11,6 +11,7 @@ export function db() {
     const dir = process.env.STRIDE_DATA_DIR || join(process.cwd(), ".data");
     mkdirSync(dir, { recursive: true, mode: 0o700 });
     instance = new DatabaseSync(join(dir, "stride.sqlite"));
+    chmodSync(join(dir, "stride.sqlite"), 0o600);
     instance.exec("PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000;");
     instance.exec(
       "CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY, state TEXT NOT NULL, updated TEXT NOT NULL); CREATE TABLE IF NOT EXISTS usage (session TEXT NOT NULL, day TEXT NOT NULL, count INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(session,day));",
@@ -18,6 +19,10 @@ export function db() {
     instance.exec(
       "CREATE TABLE IF NOT EXISTS provider_checks (config_id TEXT PRIMARY KEY, verified_at TEXT, last_failure_at TEXT)",
     );
+    const columns = instance.prepare("PRAGMA table_info(sessions)").all() as { name: string }[];
+    if (!columns.some((column) => column.name === "user_id"))
+      instance.exec("ALTER TABLE sessions ADD COLUMN user_id TEXT");
+    instance.exec("CREATE UNIQUE INDEX IF NOT EXISTS sessions_owner ON sessions(user_id) WHERE user_id IS NOT NULL");
   }
   return instance;
 }

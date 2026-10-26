@@ -9,11 +9,12 @@ export async function GET(request: Request) {
     let session;
     try {
       session = await requireSession();
-    } catch {
+    } catch (error) {
+      if (!(error instanceof Error) || error.message !== "SESSION_EXPIRED") throw error;
       session = createSession(new URL(request.url).searchParams.get("fresh") !== "1");
     }
     const response = NextResponse.json(
-      { state: session.state, providers: providerStatus() },
+      { state: session.state, providers: providerStatus(), account: "account" in session && session.account ? { email: session.account.email } : null },
       { headers: { "Cache-Control": "no-store" } },
     );
     if ("token" in session && typeof session.token === "string")

@@ -36,3 +36,9 @@ A failed operation leaves an existing destination untouched. Check disk space, p
 Automated tests cover committed WAL capture, a snapshot independent of later writes, restore into a new directory, private file permissions, refusal to overwrite, and rejection of missing/corrupt/incomplete databases. A synthetic restore drill and a live snapshot verification are separate evidence; neither establishes disaster recovery from loss of the entire Devlab.
 
 The current Devlab app is supervised by `stride.service`; stop/restart that unit during a recovery switch. Do not launch a parallel npm process. See [deployment and crash-recovery checks](DEPLOYMENT.md).
+
+## Account-aware snapshots
+
+Snapshots now also contain Supabase access/refresh credentials in `account_sessions`; treat every snapshot as a credential-bearing private artifact. The active SQLite file is mode 600. Never send these snapshots to development helpers or commit them.
+
+After accounts have claimed guest workspaces, do not run an older server that lacks account ownership checks against this database. Use an account-aware version for rollback, or perform a separately reviewed restore to the pre-account snapshot with the app stopped; a pre-account restore loses later changes. The additive SQLite migration adds `sessions.user_id`, its unique index, account-device sessions and rate-limit buckets. Account workspaces still live on this Devlab volume, so Supabase Auth alone does not recover lost workspace storage.

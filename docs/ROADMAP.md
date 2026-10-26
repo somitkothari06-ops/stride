@@ -21,12 +21,12 @@ Updated October 25, 2026. This is a development checkpoint, not a finished hacka
 | Work | Current state | Completion evidence needed |
 |---|---|---|
 | Live internship grounding | Key configured privately; live retrieval and source persistence verified, including Google/IBM/Atlassian internship hubs. AI failure retains labelled source-only results | Valid account access, real relevant sources, eligibility/freshness handling, observed work linked honestly |
-| Cross-device user accounts | Browser-cookie sessions only | Managed sign-in, shared identity across devices, account recovery and two-user authorization checks |
+| Cross-device user accounts | Supabase login, one-time guest claim and device logout implemented; live synthetic two-device/user checks pass | Public email delivery, password recovery, stable HTTPS origin and real confirmation flow |
 | Automatic daily preparation | Not implemented | Authenticated scheduled job, opt-in, idempotent runs, freshness display and an observed closed-browser run |
 | Public judge access | Development SSH tunnel only | Stable HTTPS URL usable from a fresh independent browser, isolated demo, documented access and hosting runway |
 | Broad file intake | Confirmed text extraction from PDF/PPTX/DOCX/TXT/MD, with locators and warnings | OCR for scans/handwriting, layout/equation fidelity, stronger parser isolation and real-course trials |
 | Executed practice checks | Authored guided prompts/model feedback only | Optional constrained runner with reviewed fixtures and explicit execution conditions; never claim tests ran before this exists |
-| Production data operations | Transactional SQLite JSON per browser session; consistent snapshot tool and restore drill | Versioned migrations, off-volume scheduled backups, retention/deletion semantics and request idempotency; Devlab process supervision and crash recovery are now checked |
+| Production data operations | Transactional SQLite guest/account workspaces; consistent snapshot tool and restore drill | Versioned migrations, off-volume scheduled backups, retention/deletion semantics and request idempotency; Devlab process supervision and crash recovery are now checked |
 | Product/model quality | Representative synthetic checks only | Unfamiliar real student tasks, adversarial/ambiguous cases, useful feedback, measured quality/latency/cost and fixes |
 | Accessibility and polish | Shared visual pass and onboarding simplification checked; single audio notice, keyboard guards, source review and failure-state checks | Focus/keyboard/mobile review, robust empty/error/loading paths and final complete-flow review |
 | Submission package | Initial README/license/source exist | Final demonstrated scope, judge instructions, authentic tool feedback, short public video and completed Devpost entry |
@@ -34,7 +34,7 @@ Updated October 25, 2026. This is a development checkpoint, not a finished hacka
 ## Suggested next work order
 
 1. Improve live role-source relevance and validate a small real sample; Tavily retrieval is connected. Keep academic constraints in control.
-2. Implement Supabase account identity on the linked project; test guest claiming, logout and two-user isolation before enabling cross-device workspaces.
+2. Finish public account onboarding: configure custom email delivery, add password recovery and verify real confirmation emails. Supabase login, one-time guest claim, per-device logout, refresh and synthetic cross-device/two-user checks now pass.
 3. Implement scheduled daily preparation with persistent state and safe retries.
 4. Establish public judge access and evaluation-period hosting before treating a development tunnel as deployment.
 5. Complete failure recovery, data operations and meaningful student/model trials.

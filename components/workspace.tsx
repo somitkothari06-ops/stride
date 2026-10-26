@@ -71,6 +71,7 @@ function Kind({ kind }: { kind: string }) {
 
 export default function WorkspaceApp() {
   const [state, setState] = useState<Workspace | null>(null);
+  const [account, setAccount] = useState<{ email: string } | null>(null);
   const [providers, setProviders] = useState<Providers>({
     nebius: false,
     tavily: false,
@@ -131,6 +132,7 @@ export default function WorkspaceApp() {
         throw new Error(data.error?.message || "Couldn't load your workspace.");
       setState(data.state);
       setProviders(data.providers);
+      setAccount(data.account || null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't connect.");
     }
@@ -263,9 +265,7 @@ export default function WorkspaceApp() {
         <h1>Getting your workspace ready.</h1>
         <p>{error || "A little space for what matters."}</p>
         {error && (
-          <button className="btn primary" onClick={load}>
-            Try again
-          </button>
+          <><button className="btn primary" onClick={load}>Try again</button><a className="btn subtle" href="/login">Sign in or use guest mode</a></>
         )}
       </main>
     );
@@ -383,6 +383,7 @@ export default function WorkspaceApp() {
           </svg>
         </div>
         <div className="sidebar-bottom">
+          <a className="nav-item account-nav" href="/login"><ShieldCheck size={17} /><span>{account ? "My account" : "Save my workspace"}</span></a>
           <button className="nav-item" onClick={() => setModal("integrations")}>
             <Settings2 size={17} />
             <span>Connections</span>
@@ -435,7 +436,7 @@ export default function WorkspaceApp() {
             <span>{dateText}</span>
             <span>
               <ShieldCheck size={13} />
-              Private browser session
+              {account ? "Account workspace" : "Private guest workspace"}
             </span>
           </div>
           {error && (
@@ -1545,7 +1546,7 @@ export default function WorkspaceApp() {
                   </div>
                 </div>
                 <p className="field-help">
-                  Saved for this browser. Cross-device sign-in and daily briefs are still being built.
+                  {account ? "Saved to your account. Open the same workspace on another device by signing in." : <>Saved for this browser. <a href="/login">Sign in</a> to open your workspace on another device.</>}
                 </p>
                 <button
                   className="btn subtle"

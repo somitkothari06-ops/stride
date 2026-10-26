@@ -1,15 +1,15 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { getState, sessionId } from "./store";
+import { guestWorkspace, ownedWorkspace } from "./account-store";
+import { currentAccount } from "./auth";
 
 export async function requireSession() {
+  const account = await currentAccount();
+  if (account) return { ...ownedWorkspace(account.id), account };
   const token = (await cookies()).get("stride_session")?.value;
-  if (!token || !/^[a-f0-9]{64}$/.test(token))
-    throw new Error("SESSION_EXPIRED");
-  const id = sessionId(token);
-  const state = getState(id);
-  if (!state) throw new Error("SESSION_EXPIRED");
-  return { id, state };
+  const guest = guestWorkspace(token);
+  if (!guest) throw new Error("SESSION_EXPIRED");
+  return { ...guest, account: null };
 }
 export function checkOrigin(request: Request) {
   const origin = request.headers.get("origin");
@@ -39,6 +39,12 @@ export async function body(request: Request, limit = 30000) {
 export function failure(error: unknown) {
   const code = error instanceof Error ? error.message : "UNKNOWN";
   const known: Record<string, [number, string]> = {
+    AUTH_EXPIRED: [401, "Sign in again to open your saved workspace. Your work is safe."],
+    AUTH_NOT_CONFIGURED: [503, "Account login is not connected yet. Guest mode is available."],
+    AUTH_FAILED: [401, "Couldn't sign in. Check your email and password, and confirm your email first."],
+    AUTH_SIGNUP_FAILED: [400, "Couldn't create this account. Signup email is currently limited to project testers. Use guest mode, or sign in if you already have an account."],
+    AUTH_RATE_LIMIT: [429, "Too many account requests. Wait 15 minutes before trying again."],
+    AUTH_UNAVAILABLE: [503, "Account services couldn't respond. Please try again shortly."],
     COURSE_REVIEW_INVALID: [400, "This document review expired or changed. Extract the file again before confirming it (reviews last 15 minutes and expire on a server restart)."],
     COURSE_CONTEXT_NEEDED: [400, "Add and confirm a course document for this subject before comparing it."],
     DOCUMENT_UNREADABLE: [422, "Couldn't read this document. Use an unlocked text PDF, PPTX, DOCX, TXT or MD file under 8 MB and 100 pages/slides. Scans need OCR or a pasted transcription."],

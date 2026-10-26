@@ -15,7 +15,7 @@ A personal workspace for second- and third-year CS/engineering students: decide 
 - Plans respect confirmed deadlines and available time; changed context marks old plans stale.
 - Prepare guided practice, submit an explanation, and record an observation.
 - Edit work, complete/reopen it, remove sources and dependent observations, and export the workspace.
-- Persistent SQLite storage on the Devlab, with independent opaque browser sessions.
+- Persistent SQLite storage on the Devlab, with independent guest sessions and optional Supabase accounts.
 - Server-side Nebius and Tavily adapters, schema validation, timeouts and live-call allowances.
 - Explicit distinctions between sample data, rule-based guidance, self-report and model assessment.
 
@@ -102,14 +102,14 @@ See [development notes](docs/DEVELOPMENT.md), [milestone status](docs/STATUS.md)
 
 Next.js/React frontend and Node server routes → schema validation → session-scoped workspace → SQLite. Optional provider adapters call Nebius and Tavily only on the server. An HttpOnly SameSite session cookie contains a random token; the database stores its SHA-256 hash. Clients do not select arbitrary workspace owners. Origin checks protect browser mutations, and writes are transactional.
 
-This is **browser-session isolation**, not cross-device account authentication. Losing the cookie loses access to that workspace. SQLite is not an encrypted vault. Content deletion removes it from active workspace context, but does not claim forensic erasure from WAL files/backups. Export user-owned data before abandoning a session.
+Guest workspaces use opaque browser cookies: losing a guest cookie loses access to that workspace. Optional Supabase email/password login maps a verified identity to one account workspace across devices on the same Stride server. First sign-in claims the current guest workspace only when the account has no existing workspace; it never merges into an existing account. See [account setup and limits](docs/ACCOUNTS.md). SQLite is not an encrypted vault. Content deletion removes it from active workspace context, but does not claim forensic erasure from WAL files/backups. Export user-owned data before abandoning a session.
 
-The server is currently reached through an SSH tunnel. Before public launch, add managed authentication, HTTPS/proxy hardening, durable migrations/backups, retention controls, stronger request/body/rate limits and deployment supervision. Test separate real users, not only browser sessions.
+The server is currently reached through an SSH tunnel. Before public launch, finish email delivery and account recovery, HTTPS/proxy hardening, durable migrations/backups, retention controls and stronger public traffic limits. Process supervision is configured. Synthetic two-user login and isolation are checked; representative real-user testing remains.
 
 ## Remaining submission work
 
 - Configure and verify Tavily; broaden model quality evaluations. NVIDIA/Nebius extraction, planning, preparation and model assessment have passed a synthetic live workflow.
-- Replace browser-only identity with managed accounts for real users; design accessible isolated judge sessions.
+- Configure production email delivery, password recovery and isolated judge access for the implemented account flow.
 - Add safe scheduled brief preparation, source provenance improvements and duplicate/update handling.
 - Harden request idempotency, large-input handling, modal accessibility and model quality evaluations.
 - Validate any optional image intake or constrained SQL execution separately.
