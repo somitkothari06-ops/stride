@@ -16,6 +16,7 @@ A personal workspace for second- and third-year CS/engineering students: decide 
 - Prepare guided practice, submit an explanation, and record an observation.
 - Edit work, complete/reopen it, remove sources and dependent observations, and export the workspace.
 - Persistent SQLite storage on the Devlab, with independent guest sessions and optional Supabase accounts.
+- Pip: a floating typed/browser-voice capture companion with reviewed coursework, personal-context and thought destinations. See [behavior and limits](docs/COMPANION.md).
 - Server-side Nebius and Tavily adapters, schema validation, timeouts and live-call allowances.
 - Explicit distinctions between sample data, rule-based guidance, self-report and model assessment.
 

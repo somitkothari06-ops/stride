@@ -1,6 +1,6 @@
 # What is complete and what remains
 
-Updated October 25, 2026. This is a development checkpoint, not a finished hackathon submission. No percentage-complete estimate is claimed.
+Updated October 26, 2026. This is a development checkpoint, not a finished hackathon submission. No percentage-complete estimate is claimed.
 
 ## Working and checked
 
@@ -20,8 +20,9 @@ Updated October 25, 2026. This is a development checkpoint, not a finished hacka
 
 | Work | Current state | Completion evidence needed |
 |---|---|---|
+| Pip capture companion | Typed/browser-voice capture with proposed coursework/profile/thought destinations, editable review and atomic confirmed save; synthetic live mixed capture checked | Real student language and microphone trials, useful classification and clear failure handling across devices |
 | Live internship grounding | Key configured privately; live retrieval and source persistence verified, including Google/IBM/Atlassian internship hubs. AI failure retains labelled source-only results | Valid account access, real relevant sources, eligibility/freshness handling, observed work linked honestly |
-| Cross-device user accounts | Supabase password login and social flows implemented; GitHub enabled, Google setup pending; live synthetic two-device/user checks pass | Google provider credentials, real social consent/return checks, public email delivery, password recovery and stable HTTPS origin |
+| Cross-device user accounts | Supabase password and social flows implemented; real GitHub login observed; Google setup pending; synthetic two-device/user checks pass | Google credentials/consent test, public email delivery, password recovery and stable HTTPS origin |
 | Automatic daily preparation | Not implemented | Authenticated scheduled job, opt-in, idempotent runs, freshness display and an observed closed-browser run |
 | Public judge access | Development SSH tunnel only | Stable HTTPS URL usable from a fresh independent browser, isolated demo, documented access and hosting runway |
 | Broad file intake | Confirmed text extraction from PDF/PPTX/DOCX/TXT/MD, with locators and warnings | OCR for scans/handwriting, layout/equation fidelity, stronger parser isolation and real-course trials |
@@ -34,9 +35,9 @@ Updated October 25, 2026. This is a development checkpoint, not a finished hacka
 ## Suggested next work order
 
 1. Improve live role-source relevance and validate a small real sample; Tavily retrieval is connected. Keep academic constraints in control.
-2. Finish public account onboarding: configure custom email delivery, add password recovery and verify real confirmation emails. Supabase login, one-time guest claim, per-device logout, refresh and synthetic cross-device/two-user checks now pass.
-3. Implement scheduled daily preparation with persistent state and safe retries.
-4. Establish public judge access and evaluation-period hosting before treating a development tunnel as deployment.
+2. Establish public judge access and evaluation-period hosting before treating a development tunnel as deployment; pin the HTTPS auth origin and verify a fresh external-browser login.
+3. Finish public account onboarding: configure Google, custom email delivery and password recovery. GitHub sign-in, one-time guest claim, per-device logout, refresh and synthetic cross-device/two-user checks now pass.
+4. Implement opted-in scheduled daily preparation with persistent state and safe retries if it remains in the demonstrated scope.
 5. Complete failure recovery, data operations and meaningful student/model trials.
 6. Freeze a demonstrable stable version, rehearse the video and finish the submission package.
 

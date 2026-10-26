@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./signal.css";
+import Companion from "@/components/companion";
 export const metadata: Metadata = {
   title: "Stride — make your work count",
   description:
@@ -13,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>{children}<Companion/></body>
     </html>
   );
 }

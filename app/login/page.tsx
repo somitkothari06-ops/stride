@@ -78,7 +78,7 @@ export default function LoginPage() {
     } catch (e) { setError(e instanceof Error ? e.message : "Couldn't sign out."); setBusy(false); }
   }
   return <main className="account-page">
-    <a className="site-brand" href="/">stride<span>.</span></a>
+    <a className="site-brand" href="/workspace">stride<span>.</span></a>
     <a href="/workspace" className="account-back"><ArrowLeft size={18} /> Back to your workspace</a>
     <section className="account-card">
       <div className="account-intro"><BookOpen size={32} /><p className="site-kicker">YOUR WORK, WITH YOU</p><h1>Pick up where <br />you left off.</h1><p>Keep your coursework, practice and progress together. Open the same workspace on another device.</p><span><ShieldCheck size={19} /> Guest mode is always an option.</span></div>

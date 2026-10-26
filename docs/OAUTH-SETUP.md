@@ -1,6 +1,6 @@
 # Google and GitHub sign-in setup
 
-GitHub is enabled in the current Supabase project. Google still needs OAuth app credentials. Both application flows are implemented; do not claim real consent/callback success until that provider has been tested with a real account.
+GitHub is enabled and a real account completed its return to Stride. Google still needs OAuth app credentials and a real consent/return check. Both application flows are implemented.
 
 ## Two callback URLs with different purposes
 

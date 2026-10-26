@@ -39,6 +39,11 @@ export async function body(request: Request, limit = 30000) {
 export function failure(error: unknown) {
   const code = error instanceof Error ? error.message : "UNKNOWN";
   const known: Record<string, [number, string]> = {
+    CAPTURE_EXPIRED: [400,"This capture review expired or belongs to another workspace. Review your words again."],
+    CAPTURE_STALE: [409,"Your workspace changed. Review your words again before saving; nothing was added."],
+    CAPTURE_EVIDENCE_INVALID: [400,"A suggestion couldn't be traced to your words. Review again or edit your capture."],
+    CAPTURE_PROFILE_FULL: [400,"That addition doesn't fit this personal-context field. Shorten it or edit it in About You; nothing was added."],
+    CAPTURE_LIMIT: [429,"You have several pending reviews. Finish one or wait 15 minutes before creating another."],
     AUTH_EXPIRED: [401, "Sign in again to open your saved workspace. Your work is safe."],
     OAUTH_NOT_CONFIGURED: [503, "This sign-in provider still needs its one-time setup. Use email or guest mode for now."],
     AUTH_NOT_CONFIGURED: [503, "Account login is not connected yet. Guest mode is available."],

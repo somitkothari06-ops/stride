@@ -113,6 +113,7 @@ export const ConfirmSchema = IntakeSchema.extend({
     "Assignment",
     "Project",
     "Voice capture",
+    "Companion",
   ]),
   uncertainty: z.string().max(500).default(""),
 });

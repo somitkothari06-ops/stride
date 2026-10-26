@@ -32,7 +32,7 @@ import {
 import type { Intake, Mode, View, Work, Workspace } from "@/lib/types";
 import { nebiusPresentation, type Providers } from "@/lib/connection-status";
 import CourseLibrary from "./course-library";
-import VoiceCapture from "./voice-capture";
+import { CompanionInvite } from "./companion";
 
 type Modal = "add" | "profile" | "integrations" | "edit" | "course" | null;
 type Candidate = Intake & { source: string; sourceType: string; mode: Mode };
@@ -78,7 +78,6 @@ export default function WorkspaceApp() {
     model: null,
   });
   const [view, setView] = useState<View>("today");
-  const [captureOpen, setCaptureOpen] = useState(false);
   const [modal, setModal] = useState<Modal>(null);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
@@ -140,6 +139,11 @@ export default function WorkspaceApp() {
   useEffect(() => {
     void load();
   }, [load]);
+  useEffect(() => {
+    const refresh = () => { void load(); };
+    window.addEventListener("stride-workspace-changed", refresh);
+    return () => window.removeEventListener("stride-workspace-changed", refresh);
+  },[load]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k" && !busy) {
@@ -338,7 +342,7 @@ export default function WorkspaceApp() {
       <aside className={`sidebar ${mobileNav ? "mobile-open" : ""}`}>
         <a
           className="brand"
-          href="#"
+          href="/workspace"
           onClick={(e) => {
             e.preventDefault();
             go("today");
@@ -395,8 +399,8 @@ export default function WorkspaceApp() {
           >
             <span className="avatar">{state.profile.name.slice(0, 1)}</span>
             <span>
-              <strong>{state.profile.name}</strong>
-              <small>{state.profile.year} · Engineering</small>
+              <strong>My profile</strong>
+              <small>{state.profile.name} · {account ? "Signed in" : "Guest"}</small>
             </span>
             <MoreHorizontal size={18} />
           </button>
@@ -413,7 +417,7 @@ export default function WorkspaceApp() {
             >
               <Menu size={20} />
             </button>
-            <a href="/">Stride</a>
+            <a href="/workspace" onClick={event => { event.preventDefault(); go("today"); }}>Stride</a>
             <ChevronRight size={13} />
             <strong>{activeNav.name}</strong>
           </div>
@@ -496,7 +500,8 @@ export default function WorkspaceApp() {
                 <button onClick={() => setModal("profile")}><Clock3 size={18} /><span><strong>{state.profile.minutes} min</strong> to focus</span><Pencil size={13} /></button>
                 <button onClick={() => setView("memory")}><ListChecks size={18} /><span><strong>{state.observations.filter((o) => !o.removed).length}</strong> {state.observations.filter((o) => !o.removed).length === 1 ? "attempt" : "attempts"} saved</span><ArrowRight size={14} /></button>
               </div>
-              <details className="quick-capture" onToggle={(e) => setCaptureOpen(e.currentTarget.open)}><summary><span>Have something on your mind?</span><span>Speak or type ↗</span></summary><VoiceCapture active={captureOpen} onWork={(text) => { setSource(text); setSourceType("Voice capture"); setCandidate(null); setModal("add"); void extractSource(text, "Voice capture"); }} onNote={async (text) => !!(await act({ action: "saveNote", text }, "Saving your thought"))} />{(state.notes || []).length > 0 && <div className="thought-inbox"><h3>Thought inbox</h3>{[...(state.notes || [])].reverse().map((note) => <article key={note.id}><p>{note.text}</p><button className="btn subtle" disabled={!!busy} onClick={() => void act({ action: "deleteNote", id: note.id }, "Removing thought")}>Remove<span className="sr-only"> thought</span></button></article>)}</div>}</details>
+              <CompanionInvite/>
+              {(state.notes || []).length > 0 && <details className="quick-capture thought-inbox"><summary><span>Thought inbox</span><span>{state.notes!.length} saved <ChevronRight size={16}/></span></summary>{[...state.notes!].reverse().map(note=><article key={note.id}><p>{note.text}</p><button className="btn subtle" disabled={!!busy} onClick={()=>void act({action:"deleteNote",id:note.id},"Removing thought")}>Remove<span className="sr-only"> thought</span></button></article>)}</details>}
               <div className="dashboard-grid">
                 <section className="next-step-card">
                   <div className="card-overline">
@@ -680,7 +685,7 @@ export default function WorkspaceApp() {
                 <div>
                   <h1>Your coursework.</h1>
                   <p>Pick a task. Try it, explain it, and keep what you learn.</p>
-                  <button className="text-button" onClick={() => setModal("course")}><BookOpen size={15} /> Course library · syllabus, notes & past questions</button>
+                  <button className="text-button course-library-button" onClick={() => setModal("course")}><BookOpen size={15} /> Course library · syllabus, notes & past questions</button>
                 </div>
                 <button className="btn primary" onClick={openAdd}>
                   <Plus size={16} />
@@ -898,9 +903,9 @@ export default function WorkspaceApp() {
                 </button>
               </div>
               <div className="memory-grid">
-                <section className="card">
+                <section className="card memory-context-card">
                   <div className="section-title">
-                    <h2>The context you chose</h2>
+                    <h2>What shapes your plan</h2>
                     <button
                       className="icon-btn"
                       aria-label="Edit personal context"
@@ -927,7 +932,7 @@ export default function WorkspaceApp() {
                     </p>
                   </div>
                 </section>
-                <section className="card">
+                <section className="card memory-work-card">
                   <div className="section-title">
                     <h2>Confirmed work</h2>
                     <span className="count">{state.works.length}</span>
@@ -1541,7 +1546,7 @@ export default function WorkspaceApp() {
                   <div>
                     <strong>Your work, your choices.</strong>
                     <p>
-                      Relevant text goes to connected services when you ask for help. Avoid passwords or unrelated private details.
+                      Relevant text goes to connected services when you ask for help. Browser dictation may send audio to your browser’s speech service; Stride saves text, not audio. Pip only saves the items you confirm. Avoid passwords or unrelated private details.
                     </p>
                   </div>
                 </div>
