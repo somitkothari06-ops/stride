@@ -64,9 +64,12 @@ export type RoleSource = {
 export type Direction = {
   role: string;
   summary: string;
+  courseConnection?: string;
+  nextMove?: string;
   requirements: {
     requirement: string;
     evidenceIds: string[];
+    sourceQuotes?: { sourceIndex: number; quote: string }[];
     nextStep: string;
   }[];
   sources: RoleSource[];

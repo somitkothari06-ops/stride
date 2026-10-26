@@ -1,10 +1,14 @@
 import type { Direction } from "./types";
-type Comparison = Pick<Direction, "summary" | "requirements">;
-export async function roleComparison(sourceCount: number, validEvidenceIds: string[], compare: () => Promise<Comparison>) {
+type Comparison = Pick<Direction, "summary" | "requirements" | "courseConnection" | "nextMove">;
+export async function roleComparison(sourceCount: number, validEvidenceIds: string[], compare: () => Promise<Comparison>, sources?: {excerpt:string}[]): Promise<Comparison & {mode:"live"|"guided"}> {
   try {
     const result = await compare();
     const valid = new Set(validEvidenceIds);
     if (result.requirements.some((requirement) => requirement.evidenceIds.some((id) => !valid.has(id))))
+      throw new Error("MODEL_UNAVAILABLE");
+    if (sources && result.requirements.some(requirement => !requirement.sourceQuotes?.length || requirement.sourceQuotes.some(ref => !Number.isInteger(ref.sourceIndex) || !sources[ref.sourceIndex - 1]?.excerpt.includes(ref.quote) || !ref.quote.trim())))
+      throw new Error("MODEL_UNAVAILABLE");
+    if (sources && result.requirements.some(requirement => !requirement.sourceQuotes?.some(ref => ref.quote.toLocaleLowerCase().includes(requirement.requirement.toLocaleLowerCase()))))
       throw new Error("MODEL_UNAVAILABLE");
     return { ...result, mode: "live" as const };
   } catch (error) {

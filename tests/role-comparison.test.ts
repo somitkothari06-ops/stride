@@ -19,3 +19,19 @@ test("valid comparisons are preserved and unexpected programming errors propagat
  assert.equal(result.mode,"live"); assert.deepEqual(result.requirements,comparison.requirements);
  await assert.rejects(roleComparison(2,[],async()=>{throw new Error("unexpected");}),/unexpected/);
 });
+test("source-backed briefs reject invented quotes and invalid source numbers", async()=>{
+ const sources=[{excerpt:"Requirements include SQL and Python."}];
+ const base={summary:"A role working with data.",courseConnection:"Database coursework covers a related topic, not demonstrated ability.",nextMove:"Try a small SQL query.",requirements:[{requirement:"SQL",evidenceIds:[],nextStep:"Practise a join.",sourceQuotes:[{sourceIndex:1,quote:"SQL and Python"}]}]};
+ assert.equal((await roleComparison(1,[],async()=>base,sources)).mode,"live");
+ for(const ref of [{sourceIndex:1,quote:"requires a PhD"},{sourceIndex:2,quote:"SQL"},{sourceIndex:1,quote:""}]) {
+  const bad={...base,requirements:[{...base.requirements[0],sourceQuotes:[ref]}]};
+  assert.equal((await roleComparison(1,[],async()=>bad,sources)).mode,"guided");
+ }
+ const missing={...base,requirements:[{requirement:"SQL",evidenceIds:[],nextStep:"Try joins"}]};
+ assert.equal((await roleComparison(1,[],async()=>missing,sources)).mode,"guided");
+});
+
+test("a genuine excerpt cannot support an unrelated inferred requirement",async()=>{
+ const result=await roleComparison(1,[],async()=>({summary:"A role involving services.",requirements:[{requirement:"REST API",evidenceIds:[],nextStep:"Try an endpoint",sourceQuotes:[{sourceIndex:1,quote:"Develop services with Node.js"}]}]}),[{excerpt:"Develop services with Node.js"}]);
+ assert.equal(result.mode,"guided");
+});

@@ -585,3 +585,72 @@ a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,
 @media (max-width:700px) { .app-shell .sidebar.mobile-open nav { width: 100%; } .app-shell .sidebar.mobile-open .profile-button { width: 100%; } .app-shell .mobile-tabs button[aria-current="page"] { background: #172653; color: white; } .app-shell .mobile-tabs button[aria-current="page"] svg { color: #f3e86c; } .app-shell .memory-work-card { padding: 0 18px 12px; } .app-shell .memory-work-card > .section-title { margin: 0 -18px 6px; padding: 22px 18px; } .app-shell .observation-list { padding: 18px; } .app-shell .memory-work { flex-wrap: wrap; } .app-shell .memory-work > div { flex-basis: 100%; } }
 @media(prefers-reduced-motion:reduce) { .pip-character { animation: none; } }
 @media(max-width:700px) { .companion-dock { bottom: calc(82px + env(safe-area-inset-bottom, 0px)); } .companion-panel { max-height: calc(100dvh - 210px); } }
+
+/* Direction: a starting point, rather than a bare search box. */
+.direction-tools > .role-search { display: grid; grid-template-columns: minmax(240px,.85fr) minmax(0,1.25fr); padding: 0; border-radius: 18px; overflow: hidden; border: 2px solid #172653; }
+.direction-intro { background: #172653; color: white; padding: 34px; display: flex; flex-direction: column; align-items: flex-start; }
+.direction-compass { display: grid; place-items: center; width: 64px; height: 64px; background: #f3e86c; color: #172653; border-radius: 18px; margin-bottom: 28px; transform: rotate(-7deg); }
+.direction-eyebrow { font-size: 11px; line-height: 1.6; letter-spacing: .09em; font-weight: 800; color: #f3e86c; }
+.app-shell .direction-intro h2 { font-size: clamp(27px,2.5vw,37px); color: white; line-height: 1.2; letter-spacing: -.05em; margin: 16px 0; }
+.direction-intro > p { color: #eef0f4; font-size: 16px; line-height: 1.8; margin: 0 0 32px; max-width: 34ch; }
+.direction-trail { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin-top: auto; }
+.direction-trail span { color: white; font-size: 14px; font-weight: 700; }
+.direction-trail > svg { transform: rotate(90deg); color: #f3e86c; margin-left: 4px; }
+.direction-tools > .role-search > form { padding: 38px; align-self: center; min-width: 0; }
+.role-search .role-search-label { font-size: 11px; font-weight: 800; letter-spacing: .08em; color: #626874; margin-bottom: 14px; }
+.app-shell .role-search label { display: block; font-size: clamp(25px,2.3vw,32px); font-weight: 800; line-height: 1.3; letter-spacing: -.04em; margin-bottom: 24px; color: #172653; }
+.direction-tools.search-ready .search-input-row, .direction-tools .search-input-row { flex-direction: column; align-items: stretch; gap: 14px; }
+.direction-tools .search-input-row input { width: 100%; flex: auto; min-height: 58px; font-size: 17px; border: 1px solid #8c939e; background: #fffdf6; }
+.app-shell .role-search .search-input-row .btn { width: 100%; min-height: 54px; justify-content: center; background: #f3e86c; color: #172653; border: 1px solid #172653; font-size: 16px; font-weight: 800; }
+.app-shell .role-search .search-input-row .btn:disabled { background: #ecece8; color: #626874; border-color: #c9cbc6; opacity: 1; box-shadow: none; cursor: not-allowed; }
+.role-starting-points { margin-top: 28px; }
+.role-starting-points > span { font-size: 14px; font-weight: 700; color: #49505c; }
+.role-starting-points > div { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.role-starting-points button { display: inline-flex; align-items: center; gap: 10px; font: inherit; font-size: 14px; font-weight: 700; min-height: 44px; padding: 10px 12px; border: 1px solid #b5b8be; border-radius: 9px; background: white; color: #172653; cursor: pointer; }
+.role-starting-points button:hover, .role-starting-points button[aria-pressed=true] { background: #f8ed9e; border-color: #172653; }
+.role-starting-points button:disabled { cursor: not-allowed; opacity: .6; }
+.app-shell .role-search .field-help { margin: 24px 0 0; font-size: 13px; line-height: 1.6; color: #626874; }
+@media(max-width:1000px) { .direction-tools > .role-search { grid-template-columns: minmax(210px,.8fr) minmax(0,1.2fr); } .direction-intro, .direction-tools > .role-search > form { padding: 28px; } }
+@media(max-width:700px) { .direction-tools > .role-search { grid-template-columns: 1fr; padding: 0; } .direction-intro { padding: 24px; } .direction-compass { width: 48px; height: 48px; margin-bottom: 18px; } .direction-intro h2 br { display: none; } .direction-intro > p { max-width: none; margin-bottom: 0; font-size: 15px; } .direction-trail { display: none; } .direction-tools > .role-search > form { padding: 26px 22px; } .app-shell .role-search label { font-size: 26px; } }
+/* A short AI brief leads; original excerpts stay available on demand. */
+.app-shell .direction-heading { margin: 0 0 26px; }
+.app-shell .direction-heading h1 { font-size: clamp(30px,3.6vw,44px); letter-spacing: -.055em; }
+.app-shell .direction-heading > div > p:last-child { font-size: 17px; max-width: 48ch; line-height: 1.6; }
+.direction-brief { border: 2px solid #172653; border-radius: 18px; overflow: hidden; background: white; margin-top: 28px; }
+.direction-brief-header { padding: 30px 32px; background: #172653; color: white; }
+.direction-brief-header .tag { color: #172653; background: #f3e86c; font-size: 12px; font-weight: 800; }
+.app-shell .direction-brief-header h2 { color: white; font-size: 30px; line-height: 1.3; margin: 18px 0 12px; letter-spacing: -.04em; }
+.direction-brief-header p { font-size: 18px; line-height: 1.7; max-width: 70ch; margin: 0 0 18px; color: white; }
+.direction-brief-header small { color: #eef0f4; font-size: 13px; }
+.direction-course-link { display: flex; align-items: flex-start; gap: 16px; background: #f5f1df; padding: 24px 32px; }
+.direction-course-link > svg { flex-shrink: 0; margin-top: 3px; }
+.direction-course-link h3 { font-size: 17px; margin: 0 0 8px; }
+.direction-course-link p { font-size: 16px; line-height: 1.7; margin: 0; color: #49505c; max-width: 75ch; }
+.role-skill-list { padding: 28px 32px; }
+.role-skill-list > h3 { font-size: 22px; margin: 0 0 12px; }
+.role-skill { display: flex; gap: 18px; padding: 22px 0; border-bottom: 1px solid #dadbd7; }
+.role-skill:last-child { border-bottom: 0; padding-bottom: 0; }
+.role-skill-number { display: grid; place-items: center; flex-shrink: 0; width: 40px; height: 40px; font-size: 14px; font-weight: 800; border-radius: 10px; background: #f3e86c; color: #172653; }
+.role-skill > div { min-width: 0; }
+.role-skill h4 { font-size: 20px; margin: 0 0 8px; }
+.role-skill p { font-size: 16px; color: #49505c; margin: 0; line-height: 1.7; max-width: 75ch; }
+.role-skill details { margin-top: 12px; }
+.role-skill summary,.role-source-row summary { font-size: 14px; cursor: pointer; color: #49505c; padding: 8px 0; font-weight: 700; }
+.role-skill blockquote { border-left: 3px solid #172653; margin: 10px 0; padding: 10px 16px; background: #f7f5ed; }
+.role-skill blockquote p,.role-skill blockquote a { font-size: 14px; }
+.role-skill blockquote a { display: inline-block; margin-top: 10px; text-decoration: underline; color: #172653; overflow-wrap: anywhere; }
+.direction-next-move { padding: 28px 32px; background: #f3e86c; border-top: 1px solid #172653; }
+.direction-next-move > span { display: flex; gap: 10px; align-items: center; font-size: 12px; font-weight: 800; letter-spacing: .06em; }
+.direction-next-move h3 { font-size: 21px; line-height: 1.6; margin: 14px 0; max-width: 70ch; }
+.direction-next-move small { font-size: 13px; color: #49505c; }
+.direction-source-list { background: white; border: 1px solid #b8bbc0; border-radius: 16px; padding: 28px 32px; margin-top: 24px; }
+.direction-source-list > p { font-size: 14px; color: #626874; }
+.role-source-row { display: flex; align-items: flex-start; gap: 16px; border-top: 1px solid #dadbd7; padding: 18px 0; }
+.role-source-row > span { font-size: 13px; color: #626874; padding-top: 6px; }
+.role-source-row > div { min-width: 0; flex: 1; }
+.role-source-row h3 { display: flex; align-items: flex-start; gap: 12px; font-size: 17px; line-height: 1.6; margin: 0 0 5px; color: #172653; }
+.role-source-row h3 > svg { flex-shrink: 0; margin-top: 6px; }
+.role-source-row a:hover h3 { text-decoration: underline; }
+.role-source-row small { font-size: 13px; color: #626874; }
+.role-source-row details p { font-size: 14px; line-height: 1.8; color: #49505c; max-width: 85ch; overflow-wrap: anywhere; }
+@media(max-width:700px) { .direction-brief-header,.direction-course-link,.role-skill-list,.direction-next-move,.direction-source-list { padding: 22px; } .app-shell .direction-brief-header h2 { font-size: 26px; } .direction-brief-header p { font-size: 16px; } .role-skill { gap: 12px; } .role-skill-number { width: 32px; height: 32px; } .role-skill h4 { font-size: 18px; } }

@@ -1053,12 +1053,19 @@ export default function WorkspaceApp() {
             <>
               <div className="page-heading direction-heading">
                 <div>
-                  <h1>Explore your options.</h1>
-                  <p>Find a role that interests you. See what it asks for.</p>
+                  <h1>Follow your curiosity.</h1>
+                  <p>Real roles. Clear requirements. One small next step.</p>
                 </div>
               </div>
               <div className={`direction-tools ${providers.tavily ? "search-ready" : ""}`}>
               <section className="card role-search" aria-label="Explore a role">
+                <div className="direction-intro">
+                  <span className="direction-compass"><Compass size={34}/></span>
+                  <span className="direction-eyebrow">A LITTLE CURIOSITY GOES A LONG WAY</span>
+                  <h2>You don’t need<br/>a plan to explore.</h2>
+                  <p>Start with a role that sounds interesting. See what it involves and how your coursework connects.</p>
+                  <div className="direction-trail" aria-label="Connect coursework with skills and possibilities"><span>Your coursework</span><ArrowRight size={18}/><span>Useful skills</span><ArrowRight size={18}/><span>New possibilities</span></div>
+                </div>
                 <form
                   onSubmit={async (e) => {
                     e.preventDefault();
@@ -1069,8 +1076,8 @@ export default function WorkspaceApp() {
                     );
                   }}
                 >
-                  <span className="role-search-label"><Compass size={18} /> YOUR NEXT POSSIBILITY</span>
-                  <label htmlFor="role">What would you like to explore?</label>
+                  <span className="role-search-label">START SOMEWHERE INTERESTING</span>
+                  <label htmlFor="role">Pick a role to explore.</label>
                   <div className="search-input-row">
                     <input
                       id="role"
@@ -1078,17 +1085,21 @@ export default function WorkspaceApp() {
                       onChange={(e) => setRole(e.target.value)}
                       maxLength={120}
                       required
-                      placeholder="e.g. Backend development internship"
+                      placeholder="A role, field or internship…"
                     />
                     <button
                       className="btn primary"
                       disabled={!!busy || !providers.tavily || (role || state.profile.goal).trim().length < 3}
                     >
-                      {busy ? "Searching…" : "Find role sources"} <ArrowUpRight size={15} />
+                      {busy ? "Searching…" : "Search role sources"} <ArrowUpRight size={15} />
                     </button>
                   </div>
+                  <div className="role-starting-points" aria-label="Role ideas">
+                    <span>Or try one of these</span>
+                    <div>{["Backend development", "Data engineering", "Robotics", "Cybersecurity"].map(idea => <button type="button" key={idea} disabled={!!busy} aria-pressed={role === idea} onClick={() => { setRole(idea); document.getElementById("role")?.focus(); }}>{idea}<ArrowUpRight size={15}/></button>)}</div>
+                  </div>
                   <p className="field-help">
-                    {providers.tavily ? "A sample of public sources. Check eligibility and whether each role is still open." : "Live search is paused until Tavily is connected. You can still enter a role here."}
+                    {providers.tavily ? "Public sources. Check each role’s dates and eligibility." : "Connect Tavily to search. You can choose a role first."}
                   </p>
                 </form>
               </section>
@@ -1113,66 +1124,25 @@ export default function WorkspaceApp() {
               </div>
               {state.direction && (
                 <>
-                  <section className="card direction-summary">
-                    <span className="tag">
-                      {state.direction.mode === "live"
-                        ? "Model comparison · source-linked"
-                        : "Retrieved sources · not model-assessed"}
-                    </span>
-                    <h2>{state.direction.role}</h2>
-                    <p>{state.direction.summary}</p>
-                    <small>
-                      Refreshed{" "}
-                      {new Date(state.direction.updatedAt).toLocaleString(
-                        "en-IN",
-                      )}{" "}
-                      · Check each posting's eligibility and open status.
-                    </small>
-                    {state.direction.requirements.map((r, i) => (
-                      <div className="requirement" key={i}>
-                        <strong>{r.requirement}</strong>
-                        <span className="tag">
-                          {r.evidenceIds.length
-                            ? "Related observations available"
-                            : "Not observed here"}
-                        </span>
-                        <p>{r.nextStep}</p>
-                        {r.evidenceIds.map((id) => (
-                          <button
-                            className="text-button"
-                            key={id}
-                            onClick={() => go("memory")}
-                          >
-                            <Link2 size={12} />
-                            {state.observations.find((o) => o.id === id)?.title}
-                          </button>
-                        ))}
-                      </div>
-                    ))}
+                  <section className="direction-brief" aria-label="Role exploration brief">
+                    <header className="direction-brief-header">
+                      <span className="tag">{state.direction.mode === "live" ? "AI role brief · NVIDIA / Nebius" : "Sources found · AI brief unavailable"}</span>
+                      <h2>{state.direction.role}</h2>
+                      <p>{state.direction.summary}</p>
+                      <small>{state.direction.sources.length} public sources · Updated {new Date(state.direction.updatedAt).toLocaleDateString("en-IN")}</small>
+                    </header>
+                    {state.direction.courseConnection && <div className="direction-course-link"><BookOpen size={23}/><div><h3>Where your coursework connects</h3><p>{state.direction.courseConnection}</p></div></div>}
+                    {!!state.direction.requirements.length && <div className="role-skill-list"><h3>What this sample asks for</h3>{state.direction.requirements.map((r,i)=><article className="role-skill" key={i}>
+                      <span className="role-skill-number">0{i+1}</span><div><h4>{r.requirement}</h4><p>{r.nextStep}</p>
+                      {!!r.evidenceIds.length && <button className="text-button" onClick={()=>go("memory")}><Link2 size={14}/>See related saved observations</button>}
+                      {!!r.sourceQuotes?.length && <details><summary>Why this is here</summary>{r.sourceQuotes.map((ref,j)=>{const source=state.direction!.sources[ref.sourceIndex-1];return source ? <blockquote key={j}><p>“{ref.quote}”</p><a href={source.url} target="_blank" rel="noopener noreferrer">Source {ref.sourceIndex} · {new URL(source.url).hostname} ↗</a></blockquote>:null;})}</details>}
+                      </div></article>)}</div>}
+                    {state.direction.nextMove && <div className="direction-next-move"><span><Compass size={22}/>ONE WAY TO TRY IT</span><h3>{state.direction.nextMove}</h3><small>An exploration suggestion, not an assessment of your ability.</small></div>}
                   </section>
-                  <h2 className="list-heading">Sources to inspect</h2>
-                  <div className="sources-grid">
-                    {state.direction.sources.map((s) => (
-                      <a
-                        className="card role-source"
-                        href={s.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        key={s.url}
-                      >
-                        <span className="source-domain">
-                          {new URL(s.url).hostname}
-                          <ArrowUpRight size={15} />
-                        </span>
-                        <h3>{s.title}</h3>
-                        <p>{s.excerpt}</p>
-                        <small>
-                          Retrieved{" "}
-                          {new Date(s.retrievedAt).toLocaleDateString("en-IN")}
-                        </small>
-                      </a>
-                    ))}
-                  </div>
+                  <section className="direction-source-list" aria-label="Public role sources"><div className="section-title"><h2>Check the sources</h2><span className="count">{state.direction.sources.length}</span></div>
+                    <p>Check dates and eligibility on the original page.</p>
+                    {state.direction.sources.map((source,index)=><article className="role-source-row" key={source.url}><span>{String(index+1).padStart(2,"0")}</span><div><a href={source.url} target="_blank" rel="noopener noreferrer"><h3>{source.title}<ArrowUpRight size={17}/></h3></a><small>{new URL(source.url).hostname}</small><details><summary>Read search excerpt</summary><p>{source.excerpt}</p><small>Retrieved {new Date(source.retrievedAt).toLocaleDateString("en-IN")}</small></details></div></article>)}
+                  </section>
                 </>
               )}
               <div className="direction-footnote">

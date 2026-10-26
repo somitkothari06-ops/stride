@@ -23,6 +23,17 @@ for(const source of direction.sources){
  assert.ok(Number.isFinite(Date.parse(source.retrievedAt)));
 }
 assert.ok(direction.requirements.every(item=>item.evidenceIds.length===0),"Fresh workspace must not invent observed evidence");
+if(direction.mode==="live") {
+ assert.ok(direction.courseConnection && direction.nextMove);
+ assert.ok(direction.requirements.length<=3);
+ assert.ok(direction.summary.length<=350);
+ for(const item of direction.requirements) {
+  assert.ok(item.sourceQuotes?.length);
+  assert.ok(item.sourceQuotes.some(ref=>ref.quote.toLowerCase().includes(item.requirement.toLowerCase())));
+  for(const ref of item.sourceQuotes)assert.ok(direction.sources[ref.sourceIndex-1]?.excerpt.includes(ref.quote));
+ }
+}
+
 const reloaded=await fetch(`${base}/api/workspace`,{headers:{Cookie:cookie}}).then(r=>r.json());
 assert.equal(reloaded.state.direction.sources.length,direction.sources.length);
 console.log(JSON.stringify({status:"passed",sources:direction.sources.map(({url,title})=>({url,title})),mode:direction.mode,persisted:true,unearnedEvidence:false},null,2));

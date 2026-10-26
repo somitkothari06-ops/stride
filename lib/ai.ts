@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { RoleSource } from "./types";
 import {
   consumeAllowance,
   getProviderCheck,
@@ -36,6 +37,7 @@ export async function model<T>(
   task: string,
   data: unknown,
   schema: z.ZodType<T>,
+  options: { maxTokens?: number } = {},
 ): Promise<T> {
   if (!providerStatus().nebius) throw new Error("MODEL_UNAVAILABLE");
   consumeAllowance(session);
@@ -53,7 +55,7 @@ export async function model<T>(
         body: JSON.stringify({
           model: process.env.NEBIUS_MODEL_FAST,
           temperature: 0.2,
-          max_tokens: 1800,
+          max_tokens: Math.min(4000, Math.max(512, options.maxTokens || 1800)),
           response_format: { type: "json_object" },
           ...structuredTaskOptions(process.env.NEBIUS_DISABLE_THINKING),
           messages: [
@@ -101,7 +103,7 @@ export async function model<T>(
   }
 }
 
-export async function searchRoles(session: string, role: string) {
+export async function searchRoles(session: string, role: string): Promise<RoleSource[]> {
   if (!process.env.TAVILY_API_KEY) throw new Error("SEARCH_NOT_CONFIGURED");
   consumeAllowance(session);
   try {
