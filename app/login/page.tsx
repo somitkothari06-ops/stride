@@ -1,4 +1,5 @@
 "use client";
+import { finishSignOut } from "@/components/sign-out";
 import { useEffect, useState, type FormEvent } from "react";
 import { ArrowRight, ArrowLeft, ShieldCheck, BookOpen, LogOut, Github, Mail, ChevronDown } from "lucide-react";
 
@@ -72,9 +73,9 @@ export default function LoginPage() {
   async function signout(destination = "/login") {
     setBusy(true); setError("");
     try {
-      const response = await fetch("/api/account", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "signout" }) });
+      const response = await fetch("/api/account", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: destination === "/workspace" && !account ? "continueGuest" : "signout" }) });
       if (!response.ok) throw new Error("Couldn't sign out. Please try again.");
-      window.location.assign(destination);
+      finishSignOut(destination);
     } catch (e) { setError(e instanceof Error ? e.message : "Couldn't sign out."); setBusy(false); }
   }
   return <main className="account-page">

@@ -1,4 +1,5 @@
 "use client";
+import SignOut from "./sign-out";
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import {
@@ -383,6 +384,7 @@ export default function WorkspaceApp() {
           </svg>
         </div>
         <div className="sidebar-bottom">
+          <SignOut signedIn={!!account} />
           <a className="nav-item account-nav" href="/login"><ShieldCheck size={17} /><span>{account ? "My account" : "Save my workspace"}</span></a>
           <button className="nav-item" onClick={() => setModal("integrations")}>
             <Settings2 size={17} />

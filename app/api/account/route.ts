@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { body, checkOrigin, failure } from "@/lib/http";
 import { authClient, authConfigured, currentAccount } from "@/lib/auth";
-import { accountCookie, accountLifetime, allowAuthAttempt, deleteAccountSession } from "@/lib/account-store";
+import { accountCookie, accountLifetime, allowAuthAttempt, revokeGuestSession, deleteAccountSession } from "@/lib/account-store";
 import { completeAccountSignIn } from "@/lib/account-signin";
 import { deleteOAuthAttempt, oauthCookie } from "@/lib/oauth-store";
 import { authOrigin } from "@/lib/auth-origin";
@@ -12,6 +12,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const Input = z.discriminatedUnion("action", [
   z.object({ action: z.literal("signout") }),
+  z.object({ action: z.literal("continueGuest") }),
   z.object({ action: z.literal("signin"), email: z.email().max(254), password: z.string().min(1).max(128) }),
   z.object({ action: z.literal("signup"), email: z.email().max(254), password: z.string().min(8).max(128) }),
 ]);
@@ -29,12 +30,13 @@ export async function POST(request: Request) {
     const origin = authOrigin(request);
     const input = Input.parse(await body(request, 3000));
     const jar = await cookies();
-    if (input.action === "signout") {
+    if (input.action === "signout" || input.action === "continueGuest") {
       // Deleting the server-owned opaque session revokes this device immediately.
       deleteAccountSession(jar.get(accountCookie)?.value);
+      if (input.action === "signout") revokeGuestSession(jar.get("stride_session")?.value);
       deleteOAuthAttempt(jar.get(oauthCookie)?.value);
-      const response = NextResponse.json({ signedOut: true }, { headers: { "Cache-Control": "no-store" } });
-      for (const name of jar.get(accountCookie)?.value ? [accountCookie, "stride_session", oauthCookie] : [accountCookie, oauthCookie])
+      const response = NextResponse.json({ signedOut: input.action === "signout" || !!jar.get(accountCookie)?.value, guestMode: input.action === "continueGuest" }, { headers: { "Cache-Control": "no-store" } });
+      for (const name of input.action === "signout" || jar.get(accountCookie)?.value ? [accountCookie, "stride_session", oauthCookie] : [accountCookie, oauthCookie])
         response.cookies.set(name, "", { httpOnly: true, sameSite: "lax", path: "/", maxAge: 0 });
       return response;
     }

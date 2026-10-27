@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { guestWorkspace, ownedWorkspace } from "./account-store";
 import { currentAccount } from "./auth";
+import { mutationOrigin } from "./auth-origin";
 
 export async function requireSession() {
   const account = await currentAccount();
@@ -12,10 +13,7 @@ export async function requireSession() {
   return { ...guest, account: null };
 }
 export function checkOrigin(request: Request) {
-  const origin = request.headers.get("origin");
-  const host =
-    request.headers.get("x-forwarded-host") || request.headers.get("host");
-  if (origin && new URL(origin).host !== host) throw new Error("FORBIDDEN");
+  mutationOrigin(request);
 }
 export async function body(request: Request, limit = 30000) {
   if (Number(request.headers.get("content-length") || 0) > limit)

@@ -10,7 +10,7 @@ const options=await fetch(base+'/api/account/oauth').then(r=>r.json());assert.eq
 for(const provider of ['github','google'].filter(name=>options[name])){
  const start=await fetch(base+'/api/account/oauth',{method:'POST',headers:{Origin:base,Cookie:cookie,'Content-Type':'application/json'},body:JSON.stringify({provider})});assert.equal(start.status,200);assert.match(start.headers.get('set-cookie')||'',/; Secure/i);
  const url=new URL((await start.json()).url);assert.equal(url.protocol,'https:');assert.equal(url.searchParams.get('redirect_to'),base+'/api/account/oauth/callback');assert.equal(url.searchParams.get('code_challenge_method'),'s256');
- const oauth=start.headers.get('set-cookie').split(';')[0];const cancel=await fetch(base+'/api/account',{method:'POST',headers:{Origin:base,Cookie:cookie+'; '+oauth,'Content-Type':'application/json'},body:JSON.stringify({action:'signout'})});assert.equal(cancel.status,200);
+ const oauth=start.headers.get('set-cookie').split(';')[0];const cancel=await fetch(base+'/api/account',{method:'POST',headers:{Origin:base,Cookie:cookie+'; '+oauth,'Content-Type':'application/json'},body:JSON.stringify({action:'continueGuest'})});assert.equal(cancel.status,200);
 }
 const forbidden=await fetch(base+'/api/account/oauth',{method:'POST',headers:{Origin:'https://unrelated.example','Content-Type':'application/json'},body:JSON.stringify({provider:'github'})});assert.equal(forbidden.status,403);
 const callback=await fetch(base+'/api/account/oauth/callback?code=synthetic-invalid',{redirect:'manual'});assert.equal(callback.status,303);assert.equal(callback.headers.get('location'),base+'/login?oauth_error=retry');

@@ -16,9 +16,16 @@ function database() {
 export function guestWorkspace(token?: string) {
   if (!token || !/^[a-f0-9]{64}$/.test(token)) return null;
   const id = sessionId(token);
-  const row = db().prepare("SELECT id FROM sessions WHERE id=? AND user_id IS NULL").get(id);
+  const row = db().prepare("SELECT id,updated FROM sessions WHERE id=? AND user_id IS NULL").get(id) as { id: string; updated: string } | undefined;
+  const updated = row ? Date.parse(row.updated) : NaN;
+  if (!Number.isFinite(updated) || updated + lifetime * 1000 <= Date.now()) return null;
   const state = row ? getState(id) : null;
   return state ? { id, state } : null;
+}
+export function revokeGuestSession(token?: string) {
+  if (!token || !/^[a-f0-9]{64}$/.test(token)) return;
+  // Retain the private record for recovery, but revoke its former browser identity.
+  db().prepare("UPDATE sessions SET id=? WHERE id=? AND user_id IS NULL").run(sessionId(randomBytes(32).toString("hex")), sessionId(token));
 }
 export function ownedWorkspace(userId: string, guestToken?: string) {
   database().exec("BEGIN IMMEDIATE");

@@ -32,11 +32,11 @@ Updated October 27, 2026. This is a development checkpoint, not a finished hacka
 | Accessibility and polish | Shared visual pass and onboarding simplification checked; single audio notice, keyboard guards, source review and failure-state checks | Focus/keyboard/mobile review, robust empty/error/loading paths and final complete-flow review |
 | Submission package | Initial README/license/source exist | Final demonstrated scope, judge instructions, authentic tool feedback, short public video and completed Devpost entry |
 
-## Suggested next work order
+## Suggested next work order (revised checkpoint)
 
 1. Improve live role-source relevance and validate a small real sample; Tavily retrieval is connected. Keep academic constraints in control.
-2. Establish public judge access and evaluation-period hosting before treating a development tunnel as deployment; pin the HTTPS auth origin and verify a fresh external-browser login.
-3. Finish public account onboarding: configure Google, custom email delivery and password recovery. GitHub sign-in, one-time guest claim, per-device logout, refresh and synthetic cross-device/two-user checks now pass.
+2. Public HTTPS and pinned authentication are now verified. Confirm hosting runway, independent-user access and managed editor ingress hardening.
+3. Google and short conversational onboarding are implemented. Finish independent audience testing, custom email delivery and password recovery. GitHub sign-in, one-time guest claim, per-device logout, refresh and synthetic cross-device/two-user checks now pass.
 4. Implement opted-in scheduled daily preparation with persistent state and safe retries if it remains in the demonstrated scope.
 5. Complete failure recovery, data operations and meaningful student/model trials.
 6. Freeze a demonstrable stable version, rehearse the video and finish the submission package.
@@ -52,3 +52,5 @@ Tavily is now provisioned and its key is installed privately. Supabase was provi
 Personal-setup voice-model replacement is deferred. Later evaluation should include fillers, accents, subject names and mispronunciations; preserve the original transcript and require review of dates/names/numbers rather than silently inventing corrections. The current shared-question UI and synthetic workflow checks are complete for this checkpoint.
 
 Current independent work completed: private health endpoint, managed app-process restart, PID-identity safety, fresh database snapshot and two crash-recovery drills. The app recovered with saved synthetic data intact. Public HTTPS judge access, Google/provider email setup and opted-in scheduled briefs remain incomplete; GitHub accounts are implemented. See DEPLOYMENT.md.
+
+Security review and residual hardening: see SECURITY-REVIEW.md. Colour alternatives remain separate previews until chosen.

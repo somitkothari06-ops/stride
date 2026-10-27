@@ -1,65 +1,44 @@
 "use client";
 import { useEffect, useState, type FormEvent } from "react";
-import { ArrowLeft, ArrowRight, Check, Compass } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { emptyLifeContext, type LifeContext } from "@/lib/personal-context";
 import type { Workspace } from "@/lib/types";
 import { Dictation, SpeechPrivacy } from "@/components/voice-capture";
-const stages = ["The basics", "Your story", "Your direction", "Your real life", "Review & begin"];
+import { PipMark } from "@/components/companion";
+import SignOut from "@/components/sign-out";
+const fields = [["experience","What you’ve tried"],["interests","What interests you"],["ambitions","What you’re aiming for"],["constraints","Your week"],["learningPreferences","How you like to learn"]] as const;
+const limits = { experience:4000, interests:2000, ambitions:2000, constraints:2000, learningPreferences:1000 };
 export default function AboutYou() {
-  const [loaded, setLoaded] = useState(false), [step, setStep] = useState(0), [busy, setBusy] = useState(false), [error, setError] = useState("");
-  const [name, setName] = useState(""), [year, setYear] = useState("2nd year"), [minutes, setMinutes] = useState(30), [goal, setGoal] = useState("");
-  const [context, setContext] = useState<LifeContext>({ ...emptyLifeContext });
-  const [existing, setExisting] = useState(false);
-  const [listeningField, setListeningField] = useState<string | null>(null);
-  async function load() {
-    setError("");
-    try {
-      const response = await fetch("/api/workspace?fresh=1", { cache: "no-store" });
-      if (!response.ok) throw new Error("Couldn't load your profile. Your saved work is unchanged.");
-      const { state }: { state: Workspace } = await response.json();
-      const p = state.profile;
-      const initialName = p.onboardingComplete || p.name !== "Alex" ? p.name : "";
-      setName(initialName); setYear(p.year); setMinutes(p.minutes); setGoal(state.sample && !p.onboardingComplete ? "" : p.goal);
-      const savedContext = p.lifeContext || { ...emptyLifeContext };
-      let intro = ""; try { intro = sessionStorage.getItem("stride-intro-draft") || ""; } catch {}
-      setContext(intro ? { ...savedContext, story: `${savedContext.story}${savedContext.story ? "\n\n" : ""}${intro}`.slice(0, 10000) } : savedContext);
-      if (intro) setStep(initialName.trim() ? 1 : 0);
-      setExisting(!!p.onboardingComplete); setLoaded(true);
-    } catch (e) { setError(e instanceof Error ? e.message : "Couldn't connect."); }
-  }
-  useEffect(() => { void load(); }, []);
-  useEffect(() => { window.scrollTo({ top: 0, behavior: "instant" }); }, [step]);
-  function field(key: keyof Omit<LifeContext, "direction">, label: string, hint: string, limit: number) {
-    return <div className="story-field"><label htmlFor={key}>{label}</label><p id={`${key}-hint`}>{hint}</p><Dictation showPrivacy={false} compact disabled={busy || (!!listeningField && listeningField !== key)} onListening={(active) => setListeningField((current) => active ? key : current === key ? null : current)} onText={(chunk) => setContext((previous) => ({ ...previous, [key]: `${previous[key]}${previous[key] ? " " : ""}${chunk}`.slice(0, limit) }))} /><textarea id={key} aria-describedby={`${key}-hint`} value={context[key]} maxLength={limit} rows={key === "story" ? 5 : 3} onChange={(e) => setContext({ ...context, [key]: e.target.value })} /><small>{context[key].length.toLocaleString()} / {limit.toLocaleString()} characters · optional</small></div>;
-  }
-  async function submit(event: FormEvent) {
-    event.preventDefault(); setError("");
-    if (listeningField) return;
-    if (step < 4 && (event.nativeEvent as SubmitEvent).submitter?.getAttribute("value") !== "finish") { setStep(step + 1); return; }
-    if (!name.trim()) { setStep(0); setError("Add your name before saving your starting point."); return; }
-    setBusy(true);
-    try {
-      const response = await fetch("/api/action", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "aboutYou", name, year, goal, minutes, context }) });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error?.message || "Couldn't save your context.");
-      try { sessionStorage.removeItem("stride-intro-draft"); } catch {}
-      window.location.assign("/workspace");
-    } catch (e) { setError(e instanceof Error ? e.message : "Couldn't connect. Your answers are still here."); }
-    finally { setBusy(false); }
-  }
-  return <div className="story-page"><header className="site-header"><a className="site-brand" href="/workspace">stride<span>.</span></a><a href="/workspace">Back to workspace ↗</a></header><main className="story-layout"><aside className="story-sidebar"><p className="site-kicker">YOUR STARTING POINT</p><h1>You’re more than<br /> a to-do list.</h1><p>Tell Stride what would help it understand you. You don’t need a polished story or a career plan.</p><ol>{stages.map((stage, i) => <li key={stage} aria-current={step === i ? "step" : undefined}><span>{i < step ? <Check size={16} /> : String(i + 1).padStart(2, "0")}</span>{stage}</li>)}</ol><p className="story-privacy">Share only what you’re comfortable using for study guidance. You can leave any personal question blank, and edit this context later.</p></aside><section className="story-main" aria-labelledby="story-title">
-    {!loaded ? <><h2>Getting your space ready.</h2><p role="status">{error || "Loading your existing context…"}</p>{error && <button className="btn primary" onClick={load}>Try again</button>}</> : <form onSubmit={submit}>
-      <p className="site-kicker">{String(step + 1).padStart(2, "0")} / 05 · {stages[step]}</p>
-      <h2 id="story-title">{["Let’s start with you.", "What brought you here?", "It’s okay to be figuring it out.", "A plan should fit your life.", "Does this sound like you?"][step]}</h2>
-      <p className="story-intro">{["Just a few details to make this your workspace.", "Share as much or as little as you like.", "No career decision needed. Start with what interests you.", "Let’s make this fit your week.", "Review what you’re choosing to save. This is your account of yourself, not an AI assessment."][step]}</p>
-      {error && <p className="error-banner" role="alert">{error}</p>}
-      {step > 0 && step < 4 && <div className="story-voice-note"><SpeechPrivacy /></div>}
-      {step === 0 && <><label htmlFor="student-name">What should we call you?</label><input id="student-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} required autoComplete="given-name" /><div className="form-grid"><div><label htmlFor="student-year">College year</label><select id="student-year" value={year} onChange={(e) => setYear(e.target.value)}><option>2nd year</option><option>3rd year</option></select></div><div><label htmlFor="student-time">A realistic study window</label><select id="student-time" value={minutes} onChange={(e) => setMinutes(Number(e.target.value))}>{[...new Set([15, 20, 30, 40, 60, 90, minutes])].sort((a, b) => a - b).map((m) => <option key={m} value={m}>{m} minutes</option>)}</select></div></div><p className="field-help">This is a starting point. You can change today’s time whenever you need.</p></>}
-      {step === 1 && <>{field("story", "What’s your story?", "What you’re studying and what you’d like help with.", 10000)}{field("experience", "What have you tried?", "Projects, courses or hobbies. Small things count.", 4000)}</>}
-      {step === 2 && <><fieldset className="direction-options"><legend>Where are you with your next direction?</legend>{([["exploring", "I’m still exploring", "I’d like to try a few things."], ["some-ideas", "I have a few ideas", "I want to compare a few paths."], ["decided", "I have a direction", "I’m ready to work towards it."]] as const).map(([value, title, detail]) => <label key={value}><input type="radio" name="direction" value={value} checked={context.direction === value} onChange={() => setContext({ ...context, direction: value })} /><span><strong>{title}</strong><small>{detail}</small></span></label>)}</fieldset>{field("interests", "What interests you?", "Subjects, problems or things you enjoy making.", 2000)}{field("ambitions", "What would you like to do?", "A role, a goal, or something you’d like to explore.", 2000)}<label htmlFor="short-goal">A short direction, if you have one</label><input id="short-goal" value={goal} onChange={(e) => setGoal(e.target.value)} maxLength={120} placeholder="Optional — leave blank if you’re exploring" /></>}
-      {step === 3 && <>{field("constraints", "What’s your week like?", "Classes, travel, responsibilities and time you have.", 2000)}{field("learningPreferences", "How do you like to learn?", "Examples, building, reading or talking it through.", 1000)}<div className="review-note"><Compass size={20} /><p>Stride will use this as context for suggestions, not as proof of your abilities or a label for who you are.</p></div></>}
-      {step === 4 && <div className="story-review"><div className="story-review-basics"><strong>{name}</strong><span>{year} · {minutes} minutes · {goal || "Exploring without a fixed goal"}</span></div>{([["Your story", context.story], ["What you’ve tried", context.experience], ["Interests", context.interests], ["Ambitions", context.ambitions], ["Real-life constraints", context.constraints], ["Learning preferences", context.learningPreferences]]).map(([label, text]) => <details key={label} open={!!text}><summary>{label}</summary><p>{text || "Not shared. That’s okay."}</p></details>)}<p className="story-privacy">Saved to your current workspace. Relevant excerpts may be sent to Nebius when you ask for personalised guidance. Sign in to reopen your account workspace on another device. Editing changes future context; older attempts and backups may retain derived information.</p></div>}
-      {listeningField && <p className="field-help" role="status">Turn off the microphone to continue. Your words stay in the box.</p>}<div className="story-actions">{step > 0 ? <button type="button" className="btn subtle" disabled={busy || !!listeningField} onClick={() => setStep(step - 1)}><ArrowLeft size={16} /> Back</button> : <a href="/workspace" className="text-button">Back to workspace</a>}{step === 0 && !existing && <button type="submit" value="finish" className="btn subtle" disabled={busy || !!listeningField || !name.trim()}>Start with these details</button>}<button className="btn primary" disabled={busy || !!listeningField || (step === 0 && !name.trim())}>{busy ? "Saving your details…" : step === 4 ? "Save and open my workspace" : "Continue"}<ArrowRight size={16} /></button></div>
-    </form>}
-  </section></main></div>;
+ const [loaded,setLoaded]=useState(false),[phase,setPhase]=useState<"basics"|"intro"|"review">("basics"),[busy,setBusy]=useState(false),[listening,setListening]=useState(false),[error,setError]=useState("");
+ const [name,setName]=useState(""),[year,setYear]=useState("2nd year"),[minutes,setMinutes]=useState(30),[goal,setGoal]=useState(""),[text,setText]=useState("");
+ const [context,setContext]=useState<LifeContext>({...emptyLifeContext}),[organised,setOrganised]=useState(false);
+ async function load(){
+  try { const response=await fetch("/api/workspace?fresh=1",{cache:"no-store"});if(!response.ok)throw Error("Couldn’t load your details. Try again.");
+   const {state}:{state:Workspace}=await response.json(),p=state.profile;
+   setName(p.onboardingComplete||p.name!=="Alex"?p.name:"");setYear(p.year);setMinutes(p.minutes);setGoal(state.sample&&!p.onboardingComplete?"":p.goal);
+   const saved=p.lifeContext||{...emptyLifeContext};setContext(saved);let draft="";try{draft=sessionStorage.getItem("stride-intro-draft")||"";}catch{}
+   setText([saved.story,draft].filter(Boolean).join("\n\n"));setLoaded(true);setError("");
+  }catch(e){setError(e instanceof Error?e.message:"Couldn’t connect.");}
+ }
+ useEffect(()=>{void load();},[]);
+ useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[phase]);
+ async function review(event:FormEvent){event.preventDefault();if(listening||busy)return;setError("");
+  if(!text.trim()){setContext({...context,story:""});setPhase("review");return;}
+  setBusy(true);
+  try{const response=await fetch("/api/introduction",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text,context})});const result=await response.json();if(!response.ok)throw Error(result.error?.message||"Couldn’t organise this. Your words are still here.");setContext(result.context);setOrganised(result.organised);setPhase("review");}
+  catch(e){setError(e instanceof Error?e.message:"Couldn’t connect. Your words are still here.");}finally{setBusy(false);}
+ }
+ async function save(basicsOnly=false){if(!name.trim()||busy||listening)return;setBusy(true);setError("");
+  try{const response=await fetch("/api/action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"aboutYou",name,year,minutes,goal,context:basicsOnly?{...context,story:text}:context})});const result=await response.json();if(!response.ok)throw Error(result.error?.message||"Couldn’t save. Your answers are still here.");try{sessionStorage.removeItem("stride-intro-draft");}catch{}window.location.assign("/workspace");}
+  catch(e){setError(e instanceof Error?e.message:"Couldn’t connect.");setBusy(false);}
+ }
+ return <div className="story-page intro-page"><header className="site-header"><a className="site-brand" href="/workspace">stride.</a><nav><SignOut/><a href="/workspace">Back to workspace ↗</a></nav></header><main className="intro-layout">
+  <aside className="intro-aside"><p className="site-kicker">MAKE IT YOURS</p><h1>A starting point.<br/>Not a life plan.</h1><p>Give Pip a little context. You can figure out the rest as you go.</p><ol>{["Meet Pip","Tell it your way","Make it yours"].map((label,i)=><li key={label} aria-current={["basics","intro","review"][i]===phase?"step":undefined}><span>{i+1}</span>{label}</li>)}</ol><div className="intro-aside-note">Your coursework and chats stay where they are.</div></aside>
+  <section className="intro-panel" aria-labelledby="intro-title">{!loaded?<><h2>Getting your space ready.</h2><p role="status">{error||"Loading…"}</p>{error&&<button className="btn primary" onClick={load}>Try again</button>}</>:<>
+   <div className="intro-pip"><PipMark listening={listening}/><strong>Pip</strong><span>{phase==="basics"?"Let’s meet.":phase==="intro"?(listening?"I’m listening.":"Your words. Your pace."):"You decide what stays."}</span></div>
+   {error&&<p className="error-banner" role="alert">{error}</p>}
+   {phase==="basics"?<form onSubmit={event=>{event.preventDefault();setPhase("intro");}}><h2 id="intro-title">What should I call you?</h2><label className="sr-only" htmlFor="student-name">Your name</label><input id="student-name" value={name} required maxLength={60} autoComplete="given-name" placeholder="Your name" onChange={event=>setName(event.target.value)}/><div className="form-grid"><div><label htmlFor="student-year">College year</label><select id="student-year" value={year} onChange={event=>setYear(event.target.value)}><option>2nd year</option><option>3rd year</option></select></div><div><label htmlFor="student-time">Time for yourself today</label><select id="student-time" value={minutes} onChange={event=>setMinutes(Number(event.target.value))}>{[...new Set([15,20,30,40,60,90,minutes])].sort((a,b)=>a-b).map(value=><option key={value} value={value}>{value} minutes</option>)}</select></div></div><div className="intro-actions"><button className="btn primary" disabled={!name.trim()||busy}>Tell Pip a little more <ArrowRight size={18}/></button><button type="button" className="btn subtle" disabled={!name.trim()||busy||text.length>10000} onClick={()=>save(true)}>{busy?"Saving…":"Start with just this"}</button></div></form>:
+   phase==="intro"?<form onSubmit={review}><h2 id="intro-title">What’s going on in your world?</h2><p className="intro-question">What you’re studying, something you’ve tried, or what you want help figuring out. Start anywhere.</p><div className="intro-prompts">{["Something I’ve tried","What I’m curious about","What my week looks like"].map(prompt=><button key={prompt} type="button" disabled={busy||listening} onClick={()=>{setText(previous=>previous+(previous?"\n\n":"")+prompt+": ");document.getElementById("intro-words")?.focus();}}>{prompt} +</button>)}</div><div className="intro-composer"><label className="sr-only" htmlFor="intro-words">Tell Pip about yourself</label><textarea id="intro-words" value={text} maxLength={10000} rows={6} disabled={busy} placeholder="I’m in second year. I like building things, but I’m not sure what to focus on…" onChange={event=>setText(event.target.value)}/><footer><span>{listening?"Listening…":`${text.length.toLocaleString()} / 10,000`}</span><Dictation iconOnly compact showPrivacy={false} disabled={busy} onListening={setListening} onText={chunk=>setText(previous=>previous+(previous?" ":"")+chunk)}/></footer></div><SpeechPrivacy/>{text.length>10000&&<p role="alert">Shorten this to 10,000 characters before continuing.</p>}<div className="intro-actions"><button type="button" className="btn subtle" disabled={busy||listening} onClick={()=>setPhase("basics")}><ArrowLeft size={16}/>Back</button><button className="btn primary" disabled={busy||listening||text.length>10000}>{busy?"Pip is organising your words…":text.trim()?"Let Pip sort it out":"Skip for now"}<ArrowRight size={18}/></button></div>{error&&<button type="button" className="text-button" onClick={()=>{setContext({...context,story:text});setOrganised(false);setPhase("review");}}>Review my original words instead</button>}</form>:
+   <div><h2 id="intro-title">Does this feel like you?</h2><p className="intro-question">{organised?"I’ve grouped a few things you mentioned. Change anything before saving.":"Your words are here. Add more detail whenever you feel like it."}</p><div className="intro-person"><strong>{name}</strong><span>{year} · {minutes} minutes today</span><button className="text-button" onClick={()=>setPhase("basics")}>Edit</button></div><details className="intro-review-field" open><summary>Your words</summary><textarea aria-label="Your story" value={context.story} rows={4} maxLength={10000} onChange={event=>{setContext({...context,story:event.target.value});setText(event.target.value);}}/></details>{fields.map(([key,label])=><details className="intro-review-field" key={key} open={!!context[key]}><summary>{label}{!context[key]&&<span>Optional</span>}</summary><textarea aria-label={label} value={context[key]} maxLength={limits[key]} rows={2} onChange={event=>setContext({...context,[key]:event.target.value})}/></details>)}<details className="intro-review-field"><summary>Your direction<span>Optional</span></summary><label htmlFor="direction-state">Where are you right now?</label><select id="direction-state" value={context.direction} onChange={event=>setContext({...context,direction:event.target.value as LifeContext["direction"]})}><option value="exploring">Still exploring</option><option value="some-ideas">A few ideas</option><option value="decided">I have a direction</option></select><label htmlFor="short-goal">Something you’re working towards</label><input id="short-goal" maxLength={120} value={goal} onChange={event=>setGoal(event.target.value)}/></details><div className="intro-actions"><button className="btn subtle" disabled={busy} onClick={()=>setPhase("intro")}><ArrowLeft size={16}/>Back</button><button className="btn primary" disabled={busy} onClick={()=>save()}>{busy?"Saving…":"Looks good. Let’s start"}<Check size={18}/></button></div></div>}
+  </>}</section></main></div>;
 }

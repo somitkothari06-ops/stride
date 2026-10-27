@@ -24,3 +24,12 @@ export function authOrigin(request: Request) {
   if (matches.length === 1) return matches[0];
   throw new Error("FORBIDDEN");
 }
+
+// All data-changing browser requests require an explicit, allowlisted origin.
+export function mutationOrigin(request: Request) {
+  const origin = request.headers.get("origin");
+  if (!origin || origin === "null") throw new Error("FORBIDDEN");
+  const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || new URL(request.url).host;
+  if (new URL(origin).host !== host) throw new Error("FORBIDDEN");
+  return authOrigin(request);
+}

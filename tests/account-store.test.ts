@@ -6,7 +6,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createSession, db, mutate } from "../lib/store";
-import { guestWorkspace, ownedWorkspace, createAccountSession, findAccountSession, deleteAccountSession, refreshAccountSession, allowAuthAttempt } from "../lib/account-store";
+import { guestWorkspace, revokeGuestSession, ownedWorkspace, createAccountSession, findAccountSession, deleteAccountSession, refreshAccountSession, allowAuthAttempt } from "../lib/account-store";
 process.env.STRIDE_DATA_DIR = mkdtempSync(join(tmpdir(), "stride-accounts-"));
 
 test("guest claim is one-time, keeps work and blocks the old guest cookie", () => {
@@ -80,4 +80,21 @@ test("sign-in asks for profile confirmation without replacing saved work or chat
   assert.equal(findAccountSession(result.token), null);
   assert.equal(ownedWorkspace("onboarding-owner").state.profile.name, "My chosen name");
   deleteAccountSession(reopened.token);
+});
+
+test("an expired guest token cannot reopen or claim its retained workspace", () => {
+  const guest = createSession(false);
+  mutate(guest.id, state => { state.profile.name = "Expired private guest"; });
+  db().prepare("UPDATE sessions SET updated=? WHERE id=?").run(new Date(Date.now() - 31 * 86400000).toISOString(), guest.id);
+  assert.equal(guestWorkspace(guest.token), null);
+  const claimed = ownedWorkspace("expired-guest-test", guest.token);
+  assert.equal(claimed.claimed, false);
+  assert.notEqual(claimed.state.profile.name, "Expired private guest");
+});
+
+test("guest logout revokes the old identity without deleting retained data or owned accounts", () => {
+ const guest=createSession(false);mutate(guest.id,state=>{state.profile.name="Retained guest";});
+ revokeGuestSession(guest.token);assert.equal(guestWorkspace(guest.token),null);
+ assert.ok(db().prepare("SELECT id FROM sessions WHERE user_id IS NULL AND state LIKE ?").get('%Retained guest%'));
+ const other=createSession(false);const account=ownedWorkspace("logout-owner",other.token);revokeGuestSession(other.token);assert.equal(ownedWorkspace("logout-owner").id,account.id);
 });
