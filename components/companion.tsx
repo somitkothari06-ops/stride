@@ -42,7 +42,7 @@ export default function Companion() {
   const pathname = usePathname();
   const [pane,setPane] = useState<"chat"|"capture">("chat");
   const [open,setOpen] = useState(false), [text,setText] = useState(""), [busy,setBusy] = useState(""), [listening,setListening] = useState(false), [error,setError] = useState(""), [saved,setSaved] = useState("");
-  const [chatBusy,setChatBusy] = useState(false), [chatDraft,setChatDraft] = useState("");
+  const [chatBusy,setChatBusy] = useState(false), [chatDraft,setChatDraft] = useState(""),[chatThreadId,setChatThreadId] = useState("");
   const locked=!!busy||chatBusy||listening;
   const [review,setReview] = useState<{id:string;mode:"live"|"guided"}|null>(null);
   const [items,setItems] = useState<{proposal:Proposal;selected:boolean}[]>([]);
@@ -98,11 +98,11 @@ export default function Companion() {
   if (!visible) return null;
   return <div className="companion-dock">
     <section hidden={!open} className="companion-panel" role="dialog" aria-modal="false" aria-labelledby="pip-title" id="pip-panel" aria-busy={!!busy||chatBusy}>
-      <header className="companion-header"><PipMark listening={listening}/><div><h2 id="pip-title">Pip</h2></div>{pathname!=="/pip" && pane==="chat" && <button className="icon-btn pip-expand" aria-label="Open full chat" title="Open full chat" disabled={locked} onClick={()=>{if(!launchPipChat(chatDraft,false))setError("Your browser couldn’t move this draft. Copy your words before opening full chat.");}}><Maximize2 size={19}/></button>}<button className="icon-btn" aria-label="Minimize Pip" disabled={locked} onClick={()=>{setOpen(false);launcher.current?.focus();}}><X size={21}/></button></header>
+      <header className="companion-header"><PipMark listening={listening}/><div><h2 id="pip-title">Pip</h2></div>{pathname!=="/pip" && pane==="chat" && <button className="icon-btn pip-expand" aria-label="Open full chat" title="Open full chat" disabled={locked} onClick={()=>{if(!launchPipChat(chatDraft,false,chatThreadId))setError("Your browser couldn’t move this draft. Copy your words before opening full chat.");}}><Maximize2 size={19}/></button>}<button className="icon-btn" aria-label="Minimize Pip" disabled={locked} onClick={()=>{setOpen(false);launcher.current?.focus();}}><X size={21}/></button></header>
       <div className="pip-pane-tabs" role="tablist" aria-label="Pip modes"><button role="tab" aria-selected={pane==="chat"} disabled={locked} onClick={()=>{if(pathname==="/pip")setOpen(false);else setPane("chat");}}>Talk with Pip</button><button role="tab" aria-selected={pane==="capture"} disabled={locked} onClick={()=>setPane("capture")}>Save something</button></div>
 
       {pane==="chat" && error && <p className="error-banner" role="alert">{error}</p>}
-      {pathname!=="/pip" && <PipConversation active={open&&pane==="chat"} onBusy={setChatBusy} onListening={setListening} onDraftChange={setChatDraft} onKeep={words=>{editWords(words);setPane("capture");}}/>}
+      {pathname!=="/pip" && <PipConversation active={open&&pane==="chat"} onBusy={setChatBusy} onListening={setListening} onDraftChange={setChatDraft} onThreadChange={setChatThreadId} onKeep={words=>{editWords(words);setPane("capture");}}/>}
       <div className="companion-body" hidden={pane!=="capture"}>
         {!review && <>
           <label className="pip-input-label" htmlFor="pip-words">What’s on your mind?</label>

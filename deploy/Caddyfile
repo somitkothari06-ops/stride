@@ -1,0 +1,17 @@
+stride-213-239-171-145.sslip.io {
+ encode zstd gzip
+ request_body {
+  max_size 16MB
+ }
+ header {
+  Strict-Transport-Security "max-age=86400"
+  X-Content-Type-Options "nosniff"
+  Referrer-Policy "strict-origin-when-cross-origin"
+  X-Frame-Options "DENY"
+  Permissions-Policy "camera=(), microphone=(self), geolocation=()"
+ }
+ reverse_proxy 172.18.0.7:3000 {
+  header_up X-Forwarded-Host {host}
+  header_up X-Forwarded-Proto https
+ }
+}

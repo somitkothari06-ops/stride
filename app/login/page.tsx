@@ -65,7 +65,7 @@ export default function LoginPage() {
       if (!response.ok) throw new Error(data.error?.message || "Couldn't complete this request.");
       setPassword("");
       if (data.confirmationRequired) { setMessage("Check your email and follow the confirmation link, then return here to sign in. Email delivery may take a few minutes."); setMode("signin"); }
-      else window.location.assign("/workspace");
+      else window.location.assign(data.next === "/about-you" ? "/about-you" : "/workspace");
     } catch (e) { setError(e instanceof Error ? e.message : "Couldn't connect."); }
     finally { setBusy(false); }
   }

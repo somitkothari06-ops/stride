@@ -58,8 +58,8 @@ export function refreshAccountSession(id: string, access: string, refresh: strin
 export function deleteAccountSession(token?: string) {
   if (token) database().prepare("DELETE FROM account_sessions WHERE id=?").run(sessionId(token));
 }
-export function allowAuthAttempt(email: string) {
-  const period = Math.floor(Date.now() / 900);
+export function allowAuthAttempt(email: string, now = Date.now()) {
+  const period = Math.floor(now / (15 * 60 * 1000));
   const buckets: [string, number][] = [[`${period}:global`, 100], [`${period}:${sessionId(email.toLowerCase())}`, 8]];
   database().exec("BEGIN IMMEDIATE");
   try {

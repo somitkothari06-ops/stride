@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSession } from "@/lib/store";
 import { failure, requireSession } from "@/lib/http";
+import { workspaceView } from "@/lib/workspace-view";
 import { providerStatus } from "@/lib/ai";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,8 +14,9 @@ export async function GET(request: Request) {
       if (!(error instanceof Error) || error.message !== "SESSION_EXPIRED") throw error;
       session = createSession(new URL(request.url).searchParams.get("fresh") !== "1");
     }
+    const query=new URL(request.url).searchParams;
     const response = NextResponse.json(
-      { state: session.state, providers: providerStatus(), account: "account" in session && session.account ? { email: session.account.email } : null },
+      query.get("bootstrap")==="1" ? {ready:true} : { state: workspaceView(session.state,query.get("export")==="1"), providers: providerStatus(), account: "account" in session && session.account ? { email: session.account.email } : null },
       { headers: { "Cache-Control": "no-store" } },
     );
     if ("token" in session && typeof session.token === "string")

@@ -44,3 +44,19 @@ Snapshots now also contain Supabase access/refresh credentials in `account_sessi
 After accounts have claimed guest workspaces, do not run an older server that lacks account ownership checks against this database. Use an account-aware version for rollback, or perform a separately reviewed restore to the pre-account snapshot with the app stopped; a pre-account restore loses later changes. The additive SQLite migration adds `sessions.user_id`, its unique index, account-device sessions and rate-limit buckets. Account workspaces still live on this Devlab volume, so Supabase Auth alone does not recover lost workspace storage.
 
 OAuth-era snapshots also contain short-lived PKCE attempts. Before starting a restored account-era database, clear `account_sessions`, `oauth_attempts` and `companion_reviews` (where present) in the restored copy, so a backup cannot resurrect revoked device sessions or pending login attempts. Account owners can sign in again; their owned workspace records remain. Do not run these cleanup statements against the live database as part of an ordinary deploy.
+
+## Separate-chat checkpoint
+
+Before the thread release, a verified private snapshot was saved as `.backups/before-chat-threads-20261027.sqlite`. Chat migration atomically moves legacy `pipChat` into `pipThreads`; the original messages remain in the legacy thread. Do not run a pre-thread chat implementation against migrated data: it cannot display or update that field correctly. Prefer a thread-aware forward fix. A deliberate full backup restore must follow the stopped-app/new-directory procedure above and does not include writes made after the snapshot. Never silently replace the live database.
+
+## Encrypted off-volume snapshot
+
+`scripts/encrypted-backup.mjs` encrypts a verified SQLite snapshot with AES-256-GCM and a fresh random IV. The 32-byte key file is created privately if absent. Both encryption and decryption refuse to overwrite an existing output. A wrong key or altered ciphertext fails before plaintext is published. Keep the key separately from shared backup archives.
+
+```sh
+node scripts/encrypted-backup.mjs encrypt PRIVATE_SNAPSHOT PRIVATE_KEY_FILE NEW_ENCRYPTED_OUTPUT
+node scripts/encrypted-backup.mjs decrypt ENCRYPTED_SNAPSHOT PRIVATE_KEY_FILE NEW_PRIVATE_SNAPSHOT
+node scripts/database.mjs verify NEW_PRIVATE_SNAPSHOT
+```
+
+Decryption is not account-session sanitization: the account/OAuth credential precautions above still apply before serving a restored copy. An observed one-off encrypted off-volume copy is distinct from a recurring backup schedule, which remains pending.

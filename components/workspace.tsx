@@ -132,6 +132,7 @@ export default function WorkspaceApp() {
       const data = await response.json();
       if (!response.ok)
         throw new Error(data.error?.message || "Couldn't load your workspace.");
+      if (data.account && !data.state.profile.onboardingComplete) { window.location.replace("/about-you"); return; }
       setState(data.state);
       setProviders(data.providers);
       setAccount(data.account || null);
@@ -243,18 +244,18 @@ export default function WorkspaceApp() {
       "Preparing a focused practice session",
     );
   }
-  function exportData() {
+  async function exportData() {
     if (!state) return;
-    const url = URL.createObjectURL(
-      new Blob([JSON.stringify(state, null, 2)], { type: "application/json" }),
-    );
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "stride-my-workspace.json";
-    a.click();
-    URL.revokeObjectURL(url);
-    setToast("Your workspace has been exported.");
+    try {
+      const response=await fetch("/api/workspace?export=1",{cache:"no-store"});
+      if(!response.ok)throw new Error("Couldn't export your workspace. Please try again.");
+      const data=await response.json();
+      const url=URL.createObjectURL(new Blob([JSON.stringify(data.state,null,2)],{type:"application/json"}));
+      const link=document.createElement("a");link.href=url;link.download="stride-my-workspace.json";link.click();URL.revokeObjectURL(url);
+      setToast("Your workspace has been exported.");
+    }catch(error){setError(error instanceof Error?error.message:"Couldn't export your workspace.");}
   }
+
   function go(next: View) {
     setView(next);
     setMobileNav(false);

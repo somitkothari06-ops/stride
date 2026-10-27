@@ -9,7 +9,7 @@ if(process.env.STRIDE_SMOKE_IDS_FILE){const file=process.env.STRIDE_SMOKE_IDS_FI
 async function send(input,origin=base){const response=await fetch(base+"/api/pip-chat",{method:"POST",headers:{Cookie:cookie,Origin:origin,"Content-Type":"application/json"},body:JSON.stringify(input)});return {status:response.status,data:await response.json()};}
 const first={action:"send",turnId:randomUUID(),version:0,text:"Teach me Students LEFT JOIN Courses with a tiny example. Keep Students as the left table. Ask me one question after the explanation.",allowSearch:false};
 assert.equal((await send(first,"https://unrelated.example")).status,403);
-let result=await send(first);assert.equal(result.status,200,JSON.stringify(result.data));let chat=result.data.chat;assert.equal(chat.messages.length,2);assert.equal(chat.messages[1].intent,"teach");assert.ok(chat.messages[1].text.length>40);
+let result=await send(first);assert.equal(result.status,200,JSON.stringify(result.data));let chat=result.data.chat;assert.equal(chat.messages.length,2);assert.equal(chat.messages[1].intent,"teach");assert.ok(chat.messages[1].text.length>40);const named=result.data.threads.find(thread=>thread.id===result.data.threadId);assert.match(named.title,/sql|join/i);assert.equal(named.needsTitle,false);
 const replay=await send(first);assert.deepEqual(replay.data.chat,chat);
 result=await send({action:"send",turnId:randomUUID(),version:chat.version,text:"I think a student without a matching course disappears. Is my understanding right?",allowSearch:false});assert.equal(result.status,200,JSON.stringify(result.data));chat=result.data.chat;assert.equal(chat.messages.length,4);
 console.log("Teaching follow-up:",chat.messages.at(-1).text.slice(0,700));

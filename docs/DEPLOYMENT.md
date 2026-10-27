@@ -1,6 +1,6 @@
 # Current Devlab runtime
 
-This is the team's private development deployment, not the public judge URL. It uses the existing code-server container without modifying code-server on port 8080. Stride listens on container port 3000; the local preview reaches it through the existing SSH tunnel.
+Public preview: https://stride-213-239-171-145.sslip.io. The same existing server also supports the team's private local preview. It uses the existing code-server container without modifying code-server on port 8080. Stride listens on container port 3000; the local preview reaches it through the existing SSH tunnel.
 
 ## Supervision
 
@@ -49,3 +49,13 @@ node scripts/search-smoke.mjs --allow-live
 ```
 
 Run inside the application container, or set `STRIDE_BASE_URL` to the app URL. It performs one public search and may use one model call, with a fresh synthetic session. It checks returned URLs, retrieval timestamps, persistence and that the empty test history never gains invented evidence. If model comparison fails or reaches its allowance, retrieved sources remain available and are labelled as not model-assessed. Real postings still need eligibility, freshness and relevance checks.
+
+## Public HTTPS preview, October 27, 2026
+
+Ubuntu's Caddy package proxies the public hostname to the existing container on 172.18.0.7:3000. The checked-in deploy/Caddyfile is installed at /etc/caddy/Caddyfile. Caddy manages the public TLS certificate and HTTP redirects. The editor on port 8080 was not changed. App secrets and SQLite remain private; Caddy does not serve the source tree. If container recreation changes its bridge address, inspect the new address, update the upstream, validate and reload Caddy.
+
+STRIDE_PUBLIC_ORIGIN is pinned to the HTTPS hostname in the ignored server environment; explicit localhost preview origins remain allowed. Supabase's site URL and exact callback/login allowlist include the public origin. Public smoke checks verify certificate-validated HTTPS, health, secure HttpOnly cookies, provider-start PKCE and pinned return URLs, cross-origin refusal and a safe invalid callback. These checks do not substitute for a real person's successful provider consent.
+
+Run `STRIDE_BASE_URL=https://stride-213-239-171-145.sslip.io node scripts/public-smoke.mjs --allow-write` with a private synthetic-session cleanup file. No model calls are made. The test creates a guest and cancels the temporary OAuth attempts.
+
+The free DNS hostname depends on the existing public IP, server availability and the team's compute balance. This establishes public access, not an indefinite hosting commitment or a production security audit. To roll back the proxy, restore /etc/caddy/Caddyfile.before-stride, validate and reload Caddy; the private preview/service and database remain available.

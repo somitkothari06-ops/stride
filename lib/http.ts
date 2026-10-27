@@ -39,6 +39,9 @@ export async function body(request: Request, limit = 30000) {
 export function failure(error: unknown) {
   const code = error instanceof Error ? error.message : "UNKNOWN";
   const known: Record<string, [number, string]> = {
+    CHAT_NOT_FOUND: [404,"This chat was deleted or is unavailable. Open another chat; your draft is still here."],
+    CHAT_THREAD_LIMIT: [409,"You have 50 chats. Delete a chat you no longer need before starting another."],
+    CHAT_FULL: [409,"This chat has reached 100 exchanges. Start a new chat to continue; this one stays saved."],
     CHAT_STALE: [409,"This conversation changed in another tab. Reload it and send your message again; your draft is still here."],
     CAPTURE_EXPIRED: [400,"This capture review expired or belongs to another workspace. Review your words again."],
     CAPTURE_STALE: [409,"Your workspace changed. Review your words again before saving; nothing was added."],

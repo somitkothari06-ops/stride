@@ -37,3 +37,12 @@ The private credential file is ignored by Git, mode 600 and not part of Stride's
 - A real provider login should reopen the same owned workspace on another device. Cancelling consent should leave existing work intact. Signing out must revoke the Stride device session and cancel any pending provider attempt.
 
 Official references: [Supabase Google setup](https://supabase.com/docs/guides/auth/social-sign-in/auth-google), [Supabase GitHub setup](https://supabase.com/docs/guides/auth/social-sign-in/auth-github), [PKCE OAuth method](https://supabase.com/docs/reference/javascript/auth-signinwithoauth).
+
+
+## Observed public setup, October 27, 2026
+
+Public origin is `https://stride-213-239-171-145.sslip.io`. The dedicated Google project is `stride-student-8dc3944c`. Basic Google login completed in the user's Safari and returned to the account workspace. Audience publication/tester restrictions still need an independent-user check. Both provider-start flows pass HTTPS/PKCE/cookie and safe-cancellation checks.
+
+New or previously unconfirmed account profiles now open About You, including an account that inherited the Alex sample name. Confirmed names remain unchanged. The student can save basic details immediately; extended personal questions are optional. This does not reset coursework or conversations.
+
+The ordinary sign-in client does not use the AI-agent checkbox and requests no Gmail/Drive scopes. Selected Drive-file import and a separate opt-in mail connection remain future features with their own permissions.

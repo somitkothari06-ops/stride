@@ -28,8 +28,8 @@ export async function GET(request: Request) {
     const verified = await client.auth.getUser(data.session.access_token);
     if (verified.error || verified.data.user?.id !== data.user.id) throw new Error("OAUTH_EXPIRED");
     finishOAuthAttempt(flowToken!);
-    const { token } = completeAccountSignIn(data.session, guest, account);
-    response = NextResponse.redirect(new URL("/workspace", origin), 303);
+    const { token, next } = completeAccountSignIn(data.session, guest, account);
+    response = NextResponse.redirect(new URL(next, origin), 303);
     response.cookies.set(accountCookie, token, { httpOnly: true, sameSite: "lax", secure: new URL(origin).protocol === "https:", maxAge: accountLifetime, path: "/" });
     response.cookies.set("stride_session", "", { httpOnly: true, sameSite: "lax", path: "/", maxAge: 0 });
   } catch (error) {

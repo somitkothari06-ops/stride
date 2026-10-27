@@ -54,9 +54,9 @@ export async function POST(request: Request) {
     }
     const { session, user } = result.data;
     if (!user || session.user.id !== user.id) throw new Error("AUTH_FAILED");
-    const { token, claimed } = completeAccountSignIn(session, jar.get("stride_session")?.value, jar.get(accountCookie)?.value);
+    const { token, claimed, next } = completeAccountSignIn(session, jar.get("stride_session")?.value, jar.get(accountCookie)?.value);
     deleteOAuthAttempt(jar.get(oauthCookie)?.value);
-    const response = NextResponse.json({ signedIn: true, claimed }, { headers: { "Cache-Control": "no-store" } });
+    const response = NextResponse.json({ signedIn: true, claimed, next }, { headers: { "Cache-Control": "no-store" } });
     response.cookies.set(oauthCookie, "", { httpOnly: true, sameSite: "lax", path: "/", maxAge: 0 });
     response.cookies.set(accountCookie, token, { httpOnly: true, sameSite: "lax", secure: new URL(origin).protocol === "https:", maxAge: accountLifetime, path: "/" });
     response.cookies.set("stride_session", "", { httpOnly: true, sameSite: "lax", path: "/", maxAge: 0 });
