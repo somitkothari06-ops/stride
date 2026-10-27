@@ -383,7 +383,7 @@ export default function WorkspaceApp() {
             <circle cx="169" cy="8" r="4" />
           </svg>
         </div>
-        <div className="sidebar-bottom">
+        <div className="sidebar-bottom"><button className="btn primary header-add" onClick={openAdd}><Plus size={16}/>Add work</button><a className="settings-shortcut header-settings" href="/settings" aria-label="Settings"><Settings2 size={18}/></a>
           <SignOut signedIn={!!account} />
           <a className="nav-item account-nav" href="/login"><ShieldCheck size={17} /><span>{account ? "My account" : "Save my workspace"}</span></a>
           <button className="nav-item" onClick={() => setModal("integrations")}>
@@ -399,7 +399,7 @@ export default function WorkspaceApp() {
             <span className="avatar">{state.profile.name.slice(0, 1)}</span>
             <span>
               <strong>{state.profile.name}</strong>
-              <small>My profile</small>
+              <small>{account ? "My profile" : "Guest"}</small>
             </span>
             <ArrowUpRight size={18} aria-hidden="true" />
           </button>
@@ -421,6 +421,7 @@ export default function WorkspaceApp() {
             <strong>{activeNav.name}</strong>
           </div>
           <div className="topbar-actions">
+            <a className="settings-shortcut" href="/settings" aria-label="Settings"><Settings2 size={18}/><span>Settings</span></a>
             <button className="btn add-button" onClick={openAdd}>
               <Plus size={16} />
               Add work<span className="keyboard-hint">⌘ K</span>
@@ -428,6 +429,7 @@ export default function WorkspaceApp() {
           </div>
         </header>
         <main className="main-content" id="main-content" tabIndex={-1} aria-busy={!!busy}>
+          <div className="theme-preview-banner"><span>Theme preview · not saved</span><a href="/settings">Back to settings ↗</a></div>
           <div className={`date-line ${view === "today" ? "today-date-hidden" : ""}`}>
             <span>{dateText}</span>
             <span>

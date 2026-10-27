@@ -27,6 +27,7 @@ export default function LoginPage() {
     finally { setSocialChecked(true); }
   }
   useEffect(() => {
+    if (new URLSearchParams(window.location.search).has("signed_out")) setMessage("You’re signed out. Sign in to reopen your saved account.");
     void loadSocial();
     const oauthError = new URLSearchParams(window.location.search).get("oauth_error");
     if (oauthError) {
@@ -70,22 +71,24 @@ export default function LoginPage() {
     } catch (e) { setError(e instanceof Error ? e.message : "Couldn't connect."); }
     finally { setBusy(false); }
   }
-  async function signout(destination = "/login") {
+  async function signout(destination = "/login?signed_out=1") {
     setBusy(true); setError("");
     try {
       const response = await fetch("/api/account", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: destination === "/workspace" && !account ? "continueGuest" : "signout" }) });
       if (!response.ok) throw new Error("Couldn't sign out. Please try again.");
-      finishSignOut(destination);
+      const result = await response.json();
+      if (result.signedOut) finishSignOut(destination);
+      else window.location.assign(destination);
     } catch (e) { setError(e instanceof Error ? e.message : "Couldn't sign out."); setBusy(false); }
   }
   return <main className="account-page">
-    <a className="site-brand" href="/workspace">stride<span>.</span></a>
-    <a href="/workspace" className="account-back"><ArrowLeft size={18} /> Back to your workspace</a>
+    <a className="site-brand" href={account ? "/workspace" : "/"}>stride<span>.</span></a>
+    <a href={account ? "/workspace" : "/"} className="account-back"><ArrowLeft size={18} />{account ? "Back to your workspace" : "Back to home"}</a>
     <section className="account-card">
-      <div className="account-intro"><BookOpen size={32} /><p className="site-kicker">YOUR WORK, WITH YOU</p><h1>Pick up where <br />you left off.</h1><p>Keep your coursework, practice and progress together. Open the same workspace on another device.</p><span><ShieldCheck size={19} /> Guest mode is always an option.</span></div>
+      <div className="account-intro"><BookOpen size={32} /><p className="site-kicker">YOUR WORK, WITH YOU</p><h1>Pick up where <br />you left off.</h1><p>Keep your coursework, practice and progress together. Open the same workspace on another device.</p><span><ShieldCheck size={19} /> Guest mode is separate from your account.</span></div>
       <div className="account-form">
         {!ready ? <p role="status">Checking your connection…</p> : account ? <>
-          <h2>You’re signed in.</h2><p className="account-email">{account.email}</p><a className="btn primary" href="/workspace">Open my workspace <ArrowRight size={19} /></a><button className="btn subtle" disabled={busy} onClick={() => signout()}><LogOut size={18} />{busy ? "Signing out…" : "Sign out on this device"}</button><p className="account-help">Signing out keeps your account’s work saved. This browser will start a separate guest workspace.</p>
+          <h2>You’re signed in.</h2><p className="account-email">{account.email}</p><a className="btn primary" href="/workspace">Open my workspace <ArrowRight size={19} /></a><button className="btn subtle" disabled={busy} onClick={() => signout()}><LogOut size={18} />{busy ? "Signing out…" : "Sign out on this device"}</button><p className="account-help">Signing out keeps your account’s work saved. Sign in again to reopen this account.</p>
         </> : <>
           <div className="account-tabs" aria-label="Account options"><button aria-pressed={mode === "signin"} disabled={busy} onClick={() => { setMode("signin"); setEmailOpen(true); setError(""); }}>Sign in</button><button aria-pressed={mode === "signup"} disabled={busy} onClick={() => { setMode("signup"); setEmailOpen(true); setError(""); }}>Create account</button></div>
           <h2>{mode === "signin" ? "Welcome back." : "Make this space yours."}</h2>
@@ -105,7 +108,7 @@ export default function LoginPage() {
           </details>
           {!configured && <p role="status">Account services aren’t connected. You can still use guest mode.</p>}
           <p className="account-help">Your first sign-in saves this browser’s guest workspace to your account. Existing accounts open their saved workspace without merging guest work. Export anything you want to keep first.</p>
-          <button className="account-forget" disabled={busy} onClick={() => signout("/workspace")}>Continue as a guest</button>
+          <button className="account-forget" disabled={busy} onClick={() => signout("/workspace")}>Try a separate guest workspace</button>
         </>}
         {error && <p className="error-banner" role="alert">{error}</p>}{message && <p className="account-message" role="status">{message}</p>}
       </div>

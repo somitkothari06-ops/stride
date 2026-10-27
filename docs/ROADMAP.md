@@ -54,3 +54,5 @@ Personal-setup voice-model replacement is deferred. Later evaluation should incl
 Current independent work completed: private health endpoint, managed app-process restart, PID-identity safety, fresh database snapshot and two crash-recovery drills. The app recovered with saved synthetic data intact. Public HTTPS judge access, Google/provider email setup and opted-in scheduled briefs remain incomplete; GitHub accounts are implemented. See DEPLOYMENT.md.
 
 Security review and residual hardening: see SECURITY-REVIEW.md. Colour alternatives remain separate previews until chosen.
+
+October 27 update: Settings/theme selection, compact navigation, account logout refusal, full supported PDF-page intake and a dedicated text/vision document study room are implemented and tested with synthetic inputs. Still open: automatic full-data backup including retained PDFs; expired upload-preview orphan cleanup; broader graphics/STT quality evaluation and final judge/demo/submission preparation. See STATUS.md and DOCUMENT-STUDY.md for observed evidence and limitations.

@@ -15,7 +15,7 @@ test("course context keeps subjects separate, accepts DBMS alias and bounds prom
 test("material validation rejects oversized or empty document context", () => {
   assert.ok(MaterialSchema.safeParse(material).success);
   assert.equal(MaterialSchema.safeParse({ ...material, pages: [] }).success, false);
-  assert.equal(MaterialSchema.safeParse({ ...material, pages: Array.from({ length: 16 }, (_, i) => ({ locator: `Page ${i}`, text: "x".repeat(4000) })) }).success, false);
+  assert.equal(MaterialSchema.safeParse({ ...material, pages: Array.from({ length: 151 }, (_, i) => ({ locator: `Page ${i}`, text: "x".repeat(4000) })) }).success, false);
 });
 test("starting fresh clears confirmed course materials as well as coursework", () => {
   const current = initialWorkspace();

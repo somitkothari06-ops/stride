@@ -1,8 +1,8 @@
 :root {
-  --bg: #f5f6f1;
-  --surface: #fff;
+  --bg: var(--theme-bg);
+  --surface: var(--theme-surface);
   --ink: #263730;
-  --muted: #626874;
+  --muted: var(--theme-muted);
   --line: #e0e5dc;
   --sage: #e2eddb;
   --green: #294c3a;
@@ -111,7 +111,7 @@ select,
 textarea {
   width: 100%;
   border: 1px solid #dfe5dc;
-  background: #fff;
+  background: var(--theme-surface);
   border-radius: 7px;
   padding: 12px;
   color: var(--ink);
@@ -222,7 +222,7 @@ summary {
 }
 .nav-item:hover {
   background: #ffffff08;
-  color: #fff;
+  color: var(--theme-surface);
 }
 .nav-item.active {
   background: #344737;
@@ -392,21 +392,21 @@ summary {
 .btn.primary,
 .btn.dark {
   background: #294b38;
-  color: #fff;
+  color: var(--theme-surface);
 }
 .btn.primary:hover,
 .btn.dark:hover {
   background: #1d3828;
 }
 .btn.subtle {
-  background: #fff;
+  background: var(--theme-surface);
   border-color: #e0e6da;
 }
 .btn.subtle:hover {
   background: #f0f5ec;
 }
 .add-button {
-  background: white;
+  background: var(--theme-surface);
   border-color: #e2e6df;
   font-size: 12px;
 }
@@ -640,7 +640,7 @@ summary {
   font-size: 12px;
 }
 .card {
-  background: #fff;
+  background: var(--theme-surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 24px;
@@ -1848,7 +1848,7 @@ summary {
 }
 
 /* Workspace hierarchy and readable interaction surfaces. */
-.skip-link { position: fixed; top: 8px; left: 8px; transform: translateY(-160%); z-index: 100; background: white; padding: 12px 24px; border-radius: 8px; }
+.skip-link { position: fixed; top: 8px; left: 8px; transform: translateY(-160%); z-index: 100; background: var(--theme-surface); padding: 12px 24px; border-radius: 8px; }
 .skip-link:focus { transform: none; }
 .day-context { display: flex; align-items: center; gap: 32px; padding: 16px 0 24px; margin-bottom: 8px; border-top: 1px solid var(--line); }
 .day-context > div, .day-context > button { display: flex; align-items: center; gap: 8px; color: #61705b; font-size: 12px; text-align: left; }
@@ -1893,7 +1893,7 @@ summary {
 .step-number { display: grid; place-items: center; width: 24px; height: 24px; flex-shrink: 0; border: 1px solid #bfceb3; border-radius: 50%; color: #59744c; font-size: 11px; }
 .practice-step:has(input:focus-visible) { outline: 3px solid #9bb6a0; outline-offset: 3px; }
 .step-done .practice-step { background: #f2f6ec; border-color: #c4d4b7; }
-.step-done .step-number { background: #3d5c31; border-color: #3d5c31; color: white; }
+.step-done .step-number { background: #3d5c31; border-color: #3d5c31; color: var(--theme-surface); }
 .reflection-heading { border-top: 1px solid var(--line); padding-top: 24px; margin-top: 24px; }
 .reflection-heading h3 { font-size: 20px; }
 .reflection-heading p { font-size: 12px; color: #617258; margin-top: 8px; }
@@ -1911,7 +1911,7 @@ summary {
 .saved-materials, .course-comparison { border-top: 1px solid var(--line); padding-top: 24px; margin-top: 32px; }
 .saved-material { border-bottom: 1px solid var(--line); padding: 24px 0; }
 .saved-material .field-help { margin-bottom: 0; }
-.extracted-pages { max-height: 320px; overflow-y: auto; margin: 16px 0; border: 1px solid var(--line); background: #fff; padding: 16px; border-radius: 8px; }
+.extracted-pages { max-height: 320px; overflow-y: auto; margin: 16px 0; border: 1px solid var(--line); background: var(--theme-surface); padding: 16px; border-radius: 8px; }
 .extracted-pages details { padding: 8px 0; }
 .extracted-pages p { font-size: 13px; color: #43563b; white-space: pre-wrap; overflow-wrap: anywhere; margin: 12px 0; }
 .bridge-result { margin-top: 32px; }

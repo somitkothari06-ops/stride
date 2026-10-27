@@ -5,9 +5,11 @@ export const MaterialSchema = z.object({
   subject: z.string().min(1).max(80),
   kind: z.enum(["Syllabus", "Lecture notes", "Lecture slides", "Past questions"]),
   filename: z.string().max(160),
-  pages: z.array(z.object({ locator: z.string().max(40), text: z.string().max(4000) })).min(1).max(100),
+  pages: z.array(z.object({ locator: z.string().max(40), text: z.string().max(4000) })).min(1).max(2000),
+  storageKey:z.uuid().optional(),
+  coverage:z.object({totalPages:z.number().int().min(1).max(500),processedPages:z.number().int().min(1).max(500),emptyPages:z.array(z.number().int().min(1).max(500)).max(500),characters:z.number().int().nonnegative().max(600000)}).optional(),
   warnings: z.array(z.string().max(300)).max(5),
-}).refine((m) => m.pages.reduce((n, p) => n + p.text.length, 0) <= 60000);
+}).refine((m) => m.pages.reduce((n, p) => n + p.text.length, 0) <= 600000);
 export type MaterialDraft = z.infer<typeof MaterialSchema>;
 export type CourseMaterial = MaterialDraft & { id: string; addedAt: string };
 export type CourseExcerpt = { id: string; materialId: string; title: string; kind: string; locator: string; text: string };

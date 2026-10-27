@@ -15,7 +15,7 @@ export default function AboutYou() {
  async function load(){
   try { const response=await fetch("/api/workspace?fresh=1",{cache:"no-store"});if(!response.ok)throw Error("Couldn’t load your details. Try again.");
    const {state}:{state:Workspace}=await response.json(),p=state.profile;
-   setName(p.onboardingComplete||p.name!=="Alex"?p.name:"");setYear(p.year);setMinutes(p.minutes);setGoal(state.sample&&!p.onboardingComplete?"":p.goal);
+   setName(p.onboardingComplete||!["Alex","Student"].includes(p.name)?p.name:"");setYear(p.year);setMinutes(p.minutes);setGoal(state.sample&&!p.onboardingComplete?"":p.goal);
    const saved=p.lifeContext||{...emptyLifeContext};setContext(saved);let draft="";try{draft=sessionStorage.getItem("stride-intro-draft")||"";}catch{}
    setText([saved.story,draft].filter(Boolean).join("\n\n"));setLoaded(true);setError("");
   }catch(e){setError(e instanceof Error?e.message:"Couldn’t connect.");}
@@ -32,7 +32,7 @@ export default function AboutYou() {
   try{const response=await fetch("/api/action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"aboutYou",name,year,minutes,goal,context:basicsOnly?{...context,story:text}:context})});const result=await response.json();if(!response.ok)throw Error(result.error?.message||"Couldn’t save. Your answers are still here.");try{sessionStorage.removeItem("stride-intro-draft");}catch{}window.location.assign("/workspace");}
   catch(e){setError(e instanceof Error?e.message:"Couldn’t connect.");setBusy(false);}
  }
- return <div className="story-page intro-page"><header className="site-header"><a className="site-brand" href="/workspace">stride.</a><nav><SignOut/><a href="/workspace">Back to workspace ↗</a></nav></header><main className="intro-layout">
+ return <div className="story-page intro-page"><header className="site-header"><a className="site-brand" href="/workspace">stride.</a><nav><a href="/settings">Settings</a><SignOut/><a href="/workspace">Back to workspace ↗</a></nav></header><main className="intro-layout">
   <aside className="intro-aside"><p className="site-kicker">MAKE IT YOURS</p><h1>A starting point.<br/>Not a life plan.</h1><p>Give Pip a little context. You can figure out the rest as you go.</p><ol>{["Meet Pip","Tell it your way","Make it yours"].map((label,i)=><li key={label} aria-current={["basics","intro","review"][i]===phase?"step":undefined}><span>{i+1}</span>{label}</li>)}</ol><div className="intro-aside-note">Your coursework and chats stay where they are.</div></aside>
   <section className="intro-panel" aria-labelledby="intro-title">{!loaded?<><h2>Getting your space ready.</h2><p role="status">{error||"Loading…"}</p>{error&&<button className="btn primary" onClick={load}>Try again</button>}</>:<>
    <div className="intro-pip"><PipMark listening={listening}/><strong>Pip</strong><span>{phase==="basics"?"Let’s meet.":phase==="intro"?(listening?"I’m listening.":"Your words. Your pace."):"You decide what stays."}</span></div>

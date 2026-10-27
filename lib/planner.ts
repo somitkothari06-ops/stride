@@ -171,7 +171,7 @@ export function initialWorkspace(sample = true, now = new Date()): Workspace {
     revision: 1,
     sample,
     profile: {
-      name: "Alex",
+      name: sample ? "Alex" : "Student",
       year: "2nd year",
       goal: sample ? "Backend development internship" : "",
       minutes: 40,

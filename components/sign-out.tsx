@@ -1,11 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
+import { clearAppearance } from "./appearance-provider";
 import { LogOut } from "lucide-react";
-function leaveAccount(destination = "/login") {
+function leaveAccount(destination = "/login?signed_out=1") {
   try { sessionStorage.removeItem("stride-intro-draft"); sessionStorage.removeItem("stride-pip-launch"); } catch {}
+  clearAppearance();
   window.location.replace(destination);
 }
-export function finishSignOut(destination = "/login") {
+export function finishSignOut(destination = "/login?signed_out=1") {
   if (typeof BroadcastChannel !== "undefined") { const channel = new BroadcastChannel("stride-account"); channel.postMessage("signed-out"); channel.close(); }
   leaveAccount(destination);
 }

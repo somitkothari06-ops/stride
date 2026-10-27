@@ -6,25 +6,28 @@ import { XMLParser } from "fast-xml-parser";
 export async function extractCourse(path, extension = extname(path).toLowerCase()) {
   const bytes = await readFile(path);
   if (bytes.length > 8 * 1024 * 1024) throw new Error("File exceeds 8 MB");
-  let pages = [], warnings = [];
+  let pages = [], warnings = [], coverage;
   if (extension === ".pdf") {
     if (bytes.subarray(0, 5).toString() !== "%PDF-") throw new Error("Invalid PDF");
     const { PDFParse } = await import("pdf-parse");
     const parser = new PDFParse({ data: bytes, isEvalSupported: false });
     try {
       const info = await parser.getInfo();
-      if (info.total > 100) throw new Error("Use a PDF with at most 100 pages");
-      let kept = 0;
+      if (info.total > 500) throw new Error("Use a PDF with at most 500 pages");
+      let kept = 0; const emptyPages=[];
       for (let number = 1; number <= info.total; number++) {
         const result = await parser.getText({ partial: [number] });
         const text = result.pages[0]?.text || "";
-        if (text.length > 4000 && !warnings.some((w) => w.startsWith("Long pages"))) warnings.push("Long pages were shortened to 4,000 characters. Use smaller sections for full coverage.");
-        const clipped = text.slice(0, Math.min(4000, 60000 - kept));
-        pages.push({ locator: `Page ${number}`, text: clipped });
-        kept += clipped.length;
-        if (kept >= 60000) { if (number < info.total) warnings.push("Later pages were not extracted after reaching the text limit. Split the file into smaller units."); break; }
+        if(text.trim().length < 20) emptyPages.push(number);
+        kept += text.length;
+        if(kept > 600000) throw new Error("PDF text exceeds 600,000 characters; split the file");
+        if(!text.length) pages.push({locator:`Page ${number}`,text:""});
+        for(let start=0;start<text.length;start+=4000) pages.push({locator:text.length>4000?`Page ${number} · part ${Math.floor(start/4000)+1}`:`Page ${number}`,text:text.slice(start,start+4000)});
+        if(pages.length>2000)throw new Error("Too many text sections; split the file");
       }
-      if (pages.some((p) => p.text.trim().length < 20)) warnings.push("Some pages have little extractable text. Scanned pages, diagrams and equations may need OCR or manual transcription.");
+      coverage={totalPages:info.total,processedPages:info.total,emptyPages,characters:kept};
+      if(emptyPages.length) warnings.push(`${emptyPages.length} page(s) have little extractable text and may need OCR or manual transcription.`);
+      warnings.push("Text extraction does not interpret diagrams, images or equations reliably.");
     } finally { await parser.destroy(); }
   } else if ([".pptx", ".docx"].includes(extension)) {
     if (bytes.subarray(0, 2).toString() !== "PK") throw new Error("Invalid Office file");
@@ -82,6 +85,9 @@ export async function extractCourse(path, extension = extname(path).toLowerCase(
     if (text.includes("\0")) throw new Error("Use a plain text file");
     pages = Array.from({ length: Math.ceil(text.length / 4000) }, (_, i) => ({ locator: `Text section ${i + 1}`, text: text.slice(i * 4000, (i + 1) * 4000) }));
   } else throw new Error("Unsupported file type");
+  if(extension === ".pdf") {
+    pages=pages.map(p=>({...p,text:p.text.replace(/\u0000/g, "").trim()}));
+  } else {
   let remaining = 60000;
   if (pages.length > 100 || pages.some((p) => p.text.length > 4000) || pages.reduce((n, p) => n + p.text.length, 0) > remaining)
     warnings.push("Long content was shortened. Upload a smaller chapter or unit for complete coverage.");
@@ -90,11 +96,12 @@ export async function extractCourse(path, extension = extname(path).toLowerCase(
     remaining -= text.length;
     return text ? [{ locator: p.locator, text }] : [];
   });
-  if (pages.reduce((n, p) => n + p.text.length, 0) < 30) throw new Error("No usable text found. Scanned documents need OCR; paste a transcription or use a text-based export.");
-  return { pages, warnings };
+  }
+  if (pages.reduce((n, p) => n + p.text.length, 0) < 30) { if(extension === ".pdf") warnings.push("No usable text was extracted. This PDF needs visual reading to study its pages."); else throw new Error("No usable text found. Use a text-based export."); }
+  return { pages, warnings, ...(coverage?{coverage}:{}) };
 }
 
 if (process.argv[1]?.endsWith("extract-course.mjs")) {
   try { console.log(JSON.stringify(await extractCourse(process.argv[2], process.argv[3]))); }
-  catch { console.log(JSON.stringify({ error: "Could not extract readable text. Use an unlocked text PDF, PPTX, DOCX, TXT or MD file (8 MB, up to 100 pages/slides). Scans need OCR; try a smaller text-based export." })); process.exitCode = 1; }
+  catch { console.log(JSON.stringify({ error: "Could not extract readable text. Use an unlocked text PDF, PPTX, DOCX, TXT or MD file (8 MB, up to 500 PDF pages or 100 slides). Scans need OCR; try a smaller text-based export." })); process.exitCode = 1; }
 }

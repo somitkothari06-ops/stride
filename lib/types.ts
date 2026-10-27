@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { Appearance } from "./themes";
 import type { CourseMaterial, CourseExcerpt } from "./course-types";
 import { LifeContextSchema, type LifeContext } from "./personal-context";
 
@@ -89,6 +90,8 @@ export type Workspace = {
   pipThreads?: PipThreads;
   notes?: { id: string; text: string; createdAt: string }[];
   materials?: CourseMaterial[];
+  appearance?: Appearance;
+  preferencesVersion?: number;
   version: 1;
   revision: number;
   sample: boolean;

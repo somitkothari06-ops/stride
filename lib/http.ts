@@ -37,6 +37,15 @@ export async function body(request: Request, limit = 30000) {
 export function failure(error: unknown) {
   const code = error instanceof Error ? error.message : "UNKNOWN";
   const known: Record<string, [number, string]> = {
+    VISION_NOT_CONFIGURED: [503,"Diagram reading isn’t connected. Choose text-only or connect a vision model."],
+    DOCUMENT_RENDER_FAILED: [503,"Couldn’t render these pages. Your PDF is safe; try one page at a time."],
+    STUDY_NO_TEXT: [422,"These pages have too little readable text. Choose another range or add a transcription."],
+    STUDY_RANGE_TOO_LARGE: [400,"This section has a lot of text. Choose fewer pages at a time."],
+    STUDY_EVIDENCE_INVALID: [502,"The lesson couldn’t be traced to your pages. Try preparing it again."],
+    STUDY_EXPIRED: [409,"This lesson session expired. Prepare the section again; your answer is still here."],
+    STUDY_BUSY: [429,"Several lessons are being prepared. Try again shortly."],
+    STUDY_LIMIT: [429,"This lesson has reached its feedback limit. Continue with another section."],
+    SETTINGS_STALE: [409,"Your settings or study plan changed elsewhere. Reload settings before saving again."],
     CHAT_NOT_FOUND: [404,"This chat was deleted or is unavailable. Open another chat; your draft is still here."],
     CHAT_THREAD_LIMIT: [409,"You have 50 chats. Delete a chat you no longer need before starting another."],
     CHAT_FULL: [409,"This chat has reached 100 exchanges. Start a new chat to continue; this one stays saved."],
@@ -55,7 +64,7 @@ export function failure(error: unknown) {
     AUTH_UNAVAILABLE: [503, "Account services couldn't respond. Please try again shortly."],
     COURSE_REVIEW_INVALID: [400, "This document review expired or changed. Extract the file again before confirming it (reviews last 15 minutes and expire on a server restart)."],
     COURSE_CONTEXT_NEEDED: [400, "Add and confirm a course document for this subject before comparing it."],
-    DOCUMENT_UNREADABLE: [422, "Couldn't read this document. Use an unlocked text PDF, PPTX, DOCX, TXT or MD file under 8 MB and 100 pages/slides. Scans need OCR or a pasted transcription."],
+    DOCUMENT_UNREADABLE: [422, "Couldn't read this document. Use an unlocked text PDF, PPTX, DOCX, TXT or MD file under 8 MB and 500 PDF pages (100 slides). Scans need OCR or a pasted transcription."],
     LIBRARY_FULL: [400, "Your library holds 12 documents. Remove an older document before adding another."],
     SESSION_EXPIRED: [
       401,

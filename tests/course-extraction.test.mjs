@@ -11,9 +11,10 @@ async function fixture(extension, bytes, check) {
   try { const path = join(directory, `synthetic${extension}`); await writeFile(path, bytes); await check(path); }
   finally { await rm(directory, { recursive: true, force: true }); }
 }
-function pdf() {
-  const text = "BT /F1 14 Tf 40 150 Td (Synthetic syllabus: SQL joins and query plans.) Tj ET";
-  const objects = ["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Kids [3 0 R] /Count 1 >>", "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 200] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>", "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>", `<< /Length ${text.length} >>\nstream\n${text}\nendstream`];
+function pdf(count=1) {
+  const phrase="Synthetic syllabus: SQL joins and query plans.";
+  const text = count===1?`BT /F1 14 Tf 40 150 Td (${phrase}) Tj ET`:`BT /F1 6 Tf 10 TL 12 180 Td ${Array.from({length:12},()=>`(${phrase}) Tj T*`).join(" ")} ET`;
+  const objects=["<< /Type /Catalog /Pages 2 0 R >>",`<< /Type /Pages /Kids [${Array.from({length:count},(_,i)=>`${i+5} 0 R`).join(" ")}] /Count ${count} >>`,"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",`<< /Length ${text.length} >>\nstream\n${text}\nendstream`,...Array.from({length:count},()=>"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 200] /Resources << /Font << /F1 3 0 R >> >> /Contents 4 0 R >>")];
   let content = "%PDF-1.4\n";
   const offsets = [0];
   for (let i = 0; i < objects.length; i++) { offsets.push(Buffer.byteLength(content)); content += `${i + 1} 0 obj\n${objects[i]}\nendobj\n`; }
@@ -69,3 +70,5 @@ test("unreadable and oversized inputs fail rather than inventing text", async ()
   await fixture(".txt", Buffer.alloc(8 * 1024 * 1024 + 1), async (p) => assert.rejects(extractCourse(p)));
   await fixture(".pptx", zipSync({ "ppt/slides/slide1.xml": strToU8('<!DOCTYPE a [<!ENTITY x "bad">]><a:t>&x;</a:t>') }), async (p) => assert.rejects(extractCourse(p)));
 });
+
+test("long PDFs retain every page and text beyond the former 100-page/60k cap",async()=>{await fixture(".pdf",pdf(191),async path=>{const result=await extractCourse(path);assert.equal(result.coverage.processedPages,191);assert.equal(result.coverage.totalPages,191);assert.equal(new Set(result.pages.map(p=>p.locator.match(/^Page (\d+)/)[1])).size,191);assert.ok(result.pages.reduce((n,p)=>n+p.text.length,0)>60000);assert.ok(!result.warnings.some(w=>/shortened|later pages/i.test(w)));});});

@@ -7,11 +7,12 @@ import { extname, join } from "node:path";
 import { NextResponse } from "next/server";
 import { body, checkOrigin, failure, requireSession } from "@/lib/http";
 import { mutate } from "@/lib/store";
+import { retainPdf,removePdf } from "@/lib/document-files";
 import { MaterialSchema } from "@/lib/course-types";
 import { checkCourseDraft, sealCourseDraft } from "@/lib/course-draft";
 
 export const runtime = "nodejs";
-export const maxDuration = 30;
+export const maxDuration = 120;
 
 export async function POST(request: Request) {
   let directory: string | undefined;
@@ -43,13 +44,14 @@ export async function POST(request: Request) {
     await writeFile(path, Buffer.from(await file.arrayBuffer()), { mode: 0o600 });
     let output;
     try {
-      output = await promisify(execFile)(process.execPath, ["--max-old-space-size=192", join(process.cwd(), "scripts/extract-course.mjs"), path, extension], { timeout: 20000, maxBuffer: 400000, env: { PATH: process.env.PATH, NODE_ENV: "production" } });
+      output = await promisify(execFile)(process.execPath, ["--max-old-space-size=384", join(process.cwd(), "scripts/extract-course.mjs"), path, extension], { timeout: 90000, maxBuffer: 2500000, env: { PATH: process.env.PATH, NODE_ENV: "production" } });
     } catch { throw new Error("DOCUMENT_UNREADABLE"); }
     const extracted = JSON.parse(output.stdout);
     const candidate = MaterialSchema.parse({
       title: file.name.replace(/\.[^.]+$/, "").slice(0, 160),
       subject: data.get("subject"), kind: data.get("kind"),
       filename: file.name.replace(/^.*[\\/]/, "").slice(0, 160), ...extracted,
+      ...(extension === ".pdf" ? {storageKey:await retainPdf(path)} : {}),
     });
     return NextResponse.json({ candidate, ...sealCourseDraft(id, candidate) });
   } catch (error) { return failure(error); }
@@ -60,7 +62,7 @@ export async function PUT(request: Request) {
   try {
     checkOrigin(request);
     const { id } = await requireSession();
-    const input = await body(request, 400000);
+    const input = await body(request, 2500000);
     const candidate = MaterialSchema.parse(input.candidate);
     checkCourseDraft(id, candidate, input.proof, input.expiresAt);
     const materialId = createHash("sha256").update(input.proof).digest("hex");
@@ -78,15 +80,17 @@ export async function PUT(request: Request) {
 export async function DELETE(request: Request) {
   try {
     checkOrigin(request);
-    const { id } = await requireSession();
+    const { id, state: before } = await requireSession();
     const input = await body(request);
     if (typeof input.id !== "string") throw new Error("INVALID_REQUEST");
+    const removedKey=before.materials?.find(m=>m.id===input.id)?.storageKey;
     const state = mutate(id, (current) => {
       if (!current.materials?.some((m) => m.id === input.id)) throw new Error("NOT_FOUND");
       current.materials = current.materials.filter((m) => m.id !== input.id);
       current.revision++;
       current.prepared = null;
     });
+    if(removedKey) await removePdf(removedKey).catch(()=>{});
     return NextResponse.json({ state });
   } catch (error) { return failure(error); }
 }

@@ -8,12 +8,12 @@ import {
 } from "./store";
 import { providerConfigId, structuredTaskOptions } from "./provider-config";
 
-function currentConfigId() {
-  if (!process.env.NEBIUS_API_KEY || !process.env.NEBIUS_MODEL_FAST)
+function currentConfigId(selectedModel = process.env.NEBIUS_MODEL_FAST) {
+  if (!process.env.NEBIUS_API_KEY || !selectedModel)
     return null;
   return providerConfigId({
     key: process.env.NEBIUS_API_KEY,
-    model: process.env.NEBIUS_MODEL_FAST,
+    model: selectedModel,
     baseUrl:
       process.env.NEBIUS_BASE_URL || "https://api.tokenfactory.nebius.com/v1",
     disableThinking: process.env.NEBIUS_DISABLE_THINKING,
@@ -28,6 +28,8 @@ export function providerStatus() {
       process.env.NEBIUS_API_KEY && process.env.NEBIUS_MODEL_FAST,
     ),
     tavily: Boolean(process.env.TAVILY_API_KEY),
+    vision: Boolean(process.env.NEBIUS_API_KEY && process.env.NEBIUS_MODEL_VISION),
+    visionModel: process.env.NEBIUS_MODEL_VISION || null,
     model: process.env.NEBIUS_MODEL_FAST || null,
     nebiusVerifiedAt: check?.verified_at || null,
     nebiusLastFailureAt: check?.last_failure_at || null,
@@ -38,28 +40,33 @@ export async function model<T>(
   task: string,
   data: unknown,
   schema: z.ZodType<T>,
-  options: { maxTokens?: number; history?: ConversationTurn[] } = {},
+  options: { maxTokens?: number; history?: ConversationTurn[]; images?: string[] } = {},
 ): Promise<T> {
   if (!providerStatus().nebius) throw new Error("MODEL_UNAVAILABLE");
+  const selectedModel=options.images?.length?process.env.NEBIUS_MODEL_VISION:process.env.NEBIUS_MODEL_FAST;
+  if(!selectedModel)throw new Error("VISION_NOT_CONFIGURED");
+  if(options.images&&(options.images.length>5||options.images.some(image=>!image.startsWith("data:image/png;base64,")||image.length>5000000)))throw new Error("INVALID_REQUEST");
   consumeAllowance(session);
-  const configId = currentConfigId()!;
+  const configId = currentConfigId(selectedModel)!;
+  const messages=modelMessages(task,data,options.history);
+  const requestMessages=options.images?.length?messages.map((message,index)=>index===messages.length-1?{...message,content:[{type:"text",text:message.content},...options.images!.map(url=>({type:"image_url",image_url:{url}}))]}:message):messages;
   try {
     const response = await fetch(
       `${(process.env.NEBIUS_BASE_URL || "https://api.tokenfactory.nebius.com/v1").replace(/\/$/, "")}/chat/completions`,
       {
         method: "POST",
-        signal: AbortSignal.timeout(25000),
+        signal: AbortSignal.timeout(options.images?.length?60000:25000),
         headers: {
           Authorization: `Bearer ${process.env.NEBIUS_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: process.env.NEBIUS_MODEL_FAST,
+          model: selectedModel,
           temperature: 0.2,
           max_tokens: Math.min(4000, Math.max(512, options.maxTokens || 1800)),
           response_format: { type: "json_object" },
           ...structuredTaskOptions(process.env.NEBIUS_DISABLE_THINKING),
-          messages: modelMessages(task,data,options.history),
+          messages: requestMessages,
         }),
       },
     );

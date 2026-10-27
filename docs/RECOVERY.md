@@ -60,3 +60,7 @@ node scripts/database.mjs verify NEW_PRIVATE_SNAPSHOT
 ```
 
 Decryption is not account-session sanitization: the account/OAuth credential precautions above still apply before serving a restored copy. An observed one-off encrypted off-volume copy is distinct from a recurring backup schedule, which remains pending.
+
+## Original PDF files
+
+Document study now retains original PDFs under the private data directory's `documents/` subdirectory. SQLite contains their opaque identifiers and extracted page text. A SQLite-only snapshot can restore text and workspaces but cannot restore missing diagram/page images. A complete backup must preserve that directory as private credential/student-data material together with a consistent database snapshot. The existing encrypted-backup command also accepts a private archive, but restore requires extracting the archive into a new private directory and verifying the database before serving it. Scheduled full-data backup and orphan-file cleanup are pending; never represent the older SQLite-only off-volume snapshot as a complete visual-document backup.

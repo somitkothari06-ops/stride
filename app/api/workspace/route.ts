@@ -12,7 +12,7 @@ export async function GET(request: Request) {
       session = await requireSession();
     } catch (error) {
       if (!(error instanceof Error) || error.message !== "SESSION_EXPIRED") throw error;
-      session = createSession(new URL(request.url).searchParams.get("fresh") !== "1");
+      session = createSession(new URL(request.url).searchParams.get("demo") === "1");
     }
     const query=new URL(request.url).searchParams;
     const response = NextResponse.json(
