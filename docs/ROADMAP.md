@@ -1,6 +1,6 @@
 # What is complete and what remains
 
-Updated October 26, 2026. This is a development checkpoint, not a finished hackathon submission. No percentage-complete estimate is claimed.
+Updated October 27, 2026. This is a development checkpoint, not a finished hackathon submission. No percentage-complete estimate is claimed.
 
 ## Working and checked
 
@@ -51,4 +51,4 @@ Tavily is now provisioned and its key is installed privately. Supabase was provi
 
 Personal-setup voice-model replacement is deferred. Later evaluation should include fillers, accents, subject names and mispronunciations; preserve the original transcript and require review of dates/names/numbers rather than silently inventing corrections. The current shared-question UI and synthetic workflow checks are complete for this checkpoint.
 
-Current independent work completed: private health endpoint, managed app-process restart, PID-identity safety, fresh database snapshot and two crash-recovery drills. The app recovered with saved synthetic data intact. Public HTTPS judge access, authenticated accounts and opted-in scheduled briefs remain incomplete. See DEPLOYMENT.md.
+Current independent work completed: private health endpoint, managed app-process restart, PID-identity safety, fresh database snapshot and two crash-recovery drills. The app recovered with saved synthetic data intact. Public HTTPS judge access, Google/provider email setup and opted-in scheduled briefs remain incomplete; GitHub accounts are implemented. See DEPLOYMENT.md.

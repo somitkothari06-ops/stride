@@ -675,15 +675,15 @@ export default function WorkspaceApp() {
 
           {view === "work" && (
             <>
-              <div className="page-heading">
-                <div>
+              <div className="page-heading coursework-heading">
+                <div className="coursework-heading-copy">
                   <h1>Your coursework.</h1>
-                  <p>Pick a task. Try it, explain it, and keep what you learn.</p>
-                  <button className="text-button course-library-button" onClick={() => setModal("course")}><BookOpen size={15} /> Course library · syllabus, notes & past questions</button>
+                  <div className="coursework-totals"><span><strong>{state.works.filter(work => !work.completed).length}</strong> open tasks</span><span><strong>{new Set(state.works.map(work => work.subject).filter(Boolean)).size}</strong> subjects</span></div>
                 </div>
-                <button className="btn primary" onClick={openAdd}>
-                  <Plus size={16} />
-                  Add work
+                <button className="course-library-entry" onClick={() => setModal("course")}>
+                  <span className="course-library-art" aria-hidden="true"><BookOpen size={28}/></span>
+                  <span className="course-library-entry-copy"><strong>Course library</strong><span>Syllabus, notes & past questions</span></span>
+                  <ArrowUpRight size={22} aria-hidden="true"/>
                 </button>
               </div>
               <div className="work-layout">
@@ -748,33 +748,34 @@ export default function WorkspaceApp() {
                         <p>{selected.source}</p>
                       </details>
                       {prepared ? (
-                        <div className="prepared">
-                          <div className="practice-header"><span className="eyebrow">YOUR PRACTICE SESSION</span><span>{checkedSteps.length} of {prepared.steps.length} steps checked</span></div>
-                          <div className="practice-meter" role="progressbar" aria-label="Practice steps checked for this visit" aria-valuemin={0} aria-valuemax={prepared.steps.length} aria-valuenow={checkedSteps.length}><span style={{ width: `${checkedSteps.length / Math.max(1, prepared.steps.length) * 100}%` }} /></div>
-                          <div className="section-title">
+                        <div className="prepared practice-studio">
+                          <header className="practice-cover">
+                            <div className="practice-cover-top"><span><BookOpen size={20} /> Your practice</span><span className="practice-fraction">{checkedSteps.length}<span> / {prepared.steps.length}</span></span></div>
                             <h3>{prepared.title}</h3>
-
-                          </div>
+                            <div className="practice-meter" role="progressbar" aria-label="Practice steps checked for this visit" aria-valuemin={0} aria-valuemax={prepared.steps.length} aria-valuenow={checkedSteps.length}><span style={{ width: `${checkedSteps.length / Math.max(1, prepared.steps.length) * 100}%` }} /></div>
+                            <span className="practice-cover-caption">{checkedSteps.length === prepared.steps.length ? "Steps checked. Ready to explain it?" : "Check off each step as you go."}</span>
+                          </header>
                           {prepared.contextRevision !== state.revision && (
                             <p className="warning-text">
                               Your work changed since this session was made.
                               Refresh if needed.
                             </p>
                           )}
-                          <p className="practice-context">{prepared.context}</p>
+                          <section className="practice-idea"><h4>The idea</h4><p className="practice-context">{prepared.context}</p></section>
                           {!!prepared.courseSources?.length && <details className="source-details"><summary>Course excerpts referenced in this practice ({prepared.courseSources.length})</summary>{prepared.courseSources.map((source) => <div key={source.id}><h3>{source.title} · {source.locator}</h3><p>{source.text}</p></div>)}</details>}
-                          <ol>
+                          <div className="practice-section-heading"><h4>Give it a try</h4><span>{prepared.steps.length} steps</span></div>
+                          <ol className="practice-path">
                             {prepared.steps.map((step, i) => (
                               <li key={i} className={checkedSteps.includes(i) ? "step-done" : ""}>
                                 <label className="practice-step">
                                   <input type="checkbox" checked={checkedSteps.includes(i)} onChange={() => setCheckedSteps((previous) => previous.includes(i) ? previous.filter((n) => n !== i) : [...previous, i])} />
                                   <span className="step-number" aria-hidden="true">{checkedSteps.includes(i) ? <Check size={16} /> : String(i + 1).padStart(2, "0")}</span>
-                                  <span>{step}</span>
+                                  <span className="practice-step-copy">{step}</span><span className="practice-step-check" aria-hidden="true">{checkedSteps.includes(i) && <Check size={16}/>}</span>
                                 </label>
                               </li>
                             ))}
                           </ol>
-                          <form
+                          <form className="practice-answer"
                             onSubmit={async (e) => {
                               e.preventDefault();
                               const result = await act(
@@ -790,6 +791,7 @@ export default function WorkspaceApp() {
                             }}
                           >
 
+                            <span className="practice-answer-kicker"><Pencil size={18}/> Your turn</span>
                             <label htmlFor="attempt">{prepared.question}</label>
                             <textarea
                               id="attempt"
@@ -800,7 +802,7 @@ export default function WorkspaceApp() {
                               maxLength={6000}
                               required
                               rows={5}
-                              placeholder="Write your explanation, what you tried, and anything still unclear…"
+                              placeholder="Walk through your thinking…"
                             />
                             <p className="field-help" id="attempt-help">
                               {providers.nebius
@@ -827,13 +829,11 @@ export default function WorkspaceApp() {
                           </form>
                         </div>
                       ) : (
-                        <div className="prepare-empty">
-                          <BookOpen size={30} />
-                          <h3>Understand it a little better.</h3>
-                          <p>
-                            Prepare a focused practice prompt around this work,
-                            then save what you tried.
-                          </p>
+                        <div className="prepare-empty practice-start">
+                          <div className="practice-start-art" aria-hidden="true"><BookOpen size={40}/><span>01</span><span>02</span><span><Check size={20}/></span></div>
+                          <span className="practice-start-kicker">Make it click</span>
+                          <h3>A little practice.<br/>A clearer understanding.</h3>
+                          <p>A short explanation, clear steps and one question to try.</p>
                           <button
                             className="btn primary"
                             disabled={!!busy}
