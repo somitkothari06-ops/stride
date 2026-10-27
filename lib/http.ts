@@ -39,6 +39,7 @@ export async function body(request: Request, limit = 30000) {
 export function failure(error: unknown) {
   const code = error instanceof Error ? error.message : "UNKNOWN";
   const known: Record<string, [number, string]> = {
+    CHAT_STALE: [409,"This conversation changed in another tab. Reload it and send your message again; your draft is still here."],
     CAPTURE_EXPIRED: [400,"This capture review expired or belongs to another workspace. Review your words again."],
     CAPTURE_STALE: [409,"Your workspace changed. Review your words again before saving; nothing was added."],
     CAPTURE_EVIDENCE_INVALID: [400,"A suggestion couldn't be traced to your words. Review again or edit your capture."],
@@ -68,7 +69,7 @@ export function failure(error: unknown) {
     INPUT_TOO_LARGE: [413, "Use a shorter excerpt (up to 12,000 characters)."],
     DAILY_LIMIT: [
       429,
-      "Today's live-call allowance has been reached. Local guidance is still available.",
+      "Today's AI allowance is used up. You can still review and organise your saved work.",
     ],
     SEARCH_NOT_CONFIGURED: [
       503,

@@ -104,6 +104,9 @@ export async function model<T>(
 }
 
 export async function searchRoles(session: string, role: string): Promise<RoleSource[]> {
+  return searchWeb(session, `${role} internship India university students requirements`);
+}
+export async function searchWeb(session: string, query: string): Promise<RoleSource[]> {
   if (!process.env.TAVILY_API_KEY) throw new Error("SEARCH_NOT_CONFIGURED");
   consumeAllowance(session);
   try {
@@ -115,7 +118,7 @@ export async function searchRoles(session: string, role: string): Promise<RoleSo
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        query: `${role} internship India university students requirements`,
+        query: query.slice(0, 300),
         search_depth: "basic",
         max_results: 5,
         include_answer: false,

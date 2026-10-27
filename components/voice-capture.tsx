@@ -9,7 +9,7 @@ type Recognition = {
   onend: (() => void) | null; start(): void; stop(): void; abort(): void;
 };
 type SpeechWindow = Window & { SpeechRecognition?: new () => Recognition; webkitSpeechRecognition?: new () => Recognition };
-export function Dictation({ onText, disabled = false, onListening, showPrivacy = true, compact = false }: { onText: (text: string) => void; disabled?: boolean; onListening?: (active: boolean) => void; showPrivacy?: boolean; compact?: boolean }) {
+export function Dictation({ onText, disabled = false, onListening, showPrivacy = true, compact = false, iconOnly = false }: { onText: (text: string) => void; disabled?: boolean; onListening?: (active: boolean) => void; showPrivacy?: boolean; compact?: boolean; iconOnly?: boolean }) {
   const [listening, setListening] = useState(false), [message, setMessage] = useState("");
   const [supported, setSupported] = useState<boolean | null>(null);
   const recognition = useRef<Recognition | null>(null), callback = useRef(onText), listeningCallback = useRef(onListening), committed = useRef(0), interimText = useRef(""), timeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -19,7 +19,7 @@ export function Dictation({ onText, disabled = false, onListening, showPrivacy =
     setSupported(!!(w.SpeechRecognition || w.webkitSpeechRecognition));
     const stop = () => { if (document.hidden) recognition.current?.stop(); };
     document.addEventListener("visibilitychange", stop);
-    return () => { document.removeEventListener("visibilitychange", stop); if (timeout.current) clearTimeout(timeout.current); const r = recognition.current; if (r) { r.onresult = null; r.onerror = null; r.onend = null; r.abort(); } };
+    return () => { document.removeEventListener("visibilitychange", stop); if (timeout.current) clearTimeout(timeout.current); const r = recognition.current; if (r) { r.onresult = null; r.onerror = null; r.onend = null; r.abort(); } listeningCallback.current?.(false); };
   }, []);
   useEffect(() => { if (disabled) recognition.current?.stop(); }, [disabled]);
   function start() {
@@ -47,9 +47,9 @@ export function Dictation({ onText, disabled = false, onListening, showPrivacy =
   }
   return <div className="dictation">
     <div className="dictation-toolbar">
-      <button type="button" className={`btn voice-button ${listening ? "is-listening" : ""}`} disabled={disabled || supported !== true} aria-pressed={listening} onClick={() => listening ? recognition.current?.stop() : start()}>
+      <button type="button" className={`btn voice-button ${iconOnly ? "voice-icon-only" : ""} ${listening ? "is-listening" : ""}`} aria-label={listening ? "Stop recording" : supported === false ? "Voice unavailable in this browser" : "Dictate a message"} title={listening ? "Stop recording" : supported === false ? "Voice unavailable in this browser" : "Dictate a message"} disabled={disabled || supported !== true} aria-pressed={listening} onClick={() => listening ? recognition.current?.stop() : start()}>
         {listening ? <Square size={18} /> : <Mic size={18} />}
-        {listening ? "Stop listening" : supported === false ? "Voice unavailable" : "Start speaking"}
+        {!iconOnly && (listening ? "Stop listening" : supported === false ? "Voice unavailable" : "Start speaking")}
       </button>
       {!compact && <span className="dictation-language">English (India) · 2 min max</span>}
     </div>

@@ -118,3 +118,5 @@ The server is currently reached through an SSH tunnel. Before public launch, fin
 - Test with classmates; record actual tool feedback; prepare the final demo video and Devpost materials.
 
 Do not present this development checkpoint as a finished hackathon entry. The source is MIT licensed; never publish keys, local databases, private SSH material or real student records.
+
+Pip conversation design and limits: [PIP-CONVERSATION.md](docs/PIP-CONVERSATION.md). AI experience priorities: [AI-EXPERIENCE.md](docs/AI-EXPERIENCE.md).

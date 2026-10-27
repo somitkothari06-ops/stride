@@ -654,3 +654,144 @@ a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,
 .role-source-row small { font-size: 13px; color: #626874; }
 .role-source-row details p { font-size: 14px; line-height: 1.8; color: #49505c; max-width: 85ch; overflow-wrap: anywhere; }
 @media(max-width:700px) { .direction-brief-header,.direction-course-link,.role-skill-list,.direction-next-move,.direction-source-list { padding: 22px; } .app-shell .direction-brief-header h2 { font-size: 26px; } .direction-brief-header p { font-size: 16px; } .role-skill { gap: 12px; } .role-skill-number { width: 32px; height: 32px; } .role-skill h4 { font-size: 18px; } }
+/* Pip holds a conversation, then offers a deliberate path into saved context. */
+.companion-panel[hidden],.companion-body[hidden],.pip-conversation[hidden] { display: none !important; }
+.companion-panel { width: 510px; height: min(740px,calc(100dvh - 145px)); }
+.pip-pane-tabs { display: flex; flex-shrink: 0; padding: 10px 14px; gap: 8px; border-bottom: 1px solid #dadbd7; background: #f5f2e8; }
+.pip-pane-tabs button { flex: 1; font: inherit; font-size: 14px; font-weight: 800; min-height: 42px; border: 1px solid transparent; border-radius: 9px; color: #49505c; background: transparent; cursor: pointer; }
+.pip-pane-tabs button[aria-selected=true] { color: white; background: #172653; border-color: #172653; }
+.pip-conversation { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.pip-chat-tools { display: flex; flex-shrink: 0; align-items: center; justify-content: space-between; padding: 9px 18px; border-bottom: 1px solid #e5e4dd; background: white; position: relative; }
+.pip-chat-tools > label { display: flex; align-items: center; gap: 7px; font-size: 12px; color: #49505c; cursor: pointer; }
+.pip-chat-tools input { accent-color: #172653; }
+.pip-chat-tools > details > summary { display: flex; list-style: none; min-height: 30px; min-width: 34px; align-items: center; justify-content: center; cursor: pointer; border: 1px solid #c8cbc9; border-radius: 7px; }
+.pip-chat-tools summary::-webkit-details-marker { display: none; }
+.pip-chat-tools > details > div { position: absolute; z-index: 2; top: 44px; right: 12px; width: min(300px,calc(100vw - 80px)); background: white; border: 1px solid #172653; box-shadow: 0 4px 0 #172653; border-radius: 10px; padding: 16px; }
+.pip-chat-tools details p { font-size: 12px; line-height: 1.7; color: #49505c; margin: 0 0 12px; }
+.pip-chat-tools details button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 0; font: inherit; font-size: 13px; color: #172653; border: 0; background: white; cursor: pointer; }
+.pip-chat-transcript { flex: 1; min-height: 90px; overflow-y: auto; padding: 20px; background: #faf8f0; overscroll-behavior: contain; }
+.pip-chat-welcome { padding: 24px 4px; }
+.pip-chat-welcome h3 { margin: 0 0 14px; font-size: 28px; letter-spacing: -.04em; }
+.pip-chat-welcome p { font-size: 17px; line-height: 1.7; color: #49505c; }
+.pip-chat-welcome > span { display: flex; align-items: center; gap: 9px; font-size: 13px; font-weight: 700; color: #49505c; margin-top: 22px; }
+.pip-message { padding: 16px; border-radius: 14px; margin-bottom: 16px; overflow-wrap: anywhere; border: 1px solid #dddcd3; background: white; }
+.pip-message-user { margin-left: 30px; background: #f7ec9a; border-color: #e0d785; }
+.pip-message-assistant { margin-right: 14px; }
+.pip-message > span { display: block; font-size: 12px; color: #49505c; font-weight: 800; margin-bottom: 8px; }
+.pip-message > p { font-size: 15px; line-height: 1.75; color: #172653; white-space: pre-wrap; margin: 8px 0; }
+.pip-message pre { overflow-x: auto; background: #172653; color: white; padding: 14px; border-radius: 8px; font-size: 13px; line-height: 1.7; }
+.pip-keep-message { display: flex; align-items: center; gap: 6px; border: 0; background: none; color: #172653; padding: 8px 0 0; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; text-decoration: underline; }
+.pip-chat-sources { border-top: 1px solid #dddcd3; margin-top: 12px; padding-top: 8px; }
+.pip-chat-sources summary { font-size: 12px; font-weight: 800; cursor: pointer; padding: 5px 0; }
+.pip-chat-sources > div { margin: 12px 0; }
+.pip-chat-sources a,.pip-chat-sources strong { color: #172653; font-size: 13px; font-weight: 800; }
+.pip-chat-sources a { text-decoration: underline; }
+.pip-chat-sources p { font-size: 12px; line-height: 1.7; color: #49505c; white-space: pre-wrap; }
+.pip-search-unavailable { display: block; margin-top: 12px; font-size: 12px; color: #626874; }
+.pip-chat-pending,.pip-chat-empty { font-size: 14px; color: #49505c; line-height: 1.7; }
+.pip-chat-composer { flex-shrink: 0; padding: 14px 18px; border-top: 1px solid #dadbd7; background: white; }
+.pip-chat-composer > textarea { display: block; width: 100%; min-height: 78px; max-height: 150px; resize: vertical; font: inherit; font-size: 16px; line-height: 1.6; border: 1px solid #a6abb1; border-radius: 10px; padding: 12px; background: #fffdf8; color: #172653; }
+.pip-chat-send { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; }
+.pip-chat-send .dictation { margin: 0; }
+.pip-chat-send .voice-status { display: none; }
+.pip-chat-send .btn { font-size: 13px; padding: 10px 14px; min-height: 42px; }
+.pip-chat-error p { font-size: 13px; color: #943c30; line-height: 1.6; margin: 12px 0 0; }
+.pip-chat-error button { color: #172653; background: none; border: 0; text-decoration: underline; font: inherit; font-size: 12px; padding: 7px 0; cursor: pointer; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+@media(max-width:700px) { .companion-panel { width: calc(100vw - 32px); height: min(700px,calc(100dvh - 210px)); } .pip-chat-transcript { padding: 14px; } .pip-chat-welcome { padding: 10px 2px; } .pip-chat-welcome h3 { font-size: 24px; } .pip-chat-welcome p { font-size: 15px; } .pip-chat-composer { padding: 12px; } .pip-message { padding: 13px; } .pip-message-user { margin-left: 16px; } }
+.direction-page-links > summary { display: flex; align-items: center; gap: 14px; list-style: none; font-size: 19px; font-weight: 800; cursor: pointer; min-height: 36px; }
+.direction-page-links > summary::-webkit-details-marker { display: none; }
+.direction-page-links > summary > span { color: #626874; font-size: 13px; font-weight: 600; margin-left: auto; }
+.direction-page-links[open] > summary > svg { transform: rotate(180deg); }
+.direction-link-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; margin-top: 20px; }
+.direction-page-link { display: flex; flex-direction: column; gap: 14px; border: 1px solid #d2d3cd; border-radius: 12px; padding: 18px; color: #172653; background: #fffdf7; }
+.direction-page-link > span { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #626874; overflow-wrap: anywhere; gap: 12px; }
+.direction-page-link > span svg { flex-shrink: 0; color: #172653; }
+.direction-page-link strong { font-size: 16px; line-height: 1.6; }
+.direction-page-link small { font-size: 13px; font-weight: 800; margin-top: auto; }
+.direction-page-link:hover { border-color: #172653; background: #f8ed9e; }
+@media(max-width:700px) { .direction-link-grid { grid-template-columns: 1fr; } .direction-page-links > summary { font-size: 17px; gap: 8px; } }
+.ask-pip-button { margin: 16px 0; }
+.direction-next-move > .btn { display: flex; width: fit-content; margin-top: 18px; color: white; background: #172653; }
+.pip-chat-transcript { min-height: 0; }
+@media(max-width:700px) { .companion-panel:not([hidden]) { bottom: 0; height: calc(100dvh - 110px); max-height: calc(100dvh - 110px); } .companion-dock:has(.companion-panel:not([hidden])) .companion-launcher { visibility: hidden; } }
+.pip-chat-tools > label { width: auto; white-space: nowrap; }
+.pip-chat-tools > label > input { width: 16px; height: 16px; flex: 0 0 16px; margin: 0; padding: 0; }
+.pip-chat-tools > label > svg { flex: 0 0 15px; }
+.pip-message p > code { padding: 2px 5px; border-radius: 4px; background: #f1eee4; color: #172653; font-size: .9em; }
+/* One curved composer, with recording and send controls inside. */
+.pip-chat-composer { margin: 10px 14px 14px; padding: 12px; border: 1px solid #b8bbc0; border-radius: 22px; background: #fffdf7; box-shadow: 0 3px 0 #e0dfd5; }
+.pip-chat-composer:focus-within { border-color: #172653; box-shadow: 0 0 0 1px #172653; }
+.pip-chat-composer > textarea { border: 0; background: transparent; border-radius: 12px; min-height: 62px; max-height: 130px; padding: 6px 8px; outline: none; box-shadow: none; }
+.pip-chat-send { justify-content: flex-end; margin-top: 8px; gap: 10px; position: relative; }
+.pip-chat-send > .btn { width: 42px; height: 42px; min-height: 42px; padding: 0; justify-content: center; border-radius: 50%; box-shadow: none; }
+.dictation .voice-icon-only { width: 42px; height: 42px; min-height: 42px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: transparent; color: #172653; box-shadow: none; border: 1px solid #c6c8c6; }
+.dictation .voice-icon-only:hover:not(:disabled) { background: #f3e86c; border-color: #172653; }
+.dictation .voice-icon-only.is-listening { color: white; background: #9d3b33; border-color: #9d3b33; }
+.pip-chat-send .dictation .voice-status:empty { display: none; }
+.pip-chat-send .dictation .voice-status:not(:empty) { display: block; position: absolute; left: 0; right: 0; bottom: calc(100% + 8px); margin: 0; padding: 9px 12px; border-radius: 10px; font-size: 12px; line-height: 1.5; background: #172653; color: white; z-index: 2; }
+@media(max-width:700px) { .pip-chat-composer { margin: 8px 10px 10px; padding: 10px; } }
+.pip-message-table { overflow-x: auto; margin: 12px 0; }
+.pip-message-table table { border-collapse: collapse; font-size: 12px; width: 100%; background: white; }
+.pip-message-table th,.pip-message-table td { border: 1px solid #d5d5cf; padding: 8px; text-align: left; line-height: 1.5; }
+.pip-message-table th { background: #f7ec9a; color: #172653; font-weight: 800; }
+.pip-composer-menu { margin-right: auto; position: relative; }
+.pip-composer-menu > summary { display: grid; place-items: center; width: 38px; height: 38px; list-style: none; border: 1px solid #c6c8c6; border-radius: 50%; color: #172653; cursor: pointer; }
+.pip-composer-menu > summary::-webkit-details-marker { display: none; }
+.pip-composer-menu > div { position: absolute; left: 0; bottom: calc(100% + 10px); width: min(280px,calc(100vw - 100px)); padding: 16px; background: white; border: 1px solid #172653; border-radius: 12px; box-shadow: 0 4px 0 #172653; z-index: 3; }
+.pip-composer-menu p { font-size: 12px; line-height: 1.7; margin: 0 0 10px; color: #49505c; }
+.pip-composer-menu button { display: flex; align-items: center; gap: 9px; width: 100%; padding: 10px 0; font: inherit; font-size: 13px; color: #172653; background: white; border: 0; cursor: pointer; }
+/* Dedicated, readable space for learning with Pip. */
+.pip-room { display: grid; grid-template-columns: 210px minmax(0,1fr); height: 100dvh; overflow: hidden; background: #f8f6ed; color: #172653; }
+.pip-room-sidebar { display: flex; flex-direction: column; padding: 28px 20px; background: #fffdf7; border-right: 1px solid #d4d4cb; }
+.pip-room-sidebar .site-brand { font-size: 38px; margin: 0 10px 36px; }
+.pip-room-sidebar nav { display: grid; gap: 9px; }
+.pip-room-sidebar nav a,.pip-room-profile { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 11px; min-height: 48px; color: #172653; font-size: 15px; font-weight: 750; }
+.pip-room-sidebar nav a:hover { background: #f3edcf; }
+.pip-room-sidebar nav .is-current { background: #172653; color: white; }
+.pip-room-sidebar nav .is-current svg { color: #f3e86c; }
+.pip-room-profile { margin-top: auto; border: 1px solid #c7c8c2; }
+.pip-room-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; height: 100dvh; }
+.pip-room-main > header { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 14px 30px; border-bottom: 1px solid #e0dfd5; background: #fffdf7; flex-shrink: 0; }
+.pip-room-main > header > div { display: flex; align-items: center; gap: 14px; }
+.pip-room-main > header .pip-mark { width: 56px; height: 56px; }
+.pip-room-main h1 { font-size: 28px; margin: 0; letter-spacing: -.04em; }
+.pip-room-main > header > a { display: flex; align-items: center; gap: 8px; color: #49505c; font-size: 14px; font-weight: 700; }
+.pip-room .pip-conversation { min-height: 0; }
+.pip-room .pip-chat-transcript { padding: 30px max(28px,calc((100% - 900px)/2)); background: transparent; }
+.pip-room .pip-message { padding: 24px; margin: 0 0 24px; border-radius: 18px; }
+.pip-room .pip-message-user { margin-left: auto; max-width: 85%; }
+.pip-room .pip-message-assistant { margin-right: 0; }
+.pip-room .pip-message > p { font-size: 17px; line-height: 1.85; }
+.pip-room .pip-chat-welcome { padding: 50px 0; }
+.pip-room .pip-chat-welcome h3 { font-size: 40px; }
+.pip-room .pip-chat-welcome p { font-size: 20px; max-width: 44ch; }
+.pip-room .pip-chat-composer { width: calc(100% - 48px); max-width: 900px; margin: 12px auto 24px; }
+.pip-room .pip-chat-composer > textarea { font-size: 17px; }
+.pip-message pre code { display: block; color: #fff !important; background: transparent !important; padding: 0 !important; border: 0; white-space: pre; font-family: ui-monospace,SFMono-Regular,Menlo,monospace; }
+.pip-message-table table { font-size: 14px; }
+.app-shell .mobile-tabs { grid-template-columns: repeat(5,minmax(0,1fr)); }
+@media(max-width:700px) { .pip-room { grid-template-columns: minmax(0,1fr); } .pip-room-sidebar { display: none; } .pip-room-main > header { padding: 10px 16px; } .pip-room-main > header .pip-mark { width: 44px; height: 44px; } .pip-room-main h1 { font-size: 24px; } .pip-room-main > header > a { font-size: 12px; } .pip-room .pip-chat-transcript { padding: 20px 14px; } .pip-room .pip-message { padding: 18px; } .pip-room .pip-message-user { max-width: 94%; } .pip-room .pip-message > p { font-size: 16px; } .pip-room .pip-chat-welcome { padding: 24px 6px; } .pip-room .pip-chat-welcome h3 { font-size: 31px; } .pip-room .pip-chat-welcome p { font-size: 17px; } .pip-room .pip-chat-composer { width: calc(100% - 24px); margin-bottom: max(14px,env(safe-area-inset-bottom)); } body:has(.pip-room) .companion-dock { bottom: 16px; } body:has(.pip-room) .companion-panel { height: calc(100dvh - 48px); max-height: calc(100dvh - 48px); bottom: 0; } }
+.pip-code-block { position: relative; margin: 16px 0; border-radius: 12px; background: #172653; overflow: hidden; }
+.pip-code-block > button { position: absolute; top: 9px; right: 10px; border: 1px solid #ffffff55; color: white; background: #ffffff12; border-radius: 7px; padding: 7px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+.pip-code-block > pre { margin: 0; padding: 52px 18px 20px; border-radius: 0; }
+.course-choice-list { border: 0; padding: 0; margin: 24px 0 16px; display: grid; gap: 12px; }
+.course-choice-list legend { font-size: 17px; font-weight: 800; margin-bottom: 12px; }
+.course-choice { display: flex !important; align-items: flex-start; gap: 14px; padding: 18px; border: 1px solid #c4c7cc; border-radius: 12px; background: #fffdf7; cursor: pointer; margin: 0 !important; }
+.course-choice.is-selected { border: 2px solid #172653; background: #f8f0b2; padding: 17px; }
+.course-choice > input { width: 18px !important; height: 18px; flex: 0 0 18px; margin: 3px 0 0; accent-color: #172653; }
+.course-choice strong { display: block; font-size: 19px; font-weight: 800; color: #172653; }
+.course-choice small { display: block; font-size: 14px; font-weight: 750; margin: 6px 0; color: #49505c; }
+.course-choice p { font-size: 15px; line-height: 1.6; font-weight: 400; color: #49505c; margin: 0; }
+.course-overview-link { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 750; color: #172653; margin: 0 0 22px; text-decoration: underline; }
+.course-comparison > .btn { display: flex; }
+.pip-conversation { position: relative; }
+.pip-message { position: relative; }
+.pip-message-menu { position: absolute; right: 10px; top: 10px; }
+.pip-message-menu > summary { display: grid; place-items: center; width: 30px; height: 30px; border: 0; border-radius: 6px; color: #172653; cursor: pointer; list-style: none; }
+.pip-message-menu > summary::-webkit-details-marker { display: none; }
+.pip-message-menu > button { position: absolute; right: 0; top: 32px; white-space: nowrap; border: 1px solid #172653; background: white; padding: 12px; border-radius: 8px; font: inherit; font-size: 13px; color: #172653; box-shadow: 0 3px 0 #172653; z-index: 2; cursor: pointer; }
+.pip-code-block button:focus-visible { outline-color: #f3e86c; }
+.pip-latest-reply { position: absolute; bottom: 180px; left: 50%; transform: translateX(-50%); background: #172653; color: white; border: 1px solid white; border-radius: 22px; padding: 10px 16px; font: inherit; font-size: 13px; cursor: pointer; z-index: 1; }
+.pip-room-sidebar a { text-decoration: none; }
+.pip-room .pip-message pre { font-size: 15px; line-height: 1.75; }

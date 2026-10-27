@@ -2,6 +2,7 @@
 import { useState, type FormEvent } from "react";
 import { ArrowRight, FileText, Upload, Trash2, ExternalLink } from "lucide-react";
 import { courseBenchmarks, type MaterialDraft, type CourseExcerpt } from "@/lib/course-types";
+import { launchPipChat } from "@/lib/pip-navigation";
 import type { Workspace } from "@/lib/types";
 
 type Bridge = {
@@ -15,7 +16,15 @@ export default function CourseLibrary({ state, onState }: { state: Workspace; on
   const [draft, setDraft] = useState<MaterialDraft | null>(null);
   const [seal, setSeal] = useState<{ proof: string; expiresAt: number } | null>(null);
   const [subject, setSubject] = useState("");
-  const [benchmark, setBenchmark] = useState("berkeley-db");
+  const [benchmark, setBenchmark] = useState("");
+  const subjects=[...new Set((state.materials||[]).map(material=>material.subject))];
+  const activeSubject=subject||subjects[0]||"";
+  const activeBenchmark=benchmark||(/operating|\bos\b/i.test(activeSubject)?"mit-os":/algorithm|data structure/i.test(activeSubject)?"mit-algorithms":"berkeley-db");
+  const courseChoices:Record<string,{title:string;school:string;description:string}>={
+    "berkeley-db":{title:"Database systems",school:"Berkeley · CS 186",description:"How databases store data and answer questions."},
+    "mit-os":{title:"Operating systems",school:"MIT · 6.1810",description:"How memory, files and running programs fit together."},
+    "mit-algorithms":{title:"Algorithms & data structures",school:"MIT · 6.006",description:"Choose data structures and reason about how fast code runs."}
+  };
   const [bridge, setBridge] = useState<Bridge | null>(null);
   async function send(url: string, options: RequestInit, label: string) {
     if (busy) return null;
@@ -39,9 +48,8 @@ export default function CourseLibrary({ state, onState }: { state: Workspace; on
     if (result) { onState(result.state); setDraft(null); setBridge(null); }
   }
   return <div className="course-library"><datalist id="course-subjects">{[...new Set(state.works.map((w) => w.subject))].map((s) => <option key={s} value={s} />)}</datalist>
-    <p className="modal-description">Add your syllabus, notes, slides or past questions. Review the extracted text before saving.</p>
-    <p className="field-help">Scanned pages need OCR. Diagrams and equations may be missed.</p>
-    <details className="upload-details"><summary>File formats, limits &amp; how your text is used</summary><p>Text PDFs, PPTX, DOCX, TXT and MD · 8 MB each · up to 100 pages/slides · 12 documents. Originals are temporary; only confirmed extracted text is saved. Relevant excerpts may be sent to Nebius during practice and comparison.</p></details>
+    <p className="modal-description">Add your syllabus, notes, slides or past questions. Check the text before adding it.</p>
+    <details className="upload-details"><summary>Which files can I add?</summary><p>PDFs with selectable text, PowerPoint, Word, TXT or Markdown. Up to 8 MB and 100 pages per file. Scanned pages aren’t supported, and diagrams or equations may be missed. Stride keeps the text you confirm, not the original file. Relevant passages go to Nebius when you ask for help.</p></details>
     {error && <p className="error-banner" role="alert">{error}</p>}
     {busy && <p className="progress-banner" role="status">{busy}…</p>}
     {draft ? <section className="document-review">
@@ -54,25 +62,23 @@ export default function CourseLibrary({ state, onState }: { state: Workspace; on
     </section> : <form onSubmit={extract} className="material-upload">
       <div className="form-grid"><div><label htmlFor="material-subject">Subject</label><input id="material-subject" list="course-subjects" name="subject" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Database systems" maxLength={80} required /></div><div><label htmlFor="material-kind">What kind of material?</label><select id="material-kind" name="kind"><option>Syllabus</option><option>Lecture notes</option><option>Lecture slides</option><option>Past questions</option></select></div></div>
       <label htmlFor="course-file">Choose a document</label><input id="course-file" name="file" type="file" accept=".pdf,.pptx,.docx,.txt,.md" required />
-      <button className="btn primary" disabled={!!busy} style={{ marginTop: 16 }}><Upload size={16} /> Extract and review text</button>
+      <button className="btn primary" disabled={!!busy} style={{ marginTop: 16 }}><Upload size={16} /> Read document</button>
     </form>}
-    <section className="saved-materials"><div className="section-title"><h3>Your confirmed materials</h3><span className="count">{state.materials?.length || 0}/12</span></div>
-      {!state.materials?.length && <div className="empty-state"><FileText size={24} /><h3>Start with your actual course.</h3><p>One syllabus or set of class notes is enough. Nothing is assumed from the name of your college.</p></div>}
+    <section className="saved-materials"><div className="section-title"><h3>Your course documents</h3><span className="count">{state.materials?.length || 0}/12</span></div>
+      {!state.materials?.length && <div className="empty-state"><FileText size={24} /><h3>Start with your actual course.</h3><p>Add a syllabus or a set of class notes to get started.</p></div>}
       {state.materials?.map((material) => <article className="saved-material" key={material.id}><div className="section-title"><div><h3>{material.title}</h3><p className="field-help">{material.subject} · {material.kind} · {material.filename}</p></div><button className="icon-btn danger" aria-label={`Remove course material ${material.title}`} disabled={!!busy} onClick={async () => {
         if (!window.confirm("Remove this document's extracted text from your course library? Existing attempts and older backups may still contain derived references.")) return;
         const result = await send("/api/materials", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: material.id }) }, "Removing course material");
         if (result) { onState(result.state); setBridge(null); }
-      }}><Trash2 size={16} /></button></div>{material.warnings.map((warning) => <p className="warning-text" key={warning}>{warning}</p>)}<details><summary>Inspect extracted source text</summary><div className="extracted-pages">{material.pages.map((p) => <details key={p.locator}><summary>{p.locator}</summary><p>{p.text}</p></details>)}</div></details></article>)}
+      }}><Trash2 size={16} /></button></div>{material.warnings.map((warning) => <p className="warning-text" key={warning}>{warning}</p>)}<details><summary>Read document text</summary><div className="extracted-pages">{material.pages.map((p) => <details key={p.locator}><summary>{p.locator}</summary><p>{p.text}</p></details>)}</div></details></article>)}
     </section>
-    <section className="course-comparison"><span className="eyebrow">YOUR COURSE, WITH A WIDER PERSPECTIVE</span><h3>Find one useful next stretch.</h3><p className="field-help">Compare a sample of your confirmed text with a named public course reference.</p><details className="upload-details"><summary>What this comparison means</summary><p>Uses a reviewed course summary, not a complete review of the external course. This compares materials, not students or universities. Exact source quotes are checked; their interpretation is still model feedback.</p></details>
-      <label htmlFor="compare-subject">Subject to compare</label><input id="compare-subject" list="course-subjects" value={subject} onChange={(e) => setSubject(e.target.value)} maxLength={80} placeholder="Database systems" />
-      <label htmlFor="benchmark-course">Public course reference</label><select id="benchmark-course" value={benchmark} onChange={(e) => setBenchmark(e.target.value)}>{courseBenchmarks.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</select>
-      <p className="field-help"><a href={courseBenchmarks.find((b) => b.id === benchmark)!.url} target="_blank" rel="noopener noreferrer">Inspect the public course source <ExternalLink size={12} /></a> · reference checked 25 October 2026; not a full course-content review.</p>
-      <button className="btn subtle" disabled={!!busy || !subject.trim() || !state.materials?.length} onClick={async () => {
-        const result = await send("/api/course-bridge", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ subject, benchmark }) }, "Comparing supplied course excerpts");
-        if (result) setBridge(result);
-      }}>Compare and suggest a bridge <ArrowRight size={15} /></button>
-      {bridge && <div className="bridge-result"><h3>In your supplied materials</h3>{bridge.comparison.localFocus.map((point, i) => { const source = bridge.excerpts.find((e) => e.id === point.sourceId)!; return <div className="course-claim" key={i}><p>{point.point}</p><blockquote>{point.quote}</blockquote><small>{source.title} · {source.locator}</small></div>; })}<h3>In our reviewed public-course summary</h3>{bridge.comparison.externalFocus.map((point, i) => <div className="course-claim" key={i}><p>{point.point}</p><blockquote>{point.quote}</blockquote><a href={bridge.benchmark.url} target="_blank" rel="noopener noreferrer">{bridge.benchmark.name} ↗</a></div>)}<div className="practice-context"><span className="eyebrow">SYNTHETIC OPTIONAL EXERCISE</span><p>{bridge.comparison.bridgeExercise}</p></div><p className="field-help">{bridge.comparison.caution} This comparison is not saved as a diagnosis or a score. Exam deadlines still control your next plan.</p></div>}
+    <section className="course-comparison"><h3>Find a new way to practise.</h3><p className="field-help">{subjects.length ? "Use your notes and a course overview to find a small exercise." : "Pick a course. Pip can help you get started."}</p>
+      {subjects.length>0 && <><label htmlFor="compare-subject">Your subject</label><select id="compare-subject" value={activeSubject} disabled={!subjects.length} onChange={event=>{setSubject(event.target.value);setBenchmark("");setBridge(null);}}>{!subjects.length&&<option value="">Add your notes above first</option>}{subjects.map(value=><option key={value}>{value}</option>)}</select></>}
+      <fieldset className="course-choice-list"><legend>Explore a course</legend>{courseBenchmarks.map(course=>{const choice=courseChoices[course.id];return <label className={`course-choice ${activeBenchmark===course.id?"is-selected":""}`} key={course.id}><input type="radio" name="course-choice" value={course.id} checked={activeBenchmark===course.id} onChange={()=>{setBenchmark(course.id);setBridge(null);}}/><span><strong>{choice.title}</strong><small>{choice.school}</small><p>{choice.description}</p></span></label>;})}</fieldset>
+      <a className="course-overview-link" href={courseBenchmarks.find(course=>course.id===activeBenchmark)!.url} target="_blank" rel="noopener noreferrer">Open {courseChoices[activeBenchmark].school} course page <ExternalLink size={14}/></a>
+      <button className="btn primary" disabled={!!busy} onClick={async()=>{if(!activeSubject||!state.materials?.length){launchPipChat(`Teach me ${courseChoices[activeBenchmark].title} using the ${courseChoices[activeBenchmark].school} course, one small step at a time.`);return;}const result=await send("/api/course-bridge",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({subject:activeSubject,benchmark:activeBenchmark})},"Finding a useful exercise");if(result)setBridge(result);}}>{subjects.length ? "Find one thing to try" : "Explore with Pip"} <ArrowRight size={16}/></button>
+      {bridge&&<div className="bridge-result"><h3>From your notes</h3>{bridge.comparison.localFocus.map((point,i)=>{const source=bridge.excerpts.find(item=>item.id===point.sourceId);return <div className="course-claim" key={i}><p>{point.point}</p><details><summary>See the passage</summary><blockquote>{point.quote}</blockquote><small>{source?.title} · {source?.locator}</small></details></div>;})}<h3>From {bridge.benchmark.name}</h3>{bridge.comparison.externalFocus.map((point,i)=><div className="course-claim" key={i}><p>{point.point}</p><details><summary>See the passage</summary><blockquote>{point.quote}</blockquote><a href={bridge.benchmark.url} target="_blank" rel="noopener noreferrer">Open course page ↗</a></details></div>)}<div className="practice-context"><h3>Try this</h3><p>{bridge.comparison.bridgeExercise}</p></div>{bridge.comparison.caution&&<details className="field-help"><summary>About this suggestion</summary><p>{bridge.comparison.caution}</p></details>}</div>}
+
     </section>
   </div>;
 }

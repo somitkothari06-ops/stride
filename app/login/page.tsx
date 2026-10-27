@@ -98,7 +98,7 @@ export default function LoginPage() {
           <form onSubmit={submit}>
             <label htmlFor="account-email">Email</label><input id="account-email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required maxLength={254} disabled={busy} />
             <label htmlFor="account-password">Password</label><input id="account-password" type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} minLength={mode === "signup" ? 8 : 1} maxLength={128} value={password} onChange={(e) => setPassword(e.target.value)} required disabled={busy} />
-            {mode === "signup" && <p className="account-help">Use at least 8 characters. Confirmation emails are currently limited to project testers while email delivery is being connected.</p>}
+            {mode === "signup" && <p className="account-help">Use at least 8 characters. Email sign-up is currently limited to project testers.</p>}
             <button className="btn primary" disabled={busy || !configured}>{busy ? "Connecting…" : mode === "signin" ? "Sign in" : "Create my account"}<ArrowRight size={19} /></button>
           </form>
           </details>

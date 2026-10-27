@@ -8,8 +8,10 @@ import {
   CalendarDays,
   Clock3,
   BookOpen,
+  MessageCircle,
   Check,
   ChevronRight,
+  ChevronDown,
   Compass,
   Download,
   FileText,
@@ -32,6 +34,7 @@ import {
 import type { Intake, Mode, View, Work, Workspace } from "@/lib/types";
 import { nebiusPresentation, type Providers } from "@/lib/connection-status";
 import CourseLibrary from "./course-library";
+import { launchPipChat } from "@/lib/pip-navigation";
 import { CompanionInvite } from "./companion";
 
 type Modal = "add" | "profile" | "integrations" | "edit" | "course" | null;
@@ -92,6 +95,7 @@ export default function WorkspaceApp() {
   const [checkedSteps, setCheckedSteps] = useState<number[]>([]);
   const dialogRef = useRef<HTMLElement>(null);
 
+  useEffect(()=>{const tab=new URLSearchParams(window.location.search).get("view");if(tab&&["today","work","memory","direction"].includes(tab))setView(tab as View);},[]);
   useEffect(() => { setCheckedSteps([]); }, [selectedId, state?.prepared]);
   useEffect(() => { window.scrollTo({ top: 0, behavior: "instant" }); }, [view]);
   useEffect(() => {
@@ -327,7 +331,7 @@ export default function WorkspaceApp() {
     ) : (
       <div className="empty-state">
         <BookOpen size={26} />
-        <h3>A little room for your next thing.</h3>
+        <h3>Add your first task.</h3>
         <p>Add an assignment, exam, or project to get started.</p>
         <button className="btn subtle" onClick={openAdd}>
           Add your first work <Plus size={15} />
@@ -373,6 +377,7 @@ export default function WorkspaceApp() {
               {view === n.id && <span className="nav-active-dot" />}
             </button>
           ))}
+          <a className="nav-item" href="/pip"><MessageCircle size={18}/><span>Pip</span></a>
         </nav>
         <div className="sidebar-note">
           <span className="tiny-overline">ONE STEP AT A TIME</span>
@@ -422,13 +427,6 @@ export default function WorkspaceApp() {
             <strong>{activeNav.name}</strong>
           </div>
           <div className="topbar-actions">
-            <button
-              className={`connection-badge ${providers.nebius ? "configured" : ""}`}
-              onClick={() => setModal("integrations")}
-            >
-              <span />
-              {connection.shortLabel}
-            </button>
             <button className="btn add-button" onClick={openAdd}>
               <Plus size={16} />
               Add work<span className="keyboard-hint">⌘ K</span>
@@ -509,11 +507,7 @@ export default function WorkspaceApp() {
                       <span className="sun-dot" />
                       START HERE
                     </span>
-                    <span>
-                      {state.plan?.mode === "live"
-                        ? "AI suggestion"
-                        : "Local suggestion"}
-                    </span>
+
                   </div>
                   {state.plan ? (
                     <>
@@ -534,7 +528,7 @@ export default function WorkspaceApp() {
                       {stale ? (
                         <div className="stale-note">
                           <RefreshCw size={15} />
-                          Your context changed. Update your next step.
+                          Your work changed. Let’s update this step.
                         </div>
                       ) : (
                         <details className="why-details"><summary>Why this step?</summary><div className="why-list">
@@ -626,8 +620,8 @@ export default function WorkspaceApp() {
 
                         <span className="tag">
                           {latestObservation.method === "self-report"
-                            ? "Self-reported · not assessed"
-                            : "Model feedback · not certification"}
+                            ? "Saved without AI feedback"
+                            : "AI feedback"}
                         </span>
                       </div>
                     </div>
@@ -735,6 +729,7 @@ export default function WorkspaceApp() {
                         </div>
                       </div>
                       <h2>{selected.title}</h2>
+                      <button className="btn subtle ask-pip-button" onClick={()=>launchPipChat(`Help me understand ${selected.title} (${selected.subject}).`)}>Explain this with Pip <ArrowRight size={16}/></button>
                       <div className="detail-meta">
                         <span>{selected.subject}</span>
                         <span>
@@ -758,15 +753,11 @@ export default function WorkspaceApp() {
                           <div className="practice-meter" role="progressbar" aria-label="Practice steps checked for this visit" aria-valuemin={0} aria-valuemax={prepared.steps.length} aria-valuenow={checkedSteps.length}><span style={{ width: `${checkedSteps.length / Math.max(1, prepared.steps.length) * 100}%` }} /></div>
                           <div className="section-title">
                             <h3>{prepared.title}</h3>
-                            <span className="tag">
-                              {prepared.mode === "live"
-                                ? "AI-prepared"
-                                : "Local practice"}
-                            </span>
+
                           </div>
                           {prepared.contextRevision !== state.revision && (
                             <p className="warning-text">
-                              Your context changed since this was prepared.
+                              Your work changed since this session was made.
                               Refresh if needed.
                             </p>
                           )}
@@ -793,12 +784,12 @@ export default function WorkspaceApp() {
                               if (result) {
                                 setAnswer("");
                                 setToast(
-                                  "Attempt saved. Your next plan can now use this context.",
+                                  "Attempt saved. Pip can use it to help with your next step.",
                                 );
                               }
                             }}
                           >
-                            <div className="reflection-heading"><span className="eyebrow">PUT IT IN YOUR OWN WORDS</span><h3>What did you figure out?</h3><p>Checking a step is just for this visit. Your saved explanation becomes part of your memory.</p></div>
+
                             <label htmlFor="attempt">{prepared.question}</label>
                             <textarea
                               id="attempt"
@@ -813,8 +804,8 @@ export default function WorkspaceApp() {
                             />
                             <p className="field-help" id="attempt-help">
                               {providers.nebius
-                                ? "Feedback will be model-assessed. It does not certify understanding or authorship."
-                                : "No model is connected yet. Your response will be saved as self-report, without a correctness claim."}
+                                ? "Pip will give feedback. Use it to check your thinking, not as a grade."
+                                : "Your answer will be saved. AI feedback isn’t available right now."}
                             </p>
                             <div className="form-actions">
                               <button
@@ -858,11 +849,11 @@ export default function WorkspaceApp() {
                           <div className="feedback-box" key={o.id}>
                             <span className="tag">
                               {o.method === "self-report"
-                                ? "Self-report"
-                                : "Model assessment"}
+                                ? "Your saved answer"
+                                : "AI feedback"}
                             </span>
                             <h3>{o.title}</h3>
-                            <p>{o.feedback}</p>
+                            <p>{o.method === "self-report" ? "Your answer is saved. Pip hasn’t reviewed it yet." : o.feedback}</p>
                             <details>
                               <summary>Your response</summary>
                               <p>{o.answer}</p>
@@ -894,7 +885,7 @@ export default function WorkspaceApp() {
                 <div>
                   <h1>Your learning, remembered.</h1>
                   <p>
-                    Your coursework, attempts, and the context behind them.
+                    Your work, what you tried, and what helped.
                   </p>
                 </div>
                 <button className="btn subtle" onClick={exportData}>
@@ -927,8 +918,7 @@ export default function WorkspaceApp() {
                   <div className="memory-principle">
                     <ShieldCheck size={19} />
                     <p>
-                      An uploaded artifact is evidence of an artifact. It does
-                      not prove authorship, understanding, or mastery.
+                      Your files help Pip understand the class. They don’t tell us what you’ve learned yet.
                     </p>
                   </div>
                 </section>
@@ -989,7 +979,7 @@ export default function WorkspaceApp() {
               </div>
               <section className="card observation-list">
                 <div className="section-title">
-                  <h2>Your attempts & observations</h2>
+                  <h2>What you tried</h2>
                   <span className="count">{state.observations.length}</span>
                 </div>
                 {state.observations.length ? (
@@ -998,8 +988,8 @@ export default function WorkspaceApp() {
                       <div className="observation-heading">
                         <span className="tag">
                           {o.method === "self-report"
-                            ? "Self-report · not evaluated"
-                            : "Model assessment · not certification"}
+                            ? "Saved without AI feedback"
+                            : "AI feedback"}
                         </span>
                         <button
                           className="icon-btn danger"
@@ -1020,7 +1010,7 @@ export default function WorkspaceApp() {
                         </button>
                       </div>
                       <h3>{o.title}</h3>
-                      <p>{o.feedback}</p>
+                      <p>{o.method === "self-report" ? "Your answer is saved. Pip hasn’t reviewed it yet." : o.feedback}</p>
                       <details>
                         <summary>View your answer and source</summary>
                         <p>{o.answer}</p>
@@ -1072,7 +1062,7 @@ export default function WorkspaceApp() {
                     if (!providers.tavily || (role || state.profile.goal).trim().length < 3) return;
                     await act(
                       { action: "direction", role: (role || state.profile.goal).trim() },
-                      "Finding public role sources and comparing observations",
+                      "Finding useful pages and putting together a short explanation",
                     );
                   }}
                 >
@@ -1099,7 +1089,7 @@ export default function WorkspaceApp() {
                     <div>{["Backend development", "Data engineering", "Robotics", "Cybersecurity"].map(idea => <button type="button" key={idea} disabled={!!busy} aria-pressed={role === idea} onClick={() => { setRole(idea); document.getElementById("role")?.focus(); }}>{idea}<ArrowUpRight size={15}/></button>)}</div>
                   </div>
                   <p className="field-help">
-                    {providers.tavily ? "Public sources. Check each role’s dates and eligibility." : "Connect Tavily to search. You can choose a role first."}
+                    {providers.tavily ? "Open a listing to check who can apply and whether it’s still open." : "Connect Tavily to search. You can choose a role first."}
                   </p>
                 </form>
               </section>
@@ -1126,23 +1116,23 @@ export default function WorkspaceApp() {
                 <>
                   <section className="direction-brief" aria-label="Role exploration brief">
                     <header className="direction-brief-header">
-                      <span className="tag">{state.direction.mode === "live" ? "AI role brief · NVIDIA / Nebius" : "Sources found · AI brief unavailable"}</span>
+                      <span className="tag">{state.direction.mode === "live" ? "Pip’s take" : "Pages found · Pip couldn’t explain them yet"}</span>
                       <h2>{state.direction.role}</h2>
                       <p>{state.direction.summary}</p>
                       <small>{state.direction.sources.length} public sources · Updated {new Date(state.direction.updatedAt).toLocaleDateString("en-IN")}</small>
                     </header>
-                    {state.direction.courseConnection && <div className="direction-course-link"><BookOpen size={23}/><div><h3>Where your coursework connects</h3><p>{state.direction.courseConnection}</p></div></div>}
-                    {!!state.direction.requirements.length && <div className="role-skill-list"><h3>What this sample asks for</h3>{state.direction.requirements.map((r,i)=><article className="role-skill" key={i}>
-                      <span className="role-skill-number">0{i+1}</span><div><h4>{r.requirement}</h4><p>{r.nextStep}</p>
-                      {!!r.evidenceIds.length && <button className="text-button" onClick={()=>go("memory")}><Link2 size={14}/>See related saved observations</button>}
-                      {!!r.sourceQuotes?.length && <details><summary>Why this is here</summary>{r.sourceQuotes.map((ref,j)=>{const source=state.direction!.sources[ref.sourceIndex-1];return source ? <blockquote key={j}><p>“{ref.quote}”</p><a href={source.url} target="_blank" rel="noopener noreferrer">Source {ref.sourceIndex} · {new URL(source.url).hostname} ↗</a></blockquote>:null;})}</details>}
+                    {state.direction.courseConnection && <div className="direction-course-link"><BookOpen size={23}/><div><h3>How this connects to your classes</h3><p>{state.direction.courseConnection}</p></div></div>}
+                    {!!state.direction.requirements.length && <div className="role-skill-list"><h3>What you could learn</h3>{state.direction.requirements.map((r,i)=><article className="role-skill" key={i}>
+                      <span className="role-skill-number">0{i+1}</span><div><h4>{r.friendlyLabel || r.requirement}</h4><p>{r.nextStep}</p>
+                      {!!r.evidenceIds.length && <button className="text-button" onClick={()=>go("memory")}><Link2 size={14}/>See related notes you saved</button>}
+                      {!!r.sourceQuotes?.length && <details><summary>Where this came from</summary>{r.sourceQuotes.map((ref,j)=>{const source=state.direction!.sources[ref.sourceIndex-1];return source ? <blockquote key={j}><p>“{ref.quote}”</p><a href={source.url} target="_blank" rel="noopener noreferrer">Source {ref.sourceIndex} · {new URL(source.url).hostname} ↗</a></blockquote>:null;})}</details>}
                       </div></article>)}</div>}
-                    {state.direction.nextMove && <div className="direction-next-move"><span><Compass size={22}/>ONE WAY TO TRY IT</span><h3>{state.direction.nextMove}</h3><small>An exploration suggestion, not an assessment of your ability.</small></div>}
+                    {state.direction.nextMove && <div className="direction-next-move"><span><Compass size={22}/>ONE WAY TO TRY IT</span><h3>{state.direction.nextMove}</h3><small>Try it and see whether you enjoy it.</small><button className="btn subtle" onClick={()=>launchPipChat("Help me try the activity we just chose, one step at a time.")}>Try this with Pip <ArrowRight size={16}/></button></div>}
                   </section>
-                  <section className="direction-source-list" aria-label="Public role sources"><div className="section-title"><h2>Check the sources</h2><span className="count">{state.direction.sources.length}</span></div>
-                    <p>Check dates and eligibility on the original page.</p>
-                    {state.direction.sources.map((source,index)=><article className="role-source-row" key={source.url}><span>{String(index+1).padStart(2,"0")}</span><div><a href={source.url} target="_blank" rel="noopener noreferrer"><h3>{source.title}<ArrowUpRight size={17}/></h3></a><small>{new URL(source.url).hostname}</small><details><summary>Read search excerpt</summary><p>{source.excerpt}</p><small>Retrieved {new Date(source.retrievedAt).toLocaleDateString("en-IN")}</small></details></div></article>)}
-                  </section>
+                  <details className="direction-source-list direction-page-links"><summary>Open the original pages <span>{state.direction.sources.length} links</span><ChevronDown size={18}/></summary>
+                    <p>Open a page to check the details and whether it’s still open.</p>
+                    <div className="direction-link-grid">{state.direction.sources.map((source,index)=><a className="direction-page-link" href={source.url} target="_blank" rel="noopener noreferrer" key={source.url}><span>{new URL(source.url).hostname.replace(/^www\./,"")}<ArrowUpRight size={18}/></span><strong>{source.title}</strong><small>{new URL(source.url).hostname.includes("reddit.com") ? "Read the discussion" : "Open page"} →</small></a>)}</div>
+                  </details>
                 </>
               )}
               <div className="direction-footnote">
@@ -1163,7 +1153,7 @@ export default function WorkspaceApp() {
 
       <nav className="mobile-tabs" aria-label="Mobile navigation">
         {navigation.map((n) => <button key={n.id} aria-current={view === n.id ? "page" : undefined} onClick={() => go(n.id)}><n.icon size={20} /><span>{n.name}</span></button>)}
-      </nav>
+      <button onClick={()=>launchPipChat()}><MessageCircle size={20}/><span>Pip</span></button></nav>
       {modal && (
         <div
           className="modal-overlay"
@@ -1193,7 +1183,7 @@ export default function WorkspaceApp() {
                     : modal === "profile"
                       ? "Your study preferences."
                       : modal === "edit"
-                        ? "Keep your context accurate."
+                        ? "Update your details."
                         : "Your connections."}
                 </h2>
               </div>
@@ -1366,7 +1356,7 @@ export default function WorkspaceApp() {
                       goal: String(data.get("goal")),
                       minutes: Number(data.get("minutes")),
                     },
-                    "Saving your context",
+                    "Saving your details",
                   );
                   if (result) {
                     setModal(null);
@@ -1426,7 +1416,7 @@ export default function WorkspaceApp() {
                   and isn't a permanent career decision.
                 </p>
                 <button className="btn primary" disabled={!!busy}>
-                  Save my context <Check size={15} />
+                  Save my details <Check size={15} />
                 </button>
               </form>
             )}
@@ -1485,7 +1475,7 @@ export default function WorkspaceApp() {
                   <span className="connection-logo">N</span>
                   <div>
                     <h3>Study assistance</h3>
-                    <p>NVIDIA · Nebius Token Factory</p>
+                    <p>NVIDIA models on Nebius</p>
                     <p>{connection.description}</p>
                     {providers.model && (
                       <details>
@@ -1503,7 +1493,7 @@ export default function WorkspaceApp() {
                     <p>Tavily</p>
                     <p>
                       {providers.tavily
-                        ? "Configured for public role searches. Each result includes its source and retrieval time."
+                        ? "Ready to find public pages for you."
                         : "Not connected yet. Live internship sources are unavailable."}
                     </p>
                   </div>

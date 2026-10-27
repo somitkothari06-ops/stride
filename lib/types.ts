@@ -68,6 +68,7 @@ export type Direction = {
   nextMove?: string;
   requirements: {
     requirement: string;
+    friendlyLabel?: string;
     evidenceIds: string[];
     sourceQuotes?: { sourceIndex: number; quote: string }[];
     nextStep: string;
@@ -76,7 +77,11 @@ export type Direction = {
   mode: Mode;
   updatedAt: string;
 };
+export type PipSource = { id: string; title: string; url?: string; locator?: string; excerpt: string };
+export type PipMessage = { id: string; turnId: string; role: "user" | "assistant"; text: string; createdAt: string; intent?: "talk" | "teach" | "search"; sources?: PipSource[]; searchStatus?: "used" | "unavailable" };
+export type PipChat = { version: number; messages: PipMessage[] };
 export type Workspace = {
+  pipChat?: PipChat;
   notes?: { id: string; text: string; createdAt: string }[];
   materials?: CourseMaterial[];
   version: 1;
