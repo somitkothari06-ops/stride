@@ -24,7 +24,7 @@ function Answer({text}:{text:string}) {
   })}</>;
 }
 
-export default function PipConversation({active,onKeep,onListening,onBusy,prompt}:{prompt?:{id:string;text:string;autoSend?:boolean};active:boolean;onBusy:(value:boolean)=>void;onKeep:(text:string)=>void;onListening:(value:boolean)=>void}) {
+export default function PipConversation({active,onKeep,onListening,onBusy,onDraftChange,prompt}:{onDraftChange?:(value:string)=>void;prompt?:{id:string;text:string;autoSend?:boolean};active:boolean;onBusy:(value:boolean)=>void;onKeep:(text:string)=>void;onListening:(value:boolean)=>void}) {
  const [chat,setChat]=useState<PipChat>({version:0,messages:[]}),[draft,setDraft]=useState(""),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(""),[listening,setListening]=useState(false),[newReply,setNewReply]=useState(false);
  const transcript=useRef<HTMLDivElement>(null),input=useRef<HTMLTextAreaElement>(null),pending=useRef<{id:string;text:string;version:number}|null>(null), launched=useRef(""),stickToBottom=useRef(true);
  async function load() {
@@ -33,7 +33,8 @@ export default function PipConversation({active,onKeep,onListening,onBusy,prompt
   catch(e){setError(e instanceof Error?e.message:"Couldn't connect.");}finally{setLoading(false);}
  }
  useEffect(()=>{if(active&&!busy)void load();},[active]); // eslint-disable-line react-hooks/exhaustive-deps
- useEffect(()=>{if(prompt&&!prompt.autoSend)setDraft(previous=>`${previous}${previous.trim()?"\n":""}${prompt.text}`.slice(0,3000));},[prompt]);
+ useEffect(()=>{if(prompt&&!prompt.autoSend){setDraft(previous=>`${previous}${previous.trim()?"\n":""}${prompt.text}`.slice(0,3000));completePipLaunch(prompt.id);}},[prompt]);
+ useEffect(()=>{onDraftChange?.(draft);},[draft,onDraftChange]);
  useEffect(()=>{onBusy(busy);},[busy,onBusy]);
  useEffect(()=>()=>onBusy(false),[onBusy]);
  useEffect(()=>{if(active&&!loading)input.current?.focus();},[active,loading]);

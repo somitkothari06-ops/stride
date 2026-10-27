@@ -56,3 +56,8 @@ export function requireChatVersion(session: string, version: number) {
   if(!current)throw new Error("SESSION_EXPIRED");
   if(chatState(current).version!==version)throw new Error("CHAT_STALE");
 }
+
+export function modelIdentityReply(text:string,model:string|null){
+ if(!/^(?:(?:what|which)\s+(?:ai\s+)?model\s+(?:are you(?: (?:using|running(?: on)?))?|do you use)|what powers you|are you (?:chatgpt|claude|gemini))(?:,? (?:man|bro|bruh|dude|please))?[?!. ]*$/i.test(text.trim()))return undefined;
+ return model ? `I'm Pip, running on ${model} through Nebius Token Factory.` : "I'm Pip. Live AI isn't connected right now.";
+}

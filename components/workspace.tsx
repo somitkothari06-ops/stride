@@ -22,7 +22,6 @@ import {
   Link2,
   ListChecks,
   Menu,
-  MoreHorizontal,
   Pencil,
   RefreshCw,
   Settings2,
@@ -265,11 +264,7 @@ export default function WorkspaceApp() {
   if (!state)
     return (
       <main className="initial-loading">
-        <div className="brand-mark">
-          <span />
-          <span />
-          <span />
-        </div>
+        <div className="loading-wordmark" aria-label="Stride">stride.</div>
         <h1>Getting your workspace ready.</h1>
         <p>{error || "A little space for what matters."}</p>
         {error && (
@@ -352,11 +347,6 @@ export default function WorkspaceApp() {
             go("today");
           }}
         >
-          <span className="brand-mark">
-            <span />
-            <span />
-            <span />
-          </span>
           stride<span className="brand-dot">.</span>
         </a>
         <div className="workspace-label">
@@ -400,14 +390,15 @@ export default function WorkspaceApp() {
           </button>
           <button
             className="profile-button"
+            aria-label={`Open profile for ${state.profile.name}`}
             onClick={() => window.location.assign("/about-you")}
           >
             <span className="avatar">{state.profile.name.slice(0, 1)}</span>
             <span>
-              <strong>My profile</strong>
-              <small>{state.profile.name} · {account ? "Signed in" : "Guest"}</small>
+              <strong>{state.profile.name}</strong>
+              <small>My profile</small>
             </span>
-            <MoreHorizontal size={18} />
+            <ArrowUpRight size={18} aria-hidden="true" />
           </button>
         </div>
       </aside>

@@ -865,3 +865,24 @@ a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,
 @media(max-width:950px) { .app-shell .coursework-heading { grid-template-columns:1fr; gap:24px; } .app-shell .course-library-entry { max-width:100%; } }
 @media(max-width:500px) { .app-shell .course-library-entry { padding:18px; gap:14px; } .app-shell .course-library-art { width:48px; height:54px; } .app-shell .course-library-entry-copy>strong { font-size:19px; } .app-shell .course-library-entry-copy>span { font-size:14px; } }
 @media(prefers-reduced-motion:reduce) { .app-shell .course-library-entry { transition:none; } }
+
+/* Quiet wordmark and a personal profile shortcut, rather than a menu. */
+.app-shell .brand { font-size:46px; font-weight:800; letter-spacing:-2.8px; gap:0; line-height:1; flex-shrink:0; }
+.app-shell .brand-dot { margin-left:0; }
+.loading-wordmark { font-size:46px; font-weight:800; letter-spacing:-2.8px; color:#172653; }
+.app-shell .profile-button { background:#fffef9; color:#172653; border:1px solid #c9c7ba; box-shadow:0 3px 0 #e0daca; padding:9px 13px 9px 9px; border-radius:16px; min-height:64px; min-width:174px; gap:12px; text-align:left; transition:transform 150ms,box-shadow 150ms,border-color 150ms; }
+.app-shell .profile-button:hover { border-color:#172653; transform:translateY(-2px); box-shadow:0 5px 0 #e0daca; }
+.app-shell .profile-button:active { transform:translateY(1px); box-shadow:0 2px 0 #e0daca; }
+.app-shell .profile-button>span:nth-child(2) { flex:1; min-width:0; }
+.app-shell .profile-button strong { display:block; color:#172653; font-size:16px; font-weight:800; line-height:1.4; max-width:130px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.app-shell .profile-button small { color:#54584f; font-size:13px; line-height:1.5; margin-top:2px; }
+.app-shell .profile-button .avatar { width:42px; height:42px; border-radius:13px; background:#f6e96b; color:#172653; border:1px solid #d5c75f; font-size:19px; box-shadow:inset 0 1px 0 #fff9c3; flex-shrink:0; }
+.app-shell .profile-button>svg { color:#172653; width:18px; flex-shrink:0; }
+@media(max-width:1200px) { .app-shell .brand { font-size:42px; } .app-shell .profile-button { min-width:154px; } }
+@media(max-width:700px) { .app-shell .sidebar.mobile-open .brand { font-size:46px; margin-bottom:18px; } .app-shell .sidebar.mobile-open .profile-button { min-width:0; } }
+@media(prefers-reduced-motion:reduce) { .app-shell .profile-button { transition:none; } }
+
+.companion-header .pip-expand { margin-left:auto; }
+.companion-header .pip-expand + .icon-btn { margin-left:0; }
+.companion-panel .pip-chat-composer { margin:10px 12px 12px; width:calc(100% - 24px); }
+.companion-panel .pip-chat-composer textarea { min-height:68px; }

@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { ArrowRight, Check, ChevronDown, MessageCircle, X } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, MessageCircle, Maximize2, X } from "lucide-react";
+import PipConversation from "./pip-conversation";
 import { Dictation } from "./voice-capture";
 import { launchPipChat } from "@/lib/pip-navigation";
 import type { Proposal } from "@/lib/companion";
@@ -29,7 +30,7 @@ export function PipMark({ listening = false }: { listening?: boolean }) {
   return <svg ref={face} className={`pip-mark ${listening ? "pip-listening" : ""}`} viewBox="0 0 96 96" aria-hidden="true"><ellipse cx="48" cy="88" rx="27" ry="4" fill="#172653" opacity=".12"/><g className="pip-character"><path d="M24 65Q12 65 12 54M72 65Q84 65 84 54" fill="none" stroke="#172653" strokeWidth="5" strokeLinecap="round"/><rect x="26" y="75" width="19" height="12" rx="6" fill="#f3e86c" stroke="#172653" strokeWidth="3"/><rect x="51" y="75" width="19" height="12" rx="6" fill="#f3e86c" stroke="#172653" strokeWidth="3"/><rect x="18" y="19" width="60" height="59" rx="28" fill="#244bff" stroke="#172653" strokeWidth="3"/><g className="pip-eyes"><circle cx="37" cy="43" r="8" fill="white"/><circle cx="59" cy="43" r="8" fill="white"/><g ref={pupils}><circle cx="37" cy="43" r="3.5" fill="#172653"/><circle cx="59" cy="43" r="3.5" fill="#172653"/><circle cx="38" cy="42" r="1" fill="white"/><circle cx="60" cy="42" r="1" fill="white"/></g></g><ellipse cx="28" cy="57" rx="5" ry="3" fill="#ffb7a7"/><ellipse cx="68" cy="57" rx="5" ry="3" fill="#ffb7a7"/><path d="M38 59Q48 75 58 59Z" fill="#172653" stroke="#172653" strokeWidth="2" strokeLinejoin="round"/><path d="M43 65Q48 62 53 65" stroke="#ffb7a7" strokeWidth="3" strokeLinecap="round"/></g></svg>;
 }
 export function CompanionInvite({ landing = false }: { landing?: boolean }) {
-  return <button className={`companion-invite ${landing ? "companion-invite-landing" : ""}`} onClick={() => launchPipChat()}><MessageCircle size={24}/><span><strong>{landing ? "A deadline? An idea? Tell Pip." : "Something on your mind? Tell Pip."}</strong></span><ArrowRight size={22}/></button>;
+  return <button className={`companion-invite ${landing ? "companion-invite-landing" : ""}`} onClick={() => window.dispatchEvent(new CustomEvent("stride-companion-open"))}><MessageCircle size={24}/><span><strong>{landing ? "A deadline? An idea? Tell Pip." : "Something on your mind? Tell Pip."}</strong></span><ArrowRight size={22}/></button>;
 }
 function convert(proposal: Proposal, destination: Proposal["destination"]): Proposal {
   if (proposal.destination === destination) return proposal;
@@ -39,8 +40,10 @@ function convert(proposal: Proposal, destination: Proposal["destination"]): Prop
 }
 export default function Companion() {
   const pathname = usePathname();
-  const [pane,setPane] = useState<"chat"|"capture">("capture");
+  const [pane,setPane] = useState<"chat"|"capture">("chat");
   const [open,setOpen] = useState(false), [text,setText] = useState(""), [busy,setBusy] = useState(""), [listening,setListening] = useState(false), [error,setError] = useState(""), [saved,setSaved] = useState("");
+  const [chatBusy,setChatBusy] = useState(false), [chatDraft,setChatDraft] = useState("");
+  const locked=!!busy||chatBusy||listening;
   const [review,setReview] = useState<{id:string;mode:"live"|"guided"}|null>(null);
   const [items,setItems] = useState<{proposal:Proposal;selected:boolean}[]>([]);
   const input = useRef<HTMLTextAreaElement>(null), launcher = useRef<HTMLButtonElement>(null);
@@ -49,17 +52,18 @@ export default function Companion() {
     const show = (event: Event) => {
       const detail=(event as CustomEvent<{captureText?:string;prompt?:string}>).detail;
       if(typeof detail?.captureText==="string") {editWords(detail.captureText.slice(0,6000));setPane("capture");setOpen(true);}
-      else launchPipChat(detail?.prompt);
+      else if(detail?.prompt) launchPipChat(detail.prompt);
+      else {setPane("chat");setOpen(true);}
     };
     window.addEventListener("stride-companion-open",show);
     return () => window.removeEventListener("stride-companion-open",show);
   },[]);
-  useEffect(() => { if (open) input.current?.focus(); },[open]);
+  useEffect(() => { if (open && pane==="capture") input.current?.focus(); },[open,pane]);
   useEffect(() => {
-    const close = (event: KeyboardEvent) => { if(event.key === "Escape" && !busy && !listening) { setOpen(false); launcher.current?.focus(); } };
+    const close = (event: KeyboardEvent) => { if(event.key === "Escape" && !busy && !chatBusy && !listening) { setOpen(false); launcher.current?.focus(); } };
     window.addEventListener("keydown",close);
     return () => window.removeEventListener("keydown",close);
-  },[busy,listening]);
+  },[busy,chatBusy,listening]);
   function editWords(value: string) { setText(value); setReview(null); setItems([]); setSaved(""); setError(""); }
   async function request(payload: unknown) {
     const response = await fetch("/api/companion",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
@@ -93,10 +97,12 @@ export default function Companion() {
   function change(index: number, proposal: Proposal) { setItems(current=>current.map((item,i)=>i===index ? {...item,proposal} : item)); }
   if (!visible) return null;
   return <div className="companion-dock">
-    <section hidden={!open} className="companion-panel" role="dialog" aria-modal="false" aria-labelledby="pip-title" id="pip-panel" aria-busy={!!busy}>
-      <header className="companion-header"><PipMark listening={listening}/><div><h2 id="pip-title">Tell Pip.</h2><p>A little space to talk things through.</p></div><button className="icon-btn" aria-label="Minimize Pip" disabled={!!busy||listening} onClick={()=>{setOpen(false);launcher.current?.focus();}}><X size={21}/></button></header>
-      <div className="pip-pane-tabs" role="tablist" aria-label="Pip modes"><button role="tab" aria-selected={pane==="chat"} disabled={!!busy||listening} onClick={()=>launchPipChat()}>Talk with Pip</button><button role="tab" aria-selected={pane==="capture"} disabled={!!busy||listening} onClick={()=>setPane("capture")}>Save something</button></div>
+    <section hidden={!open} className="companion-panel" role="dialog" aria-modal="false" aria-labelledby="pip-title" id="pip-panel" aria-busy={!!busy||chatBusy}>
+      <header className="companion-header"><PipMark listening={listening}/><div><h2 id="pip-title">Pip</h2></div>{pathname!=="/pip" && pane==="chat" && <button className="icon-btn pip-expand" aria-label="Open full chat" title="Open full chat" disabled={locked} onClick={()=>{if(!launchPipChat(chatDraft,false))setError("Your browser couldn’t move this draft. Copy your words before opening full chat.");}}><Maximize2 size={19}/></button>}<button className="icon-btn" aria-label="Minimize Pip" disabled={locked} onClick={()=>{setOpen(false);launcher.current?.focus();}}><X size={21}/></button></header>
+      <div className="pip-pane-tabs" role="tablist" aria-label="Pip modes"><button role="tab" aria-selected={pane==="chat"} disabled={locked} onClick={()=>{if(pathname==="/pip")setOpen(false);else setPane("chat");}}>Talk with Pip</button><button role="tab" aria-selected={pane==="capture"} disabled={locked} onClick={()=>setPane("capture")}>Save something</button></div>
 
+      {pane==="chat" && error && <p className="error-banner" role="alert">{error}</p>}
+      {pathname!=="/pip" && <PipConversation active={open&&pane==="chat"} onBusy={setChatBusy} onListening={setListening} onDraftChange={setChatDraft} onKeep={words=>{editWords(words);setPane("capture");}}/>}
       <div className="companion-body" hidden={pane!=="capture"}>
         {!review && <>
           <label className="pip-input-label" htmlFor="pip-words">What’s on your mind?</label>
@@ -124,6 +130,6 @@ export default function Companion() {
       </div>
       {review && pane==="capture" && <footer className="pip-actions"><p>Check dates and destinations before saving.</p><div><button className="btn primary" disabled={!!busy||listening||!items.some(item=>item.selected)} onClick={save}>{busy||`Save ${items.filter(item=>item.selected).length} selected`}<Check size={18}/></button><button className="pip-review-again" disabled={!!busy||listening} onClick={()=>{setReview(null);setItems([]);}}>Review again</button></div>{error && <p className="error-banner" role="alert">{error}</p>}</footer>}
     </section>
-    {pathname!=="/pip" && <button className="companion-launcher" ref={launcher} aria-expanded={open} aria-controls="pip-panel" aria-haspopup="dialog" aria-label={open ? "Minimize Pip companion" : "Open Pip companion"} disabled={!!busy||listening} onClick={()=>open ? setOpen(false) : launchPipChat()}><PipMark listening={listening}/><span><strong>Pip</strong></span></button>}
+    {pathname!=="/pip" && <button className="companion-launcher" ref={launcher} aria-expanded={open} aria-controls="pip-panel" aria-haspopup="dialog" aria-label={open ? "Minimize Pip companion" : "Open Pip companion"} disabled={locked} onClick={()=>{if(open)setOpen(false);else {setPane("chat");setOpen(true);}}}><PipMark listening={listening}/><span><strong>Pip</strong></span></button>}
   </div>;
 }
