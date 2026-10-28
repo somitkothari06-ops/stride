@@ -14,6 +14,7 @@ import {
 import type { EvidenceEntry, EvidenceAttachment } from "@/lib/evidence";
 import type { Workspace } from "@/lib/types";
 import SignOut from "./sign-out";
+import FilePicker from "./file-picker";
 import { launchPipChat } from "@/lib/pip-navigation";
 import { connectionMessage } from "@/lib/client-request";
 
@@ -407,8 +408,7 @@ export default function JournalApp() {
               value={activityDate}
               onChange={(event) => setActivityDate(event.target.value)}
             />
-            <label className="journal-label" htmlFor="evidence-files">Files or images (optional, up to 5)</label>
-            <input id="evidence-files" className="journal-input" type="file" multiple accept=".txt,.md,.png,.jpg,.jpeg,.webp" onChange={onFiles} />
+            <FilePicker id="evidence-files" title="Add something you made" hint="Images, text or code notes · up to 5 files · optional" multiple accept=".txt,.md,.png,.jpg,.jpeg,.webp" onChange={onFiles} disabled={busy !== ""} />
             {files.length > 0 && (
               <ul className="journal-file-list">
                 {files.map((file, index) => (
@@ -416,7 +416,7 @@ export default function JournalApp() {
                 ))}
               </ul>
             )}
-            <details className="journal-file-help"><summary>Supported files</summary><p>TXT or MD up to 256 KB; PNG, JPEG or WebP up to 3 MB each. Text across this entry must fit 24,000 characters. Upload dates are saved separately from your activity date. Relevant content is sent to Nebius for review.</p></details>
+            <p className="journal-file-help">Preparing sends your entry to Nebius. You choose what to save.</p>
             <div className="journal-actions">
               <button className="btn primary" type="submit" disabled={busy !== "" || text.trim().length === 0}>
                 {busy==="submit"?"Reading your work…":"Prepare my entry"} <ArrowRight size={16} />

@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import { ArrowRight, FileText, Upload, Trash2 } from "lucide-react";
 import { type MaterialDraft } from "@/lib/course-types";
 import CourseExplorer from "./course-explorer";
+import FilePicker from "./file-picker";
 import type { Workspace } from "@/lib/types";
 
 export default function CourseLibrary({ state, onState }: { state: Workspace; onState: (state: Workspace) => void }) {
@@ -46,7 +47,7 @@ export default function CourseLibrary({ state, onState }: { state: Workspace; on
       <div className="form-actions"><button className="btn primary" disabled={!!busy || !draft.title.trim()} onClick={save}>Confirm and use this text <ArrowRight size={15} /></button><button className="text-button" disabled={!!busy} onClick={() => setDraft(null)}>Discard preview</button></div>
     </section> : <form onSubmit={extract} className="material-upload">
       <div className="form-grid"><div><label htmlFor="material-subject">Subject</label><input id="material-subject" list="course-subjects" name="subject" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Database systems" maxLength={80} required /></div><div><label htmlFor="material-kind">What kind of material?</label><select id="material-kind" name="kind"><option>Syllabus</option><option>Lecture notes</option><option>Lecture slides</option><option>Past questions</option></select></div></div>
-      <label htmlFor="course-file">Choose a document</label><input id="course-file" name="file" type="file" accept=".pdf,.pptx,.docx,.txt,.md" required />
+      <FilePicker id="course-file" name="file" title="Bring your course material" hint="PDF, slides, Word or text · up to 8 MB" accept=".pdf,.pptx,.docx,.txt,.md" required disabled={!!busy} />
       <button className="btn primary" disabled={!!busy} style={{ marginTop: 16 }}><Upload size={16} /> Read document</button>
     </form>}
     <section className="saved-materials"><div className="section-title"><h3>Your course documents</h3><span className="count">{state.materials?.length || 0}/12</span></div>

@@ -4,6 +4,7 @@ import "./signal.css";
 import "./themes.css";
 import "./button-options.css";
 import "./landing-refresh.css";
+import "./file-picker.css";
 import AppearanceProvider from "@/components/appearance-provider";
 import { themes, defaultAppearance } from "@/lib/themes";
 import Companion from "@/components/companion";
