@@ -94,7 +94,7 @@ export default function WorkspaceApp() {
   const [candidate, setCandidate] = useState<Candidate | null>(null);
   const [answer, setAnswer] = useState("");
   const answerDrafts=useRef<Record<string,string>>({});
-  const [role, setRole] = useState("");
+  const [role, setRole] = useState<string | null>(null);
   const [mobileNav, setMobileNav] = useState(false);
   const [checkedSteps, setCheckedSteps] = useState<number[]>([]);
   const dialogRef = useRef<HTMLElement>(null);
@@ -197,18 +197,22 @@ export default function WorkspaceApp() {
       return data.state;
     } catch (e) {
       // A response can be lost after a plan was saved. Recover it without submitting twice.
-      if ((payload as {action?:string}).action === "plan" && (e instanceof TypeError || e instanceof SyntaxError)) {
+      if (["plan","direction","explainDirection"].includes((payload as {action?:string}).action||"") && (e instanceof TypeError || e instanceof SyntaxError)) {
         try {
           const recovered = await fetch("/api/workspace", {cache:"no-store"});
           if (recovered.ok) {
             const data = await recovered.json();
-            if (data.state?.plan && data.state.plan.id !== state?.plan?.id) {
-              setState(data.state); setProviders(data.providers); setToast("Showing your latest saved plan."); return data.state;
+            const action=(payload as {action?:string}).action;
+            const directionRecovered=action==="direction" ? data.state?.direction?.searchId && data.state.direction.searchId!==state?.direction?.searchId && data.state.direction.role===(payload as {role?:string}).role : action==="explainDirection" && data.state?.direction?.searchId===(payload as {searchId?:string}).searchId && !data.state.direction.explanationPending;
+            if (directionRecovered || action==="plan" && data.state?.plan && data.state.plan.id !== state?.plan?.id) {
+              setState(data.state); setProviders(data.providers); setToast(action==="plan"?"Showing your latest saved plan.":"Your search is ready."); return data.state;
             }
           }
         } catch { /* Keep the existing plan and offer a clear retry. */ }
       }
-      setError(connectionMessage(e, "The connection dropped before we could confirm that. Your saved work is safe. Please try again."));
+      const action=(payload as {action?:string}).action;
+      const fallback=action==="direction" ? "Couldn’t confirm this search. Your query is still here. Please try again." : action==="explainDirection" ? "Your pages are ready. The guide couldn’t reconnect. Use Finish my guide to try again." : "The connection dropped before we could confirm that. Your saved work is safe. Please try again.";
+      setError(connectionMessage(e, fallback));
       return null;
     } finally {
       setBusy("");
@@ -1072,29 +1076,28 @@ export default function WorkspaceApp() {
                 <form
                   onSubmit={async (e) => {
                     e.preventDefault();
-                    if (!providers.tavily || (role || state.profile.goal).trim().length < 3) return;
-                    await act(
-                      { action: "direction", role: (role || state.profile.goal).trim() },
-                      "Finding useful pages and putting together a short explanation",
-                    );
+                    if (!providers.tavily || (role ?? state.profile.goal).trim().length < 2) return;
+                    const found=await act({ action:"direction",role:(role ?? state.profile.goal).trim() },"Finding pages");
+                    if(found?.direction?.explanationPending && found.direction.searchId)
+                      await act({action:"explainDirection",searchId:found.direction.searchId},"Putting together your guide");
                   }}
                 >
                   <span className="role-search-label">START SOMEWHERE INTERESTING</span>
-                  <label htmlFor="role">Pick a role to explore.</label>
+                  <label htmlFor="role">What would you like to explore?</label>
                   <div className="search-input-row">
                     <input
                       id="role"
-                      value={role || state.profile.goal}
+                      value={role ?? state.profile.goal}
                       onChange={(e) => setRole(e.target.value)}
-                      maxLength={120}
+                      maxLength={240}
                       required
-                      placeholder="A role, field or internship…"
+                      placeholder="A role, a field, or a question…"
                     />
                     <button
                       className="btn primary"
-                      disabled={!!busy || !providers.tavily || (role || state.profile.goal).trim().length < 3}
+                      disabled={!!busy || !providers.tavily || (role ?? state.profile.goal).trim().length < 2}
                     >
-                      {busy ? "Searching…" : "Search role sources"} <ArrowUpRight size={15} />
+                      {busy === "Finding pages" ? "Finding pages…" : busy === "Putting together your guide" ? "Preparing your guide…" : "Explore this"} <ArrowUpRight size={15} />
                     </button>
                   </div>
                   <div className="role-starting-points" aria-label="Role ideas">
@@ -1129,7 +1132,7 @@ export default function WorkspaceApp() {
                 <>
                   <section className="direction-brief" aria-label="Role exploration brief">
                     <header className="direction-brief-header">
-                      <span className="tag">{state.direction.mode === "live" ? "Pip’s take" : "Pages found · Pip couldn’t explain them yet"}</span>
+                      <span className="tag">{state.direction.explanationPending ? "Pages found" : state.direction.mode === "live" ? "Your guide" : "Pages to explore"}</span>
                       <h2>{state.direction.role}</h2>
                       <p>{state.direction.summary}</p>
                       <small>{state.direction.sources.length} public sources · Updated {new Date(state.direction.updatedAt).toLocaleDateString("en-IN")}</small>
@@ -1140,9 +1143,10 @@ export default function WorkspaceApp() {
                       {!!r.evidenceIds.length && <button className="text-button" onClick={()=>go("memory")}><Link2 size={14}/>See related notes you saved</button>}
                       {!!r.sourceQuotes?.length && <details><summary>Where this came from</summary>{r.sourceQuotes.map((ref,j)=>{const source=state.direction!.sources[ref.sourceIndex-1];return source ? <blockquote key={j}><p>“{ref.quote}”</p><a href={source.url} target="_blank" rel="noopener noreferrer">Source {ref.sourceIndex} · {new URL(source.url).hostname} ↗</a></blockquote>:null;})}</details>}
                       </div></article>)}</div>}
+                    {state.direction.explanationPending && !busy && <button className="btn subtle" onClick={()=>act({action:"explainDirection",searchId:state.direction!.searchId},"Putting together your guide")}>Finish my guide <ArrowRight size={16}/></button>}
                     {state.direction.nextMove && <div className="direction-next-move"><span><Compass size={22}/>ONE WAY TO TRY IT</span><h3>{state.direction.nextMove}</h3><small>Try it and see whether you enjoy it.</small><button className="btn subtle" onClick={()=>launchPipChat("Help me try the activity we just chose, one step at a time.")}>Try this with Pip <ArrowRight size={16}/></button></div>}
                   </section>
-                  <details className="direction-source-list direction-page-links"><summary>Open the original pages <span>{state.direction.sources.length} links</span><ChevronDown size={18}/></summary>
+                  <details key={state.direction.searchId || state.direction.updatedAt} open={state.direction.mode !== "live" || undefined} className="direction-source-list direction-page-links"><summary>Open the original pages <span>{state.direction.sources.length} links</span><ChevronDown size={18}/></summary>
                     <p>Open a page to check the details and whether it’s still open.</p>
                     <div className="direction-link-grid">{state.direction.sources.map((source,index)=><a className="direction-page-link" href={source.url} target="_blank" rel="noopener noreferrer" key={source.url}><span>{new URL(source.url).hostname.replace(/^www\./,"")}<ArrowUpRight size={18}/></span><strong>{source.title}</strong><small>{new URL(source.url).hostname.includes("reddit.com") ? "Read the discussion" : "Open page"} →</small></a>)}</div>
                   </details>

@@ -4,13 +4,16 @@ export async function roleComparison(sourceCount: number, validEvidenceIds: stri
   try {
     const result = await compare();
     const valid = new Set(validEvidenceIds);
-    if (result.requirements.some((requirement) => requirement.evidenceIds.some((id) => !valid.has(id))))
-      throw new Error("MODEL_UNAVAILABLE");
-    if (sources && result.requirements.some(requirement => !requirement.sourceQuotes?.length || requirement.sourceQuotes.some(ref => !Number.isInteger(ref.sourceIndex) || !sources[ref.sourceIndex - 1]?.excerpt.includes(ref.quote) || !ref.quote.trim())))
-      throw new Error("MODEL_UNAVAILABLE");
-    if (sources && result.requirements.some(requirement => !requirement.sourceQuotes?.some(ref => ref.quote.toLocaleLowerCase().includes(requirement.requirement.toLocaleLowerCase()))))
-      throw new Error("MODEL_UNAVAILABLE");
-    return { ...result, mode: "live" as const };
+    // Keep supported requirements when one generated item fails its source checks.
+    const requirements=result.requirements.filter(requirement => {
+      if(requirement.evidenceIds.some(id=>!valid.has(id)))return false;
+      if(!sources)return true;
+      if(!requirement.sourceQuotes?.length)return false;
+      if(requirement.sourceQuotes.some(ref=>!Number.isInteger(ref.sourceIndex)||!ref.quote.trim()||!sources[ref.sourceIndex-1]?.excerpt.includes(ref.quote)))return false;
+      return requirement.sourceQuotes.some(ref=>ref.quote.toLocaleLowerCase().includes(requirement.requirement.toLocaleLowerCase()));
+    });
+    if(result.requirements.length && !requirements.length)throw new Error("MODEL_UNAVAILABLE");
+    return { ...result, requirements, mode: "live" as const };
   } catch (error) {
     if (!(error instanceof Error) || !["MODEL_UNAVAILABLE", "DAILY_LIMIT"].includes(error.message)) throw error;
     return {

@@ -65,6 +65,8 @@ export type RoleSource = {
   retrievedAt: string;
 };
 export type Direction = {
+  searchId?: string;
+  explanationPending?: boolean;
   role: string;
   summary: string;
   courseConnection?: string;
@@ -171,7 +173,9 @@ export const ActionSchema = z.discriminatedUnion("action", [
   }),
   z.object({
     action: z.literal("direction"),
-    role: z.string().min(3).max(120),
+    role: z.string().trim().min(2).max(240),
+    refresh: z.boolean().optional(),
   }),
+  z.object({ action: z.literal("explainDirection"), searchId: z.string().min(1).max(100) }),
   z.object({ action: z.literal("reset"), sample: z.boolean() }),
 ]);

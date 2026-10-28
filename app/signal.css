@@ -969,3 +969,9 @@ a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,
 .app-shell .sidebar nav>a.nav-item{text-decoration:none;color:var(--theme-ink)}
 
 .app-shell .journal-continue{display:flex;align-items:center;gap:18px;margin:24px 0;padding:24px;background:var(--theme-tint);color:var(--theme-ink);border:1px solid var(--theme-ink);border-radius:14px;box-shadow:0 4px 0 var(--theme-line);text-decoration:none}.journal-continue>span{display:grid;gap:7px;flex:1;min-width:0}.journal-continue strong{font-size:20px;font-weight:800}.journal-continue>span>span{font-size:16px;line-height:1.6;overflow-wrap:anywhere}.journal-continue>svg{flex-shrink:0}
+
+/* Inverted Direction panel must not borrow a dark button colour for its text. */
+.app-shell .direction-intro .direction-eyebrow{color:var(--theme-surface);opacity:.8}
+.app-shell .direction-intro>p{color:var(--theme-surface);opacity:.9}
+.app-shell .direction-brief-header small{color:var(--theme-surface);opacity:.8}
+.app-shell .direction-next-move h3,.app-shell .direction-next-move>span,.app-shell .direction-next-move small{color:var(--theme-ctaInk)}

@@ -35,3 +35,10 @@ test("a genuine excerpt cannot support an unrelated inferred requirement",async(
  const result=await roleComparison(1,[],async()=>({summary:"A role involving services.",requirements:[{requirement:"REST API",evidenceIds:[],nextStep:"Try an endpoint",sourceQuotes:[{sourceIndex:1,quote:"Develop services with Node.js"}]}]}),[{excerpt:"Develop services with Node.js"}]);
  assert.equal(result.mode,"guided");
 });
+
+test("one unsupported requirement does not hide other source-checked guidance",async()=>{
+ const valid={requirement:"SQL",friendlyLabel:"Query a small table",evidenceIds:[],nextStep:"Try one join",sourceQuotes:[{sourceIndex:1,quote:"SQL and Python"}]};
+ const bad={...valid,requirement:"Kubernetes",sourceQuotes:[{sourceIndex:1,quote:"invented requirement"}]};
+ const result=await roleComparison(1,[],async()=>({summary:"Work with data.",requirements:[valid,bad]}),[{excerpt:"Requirements include SQL and Python."}]);
+ assert.equal(result.mode,"live");assert.deepEqual(result.requirements,[valid]);
+});

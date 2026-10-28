@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { modelMessages, type ConversationTurn } from "./model-messages";
 import type { RoleSource } from "./types";
+import { roleSearchQuery } from "./role-search";
 import {
   consumeAllowance,
   getProviderCheck,
@@ -40,7 +41,7 @@ export async function model<T>(
   task: string,
   data: unknown,
   schema: z.ZodType<T>,
-  options: { maxTokens?: number; history?: ConversationTurn[]; images?: string[] } = {},
+  options: { maxTokens?: number; history?: ConversationTurn[]; images?: string[]; timeoutMs?: number } = {},
 ): Promise<T> {
   if (!providerStatus().nebius) throw new Error("MODEL_UNAVAILABLE");
   const selectedModel=options.images?.length?process.env.NEBIUS_MODEL_VISION:process.env.NEBIUS_MODEL_FAST;
@@ -56,7 +57,7 @@ export async function model<T>(
       `${(process.env.NEBIUS_BASE_URL || "https://api.tokenfactory.nebius.com/v1").replace(/\/$/, "")}/chat/completions`,
       {
         method: "POST",
-        signal: AbortSignal.timeout(options.images?.length?60000:25000),
+        signal: AbortSignal.timeout(options.timeoutMs ?? (options.images?.length?60000:25000)),
         headers: {
           Authorization: `Bearer ${process.env.NEBIUS_API_KEY}`,
           "Content-Type": "application/json",
@@ -106,15 +107,15 @@ export async function model<T>(
 }
 
 export async function searchRoles(session: string, role: string): Promise<RoleSource[]> {
-  return searchWeb(session, `${role} internship India university students requirements`);
+  return searchWeb(session, roleSearchQuery(role), {timeoutMs:10000});
 }
-export async function searchWeb(session: string, query: string): Promise<RoleSource[]> {
+export async function searchWeb(session: string, query: string, options:{timeoutMs?:number}={}): Promise<RoleSource[]> {
   if (!process.env.TAVILY_API_KEY) throw new Error("SEARCH_NOT_CONFIGURED");
   consumeAllowance(session);
   try {
     const response = await fetch("https://api.tavily.com/search", {
       method: "POST",
-      signal: AbortSignal.timeout(18000),
+      signal: AbortSignal.timeout(options.timeoutMs ?? 18000),
       headers: {
         Authorization: `Bearer ${process.env.TAVILY_API_KEY}`,
         "Content-Type": "application/json",
