@@ -66,6 +66,7 @@ export function failure(error: unknown) {
     AUTH_RATE_LIMIT: [429, "Too many account requests. Wait 15 minutes before trying again."],
     AUTH_UNAVAILABLE: [503, "Account services couldn't respond. Please try again shortly."],
     COURSE_REVIEW_INVALID: [400, "This document review expired or changed. Extract the file again before confirming it (reviews last 15 minutes and expire on a server restart)."],
+    COURSE_REFERENCE_EXPIRED: [400, "These course results expired. Find courses again; your notes are safe."],
     COURSE_CONTEXT_NEEDED: [400, "Add and confirm a course document for this subject before comparing it."],
     DOCUMENT_UNREADABLE: [422, "Couldn't read this document. Use an unlocked text PDF, PPTX, DOCX, TXT or MD file under 8 MB and 500 PDF pages (100 slides). Scans need OCR or a pasted transcription."],
     LIBRARY_FULL: [400, "Your library holds 12 documents. Remove an older document before adding another."],

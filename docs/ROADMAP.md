@@ -56,3 +56,5 @@ Current independent work completed: private health endpoint, managed app-process
 Security review and residual hardening: see SECURITY-REVIEW.md. Colour alternatives remain separate previews until chosen.
 
 October 27 update: Settings/theme selection, compact navigation, account logout refusal, full supported PDF-page intake and a dedicated text/vision document study room are implemented and tested with synthetic inputs. Still open: automatic full-data backup including retained PDFs; expired upload-preview orphan cleanup; broader graphics/STT quality evaluation and final judge/demo/submission preparation. See STATUS.md and DOCUMENT-STUDY.md for observed evidence and limitations.
+
+28 October: replaced the fixed course-comparison selector with editable subjects and explicit university-page discovery. Comparison still uses selected passages/search excerpts, not an exhaustive full-course review. A larger cached course catalog and shared proof storage would be separate future work.
