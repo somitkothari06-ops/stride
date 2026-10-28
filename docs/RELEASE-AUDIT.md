@@ -6,7 +6,7 @@ This is an evidence log, not a promise that every possible input works. Producti
 
 - Current source passes TypeScript checks and 123 automated tests. Production builds succeeded in an inactive release directory.
 
-- Previous production checkpoint: all nine disposable public workflow checks passed: personal profile, capture, companion, separate Pip chats, course library, role search, live intake/plan/session/feedback, contextual Pip conversation, and public authentication start/cancel. These tests do not prove a new person's OAuth or microphone experience.
+- Production workflow checks (with the targeted retest below): all nine disposable public workflow checks passed: personal profile, capture, companion, separate Pip chats, course library, role search, live intake/plan/session/feedback, contextual Pip conversation, and public authentication start/cancel. These tests do not prove a new person's OAuth or microphone experience.
 - Calendar checks use the student's timezone and actual request date. On 28 October 2026, “this Saturday” resolves to 31 October 2026. Copied messages need their original date for relative deadlines. Both capture paths were tested through actual save. Ambiguous dates stay blank for review.
 - All 21 palettes and four button styles are checked for readable foreground/background pairs. Preview/cancel was exercised in the browser without replacing the user's saved theme.
 - Backup recovery was tested with a full encrypted archive copied to the Mac, including retained PDF files. Restored sessions are cleared, anonymous identifiers rotated and scheduled generation disabled. A large PDF exposed a base64 validation stack overflow; the validator and regression test were fixed. The student's PDF content was not inspected by the development assistant.
@@ -27,6 +27,12 @@ This is an evidence log, not a promise that every possible input works. Producti
 ## Development helpers
 
 OpenCode free GLM and DeepSeek handled isolated implementation and source audits for button controls, backup recovery, AI integration, user flows, operations and network/retry logic. Findings were independently checked; misleading claims were rejected. KiroCrew was found to use a Codex-backed adapter here, so further heavy tasks were directed to OpenCode to avoid spending the same allowance.
+
+## Final retest
+
+The repeated live workflow run passed eight checks and failed the Pip test when a foreign-key question received a model introduction. The message builder now ends the current user turn with the explicit current student message, rather than leaving it inside a larger context object. Re-running the exact sequence passed: LEFT JOIN teaching, correction of a mistaken answer, model identity, a new foreign-key topic and a real web-resource search. Existing chat replay protection also passed. A first attempt immediately after restart saw a transient 502 before the app was ready; the completed retest ran after readiness. A healthy service process alone is not a readiness check.
+
+The calendar save retest and all four button-style save/reload checks passed on the public endpoint. Browser preview/cancel returned to the saved preference without overwriting it. The development assistant also observed intermittent public connection timeouts while successful proxy requests completed quickly; this does not establish the cause of the user's Safari failure.
 
 ## Remaining limits and checks
 
