@@ -24,6 +24,7 @@ import {
   Link2,
   ListChecks,
   Menu,
+  NotebookPen,
   Pencil,
   RefreshCw,
   Settings2,
@@ -383,6 +384,7 @@ export default function WorkspaceApp() {
               {view === n.id && <span className="nav-active-dot" />}
             </button>
           ))}
+          <a className="nav-item" href="/journal"><NotebookPen size={18}/><span>Journal</span></a>
           <a className="nav-item" href="/pip"><MessageCircle size={18}/><span>Pip</span></a>
         </nav>
         <div className="sidebar-note">
@@ -508,6 +510,7 @@ export default function WorkspaceApp() {
                 <button onClick={() => setModal("profile")}><Clock3 size={18} /><span><strong>{state.profile.minutes} min</strong> to focus</span><Pencil size={13} /></button>
                 <button onClick={() => setView("memory")}><ListChecks size={18} /><span><strong>{state.observations.filter((o) => !o.removed).length}</strong> {state.observations.filter((o) => !o.removed).length === 1 ? "attempt" : "attempts"} saved</span><ArrowRight size={14} /></button>
               </div>
+              {(state.focus&&!state.focus.closedAt||state.returnCard?.kind==="saved"&&!state.returnCard.skipped)&&<a className="journal-continue" href="/journal"><NotebookPen size={23}/><span><strong>{state.focus&&!state.focus.closedAt?"Continue your session":"Pick up where you left off"}</strong><span>{state.focus&&!state.focus.closedAt?state.focus.title:state.returnCard?.note}</span></span><ArrowRight size={20}/></a>}
               <CompanionInvite/>
               {(state.notes || []).length > 0 && <details className="quick-capture thought-inbox"><summary><span>Thought inbox</span><span>{state.notes!.length} saved <ChevronRight size={16}/></span></summary>{[...state.notes!].reverse().map(note=><article key={note.id}><p>{note.text}</p><button className="btn subtle" disabled={!!busy} onClick={()=>void act({action:"deleteNote",id:note.id},"Removing thought")}>Remove<span className="sr-only"> thought</span></button></article>)}</details>}
               <div className="dashboard-grid">
@@ -1163,6 +1166,7 @@ export default function WorkspaceApp() {
 
       <nav className="mobile-tabs" aria-label="Mobile navigation">
         {navigation.map((n) => <button key={n.id} aria-current={view === n.id ? "page" : undefined} onClick={() => go(n.id)}><n.icon size={20} /><span>{n.name}</span></button>)}
+      <button onClick={()=>{window.location.href="/journal";}}><NotebookPen size={20}/><span>Journal</span></button>
       <button onClick={()=>launchPipChat()}><MessageCircle size={20}/><span>Pip</span></button></nav>
       <div
           className="modal-overlay"

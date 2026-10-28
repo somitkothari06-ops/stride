@@ -10,7 +10,7 @@ A personal workspace for second- and third-year CS/engineering students: decide 
 
 Stride uses NVIDIA Nemotron Lightning for text tasks and Nemotron Super VL for selected PDF-page images through Nebius Token Factory. The application and private workspace storage run on the existing Nebius Devlab. See [runtime evidence and honest limitations](docs/NVIDIA-NEBIUS.md).
 
-New: 21 themes with four coordinated button styles, a dedicated document study room, full encrypted database/PDF backups and optional closed-browser daily preparation. Social sign-in does not grant Gmail or Drive access.
+New: [Work Journal](docs/WORK-JOURNAL.md) for focused sessions, reviewed text/image evidence and saved continuations. 21 themes with four coordinated button styles, a dedicated document study room, full encrypted database/PDF backups and optional closed-browser daily preparation. Social sign-in does not grant Gmail or Drive access.
 
 ## Working in this milestone
 

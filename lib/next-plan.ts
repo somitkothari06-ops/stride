@@ -1,3 +1,4 @@
+import {journalSources} from "./journal-context";
 import {z} from "zod";
 import type {Workspace,Plan} from "./types";
 import {guidedPlan,selectWork} from "./planner";
@@ -13,6 +14,7 @@ export async function generateNextPlan(id:string,state:Workspace,now=new Date())
             priorityWork: selectWork(state),
             availableMinutes: state.profile.minutes,
             goal: state.profile.goal,
+            selectedJournalContext:journalSources(state),
             personalContext: personalContext(state.profile.lifeContext),
             observations: state.observations
               .filter((o) => !o.removed)
@@ -20,6 +22,7 @@ export async function generateNextPlan(id:string,state:Workspace,now=new Date())
             validSourceIds: [
               ...state.works.map((w) => w.id),
               ...state.observations.filter(o=>!o.removed).map((o) => o.id),
+              ...journalSources(state).map(source=>source.id),
             ],
           },
           z.object({
@@ -33,6 +36,7 @@ export async function generateNextPlan(id:string,state:Workspace,now=new Date())
         const valid = new Set([
           ...state.works.map((w) => w.id),
           ...state.observations.filter(o=>!o.removed).map((o) => o.id),
+              ...journalSources(state).map(source=>source.id),
         ]);
         if (result.sourceIds.some((s) => !valid.has(s)))
           throw new Error("MODEL_UNAVAILABLE");

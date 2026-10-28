@@ -770,7 +770,7 @@ a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,
 .pip-room .pip-chat-composer > textarea { font-size: 17px; }
 .pip-message pre code { display: block; color: var(--theme-surface) !important; background: transparent !important; padding: 0 !important; border: 0; white-space: pre; font-family: ui-monospace,SFMono-Regular,Menlo,monospace; }
 .pip-message-table table { font-size: 14px; }
-.app-shell .mobile-tabs { grid-template-columns: repeat(5,minmax(0,1fr)); }
+.app-shell .mobile-tabs { grid-template-columns: repeat(6,minmax(0,1fr)); }
 @media(max-width:700px) { .pip-room { grid-template-columns: minmax(0,1fr); } .pip-room-sidebar { display: none; } .pip-room-main > header { padding: 10px 16px; } .pip-room-main > header .pip-mark { width: 44px; height: 44px; } .pip-room-main h1 { font-size: 24px; } .pip-room-main > header > a { font-size: 12px; } .pip-room .pip-chat-transcript { padding: 20px 14px; } .pip-room .pip-message { padding: 18px; } .pip-room .pip-message-user { max-width: 94%; } .pip-room .pip-message > p { font-size: 16px; } .pip-room .pip-chat-welcome { padding: 24px 6px; } .pip-room .pip-chat-welcome h3 { font-size: 31px; } .pip-room .pip-chat-welcome p { font-size: 17px; } .pip-room .pip-chat-composer { width: calc(100% - 24px); margin-bottom: max(14px,env(safe-area-inset-bottom)); } body:has(.pip-room) .companion-dock { bottom: 16px; } body:has(.pip-room) .companion-panel { height: calc(100dvh - 48px); max-height: calc(100dvh - 48px); bottom: 0; } }
 .pip-code-block { position: relative; margin: 16px 0; border-radius: 12px; background: var(--theme-ink); overflow: hidden; ;color:var(--theme-surface);}
 .pip-code-block > button { position: absolute; top: 9px; right: 10px; border: 1px solid #ffffff55; color: var(--theme-surface); background: #ffffff12; border-radius: 7px; padding: 7px 10px; font: inherit; font-size: 12px; cursor: pointer; }
@@ -965,3 +965,7 @@ a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,
 .course-explorer .course-choice.is-selected { background:var(--theme-tint); border-color:var(--theme-ink); }
 .course-explorer-actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:20px; }
 @media(max-width:600px) { .course-subject-search { flex-direction:column; } .course-explorer-actions>.btn { width:100%; justify-content:center; } }
+
+.app-shell .sidebar nav>a.nav-item{text-decoration:none;color:var(--theme-ink)}
+
+.app-shell .journal-continue{display:flex;align-items:center;gap:18px;margin:24px 0;padding:24px;background:var(--theme-tint);color:var(--theme-ink);border:1px solid var(--theme-ink);border-radius:14px;box-shadow:0 4px 0 var(--theme-line);text-decoration:none}.journal-continue>span{display:grid;gap:7px;flex:1;min-width:0}.journal-continue strong{font-size:20px;font-weight:800}.journal-continue>span>span{font-size:16px;line-height:1.6;overflow-wrap:anywhere}.journal-continue>svg{flex-shrink:0}

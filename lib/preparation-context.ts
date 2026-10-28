@@ -1,3 +1,4 @@
+import {journalSources} from "./journal-context";
 import type { CourseExcerpt } from "./course-types";
 import { personalContext } from "./personal-context";
 import type { Work, Workspace } from "./types";
@@ -11,6 +12,7 @@ export function preparationContext(state: Workspace, work: Work, excerpts: Cours
     validCourseSourceIds: excerpts.map((excerpt) => excerpt.id),
     personalContext: personalContext(state.profile.lifeContext),
     availableMinutes: state.profile.minutes,
+    selectedJournalContext:journalSources(state,2000).map(source=>source.excerpt),
     previousAttempts: state.observations
       .filter((observation) => !observation.removed && observation.workId === work.id)
       .slice(-3)

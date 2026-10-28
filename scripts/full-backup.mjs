@@ -10,14 +10,16 @@ import { backupDatabase, verifyDatabase } from "./database.mjs";
 import { decryptSnapshot, encryptSnapshot } from "./encrypted-backup.mjs";
 
 const FORMAT = "stride-full-backup";
-const VERSION = 1;
+const VERSION = 2;
+const ACCEPTED_VERSIONS = [1, 2];
 const MAX_ARCHIVE_BYTES = 512 * 1024 * 1024;
 const MAX_DOCUMENT_BYTES = MAX_ARCHIVE_BYTES;
 const MAX_DOCUMENTS = 10000;
 const UUID = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
 const SHA256 = /^[a-f0-9]{64}$/;
+const EXTENSION = /^[a-z0-9]{1,8}$/;
 const INVALID_BASE64 = /[^A-Za-z0-9+/=]/;
-const SENSITIVE_TABLES = ["account_sessions", "oauth_attempts", "companion_reviews"];
+const SENSITIVE_TABLES = ["account_sessions", "oauth_attempts", "companion_reviews", "evidence_reviews"];
 
 function hash(bytes) {
   return createHash("sha256").update(bytes).digest("hex");
@@ -73,6 +75,7 @@ function collectDocumentReferences(databasePath) {
   const database = new DatabaseSync(resolve(databasePath), { readOnly: true });
   try {
     const keys = new Set();
+    const evidence = new Map();
     for (const row of database.prepare("SELECT state FROM sessions").iterate()) {
       if (typeof row.state !== "string") throw new Error("Invalid workspace state in database");
       let state;
@@ -80,28 +83,54 @@ function collectDocumentReferences(databasePath) {
       if (!state || typeof state !== "object" || Array.isArray(state))
         throw new Error("Invalid workspace state in database");
       const materials = state.materials;
-      if (materials === undefined) continue;
-      if (!Array.isArray(materials)) throw new Error("Invalid materials list in workspace state");
-      for (const material of materials) {
-        if (!material || typeof material !== "object" || Array.isArray(material))
-          throw new Error("Invalid material in workspace state");
-        if (material.storageKey === undefined) continue;
-        if (typeof material.storageKey !== "string" || !UUID.test(material.storageKey))
-          throw new Error("Invalid document reference in workspace state");
-        keys.add(material.storageKey);
+      if (materials !== undefined) {
+        if (!Array.isArray(materials)) throw new Error("Invalid materials list in workspace state");
+        for (const material of materials) {
+          if (!material || typeof material !== "object" || Array.isArray(material))
+            throw new Error("Invalid material in workspace state");
+          if (material.storageKey === undefined) continue;
+          if (typeof material.storageKey !== "string" || !UUID.test(material.storageKey))
+            throw new Error("Invalid document reference in workspace state");
+          keys.add(material.storageKey);
+        }
+      }
+      const entries = state.evidence?.entries;
+      if (entries !== undefined) {
+        if (!Array.isArray(entries)) throw new Error("Invalid evidence journal in workspace state");
+        for (const entry of entries) {
+          if (!entry || typeof entry !== "object" || Array.isArray(entry))
+            throw new Error("Invalid evidence entry in workspace state");
+          const attachments = entry.observed?.attachments;
+          if (attachments === undefined) continue;
+          if (!Array.isArray(attachments)) throw new Error("Invalid attachment list in workspace state");
+          for (const attachment of attachments) {
+            if (!attachment || typeof attachment !== "object" || Array.isArray(attachment))
+              throw new Error("Invalid attachment in workspace state");
+            if (typeof attachment.key !== "string" || !UUID.test(attachment.key))
+              throw new Error("Invalid attachment reference in workspace state");
+            if (typeof attachment.extension !== "string" || !EXTENSION.test(attachment.extension))
+              throw new Error("Invalid attachment reference in workspace state");
+            evidence.set(attachment.key, attachment.extension);
+          }
+        }
       }
     }
-    return keys;
+    return { keys, evidence };
   } finally {
     database.close();
   }
 }
 
-function assertReferences(keys, documents) {
-  if (keys.size !== documents.length) throw new Error("Archive manifest does not match workspace references");
+function assertReferences(references, documents, attachments) {
+  const total = references.keys.size + references.evidence.size;
+  if (total !== documents.length + attachments.length)
+    throw new Error("Archive manifest does not match workspace references");
   const archived = new Set(documents.map((document) => document.storageKey));
-  for (const key of keys) if (!archived.has(key)) throw new Error("Archive is missing a referenced document");
-  for (const key of archived) if (!keys.has(key)) throw new Error("Archive contains an unreferenced document");
+  for (const key of references.keys) if (!archived.has(key)) throw new Error("Archive is missing a referenced document");
+  for (const key of archived) if (!references.keys.has(key)) throw new Error("Archive contains an unreferenced document");
+  const archivedEvidence = new Set(attachments.map((attachment) => attachment.storageKey));
+  for (const [key] of references.evidence) if (!archivedEvidence.has(key)) throw new Error("Archive is missing a referenced attachment");
+  for (const key of archivedEvidence) if (!references.evidence.has(key)) throw new Error("Archive contains an unreferenced attachment");
 }
 
 function decodeBytes(value, expectedSize, expectedHash, maximum, label) {
@@ -128,13 +157,17 @@ function assertEntry(entry, expectedPath, maximum, label) {
 function validateArchive(archive) {
   if (!archive || typeof archive !== "object" || Array.isArray(archive))
     throw new Error("Invalid backup archive");
-  if (archive.format !== FORMAT || archive.version !== VERSION)
+  if (archive.format !== FORMAT || !ACCEPTED_VERSIONS.includes(archive.version))
     throw new Error("Unsupported backup archive version");
   if (typeof archive.createdAt !== "string" || Number.isNaN(Date.parse(archive.createdAt)))
     throw new Error("Invalid backup archive metadata");
   assertEntry(archive.snapshot, "stride.sqlite", MAX_ARCHIVE_BYTES, "database snapshot");
   if (!Array.isArray(archive.documents) || archive.documents.length > MAX_DOCUMENTS)
     throw new Error("Invalid document list in archive");
+  if (archive.attachments !== undefined && !Array.isArray(archive.attachments))
+    throw new Error("Invalid attachment list in archive");
+  if (archive.version === 1 && archive.attachments?.length)
+    throw new Error("Version 1 archives cannot contain attachments");
 
   const seen = new Set();
   for (const document of archive.documents) {
@@ -149,9 +182,25 @@ function validateArchive(archive) {
     if (document.filename !== filename) throw new Error("Invalid document name in archive");
   }
 
-  if (!Array.isArray(archive.manifest) || archive.manifest.length !== archive.documents.length)
+  const attachments = archive.attachments || [];
+  for (const attachment of attachments) {
+    if (!attachment || typeof attachment !== "object" || Array.isArray(attachment))
+      throw new Error("Invalid attachment entry in archive");
+    if (typeof attachment.storageKey !== "string" || !UUID.test(attachment.storageKey))
+      throw new Error("Invalid attachment identifier in archive");
+    if (typeof attachment.extension !== "string" || !EXTENSION.test(attachment.extension))
+      throw new Error("Invalid attachment identifier in archive");
+    if (seen.has(attachment.storageKey)) throw new Error("Duplicate attachment in archive");
+    seen.add(attachment.storageKey);
+    const filename = `${attachment.storageKey}.${attachment.extension}`;
+    assertEntry(attachment, `evidence/${filename}`, MAX_DOCUMENT_BYTES, "attachment");
+    if (attachment.filename !== filename) throw new Error("Invalid attachment name in archive");
+  }
+
+  const files = [...archive.documents, ...attachments];
+  if (!Array.isArray(archive.manifest) || archive.manifest.length !== files.length)
     throw new Error("Invalid archive manifest");
-  const byKey = new Map(archive.documents.map((document) => [document.storageKey, document]));
+  const byKey = new Map(files.map((file) => [file.storageKey, file]));
   const manifestKeys = new Set();
   for (const entry of archive.manifest) {
     if (!entry || typeof entry !== "object" || Array.isArray(entry))
@@ -160,9 +209,9 @@ function validateArchive(archive) {
       throw new Error("Archive manifest references a missing document");
     if (manifestKeys.has(entry.storageKey)) throw new Error("Duplicate archive manifest entry");
     manifestKeys.add(entry.storageKey);
-    const document = byKey.get(entry.storageKey);
-    if (entry.path !== document.path || entry.filename !== document.filename ||
-        entry.sha256 !== document.sha256 || entry.size !== document.size)
+    const file = byKey.get(entry.storageKey);
+    if (entry.path !== file.path || entry.filename !== file.filename ||
+        entry.sha256 !== file.sha256 || entry.size !== file.size)
       throw new Error("Archive manifest does not match document data");
   }
   return archive;
@@ -230,25 +279,52 @@ export function createFullBackup(dataDir, keyPath, newOutput) {
     const snapshotBytes = readFileSync(snapshot);
     if (snapshotBytes.length > MAX_ARCHIVE_BYTES) throw new Error("Database snapshot exceeds the size limit");
 
-    const references = [...collectDocumentReferences(snapshot)].sort();
+    const references = collectDocumentReferences(snapshot);
+    const documentKeys = [...references.keys].sort();
+    const evidenceKeys = [...references.evidence.keys()].sort();
     const documentsDirectory = join(directory, "documents");
-    if (references.length) {
+    if (documentKeys.length) {
       const info = lstatSync(documentsDirectory, { throwIfNoEntry: false });
       if (!info || info.isSymbolicLink() || !info.isDirectory())
         throw new Error("Documents directory is missing or not a private directory");
     }
+    const evidenceDirectory = join(directory, "evidence");
+    if (evidenceKeys.length) {
+      const info = lstatSync(evidenceDirectory, { throwIfNoEntry: false });
+      if (!info || info.isSymbolicLink() || !info.isDirectory())
+        throw new Error("Evidence directory is missing or not a private directory");
+    }
 
     const documents = [];
     let rawBytes = snapshotBytes.length;
-    for (const storageKey of references) {
+    for (const storageKey of documentKeys) {
       const filename = `${storageKey}.pdf`;
-      const bytes = readReferencedFile(join(directory, "documents", filename), MAX_DOCUMENT_BYTES);
+      const bytes = readReferencedFile(join(documentsDirectory, filename), MAX_DOCUMENT_BYTES);
       rawBytes += bytes.length;
       if (Math.ceil(rawBytes / 3) * 4 + 65536 > MAX_ARCHIVE_BYTES)
         throw new Error("Full backup exceeds the size limit");
       documents.push({
         path: `documents/${filename}`,
         storageKey,
+        filename,
+        sha256: hash(bytes),
+        size: bytes.length,
+        data: bytes.toString("base64"),
+      });
+    }
+
+    const attachments = [];
+    for (const storageKey of evidenceKeys) {
+      const extension = references.evidence.get(storageKey);
+      const filename = `${storageKey}.${extension}`;
+      const bytes = readReferencedFile(join(evidenceDirectory, filename), MAX_DOCUMENT_BYTES);
+      rawBytes += bytes.length;
+      if (Math.ceil(rawBytes / 3) * 4 + 65536 > MAX_ARCHIVE_BYTES)
+        throw new Error("Full backup exceeds the size limit");
+      attachments.push({
+        path: `evidence/${filename}`,
+        storageKey,
+        extension,
         filename,
         sha256: hash(bytes),
         size: bytes.length,
@@ -267,7 +343,8 @@ export function createFullBackup(dataDir, keyPath, newOutput) {
         data: snapshotBytes.toString("base64"),
       },
       documents,
-      manifest: documents.map(({ data: _data, ...entry }) => entry),
+      attachments,
+      manifest: [...documents, ...attachments].map(({ data: _data, ...entry }) => entry),
     };
     const plainBytes = Buffer.from(JSON.stringify(archive));
     if (plainBytes.length > MAX_ARCHIVE_BYTES) throw new Error("Full backup exceeds the size limit");
@@ -281,6 +358,7 @@ export function createFullBackup(dataDir, keyPath, newOutput) {
       status: "complete",
       sessions: result.sessions,
       documents: documents.length,
+      attachments: attachments.length,
       bytes: lstatSync(output).size,
     };
   } finally {
@@ -329,16 +407,30 @@ export function restoreFullBackup(encrypted, keyPath, newDirectory) {
       writePrivateFile(join(documentsDirectory, document.filename), bytes);
     }
 
+    const evidenceDirectory = join(data, "evidence");
+    mkdirSync(evidenceDirectory, { mode: 0o700 });
+    chmodSync(evidenceDirectory, 0o700);
+    for (const attachment of archive.attachments || []) {
+      const bytes = decodeBytes(
+        attachment.data, attachment.size, attachment.sha256, MAX_DOCUMENT_BYTES, "attachment",
+      );
+      writePrivateFile(join(evidenceDirectory, attachment.filename), bytes);
+    }
+
     verifyDatabase(databasePath);
-    assertReferences(collectDocumentReferences(databasePath), archive.documents);
+    assertReferences(collectDocumentReferences(databasePath), archive.documents, archive.attachments || []);
     sanitizeDatabase(databasePath);
     const restored = verifyDatabase(databasePath);
 
     flushPath(databasePath);
-    for (const name of [...archive.documents.map((document) => document.filename)]) {
+    for (const name of archive.documents.map((document) => document.filename)) {
       flushPath(join(documentsDirectory, name));
     }
+    for (const name of (archive.attachments || []).map((attachment) => attachment.filename)) {
+      flushPath(join(evidenceDirectory, name));
+    }
     flushPath(documentsDirectory);
+    flushPath(evidenceDirectory);
     flushPath(data);
     flushPath(staging);
 
@@ -351,6 +443,7 @@ export function restoreFullBackup(encrypted, keyPath, newDirectory) {
       status: "complete",
       sessions: restored.sessions,
       documents: archive.documents.length,
+      attachments: (archive.attachments || []).length,
     };
   } finally {
     rmSync(staging, { recursive: true, force: true });

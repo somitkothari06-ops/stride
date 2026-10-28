@@ -24,3 +24,9 @@ Work only in the delegated source copy. No .env values, student PDFs, credential
 ## Acceptance record
 
 Return HELPER-RESULT.md with changed files, implemented versus incomplete scope, test outcomes, new limits/migrations, risks and manual checks. Completion requires supervising review and production testing; a helper's success claim alone is insufficient.
+
+## Work Journal — October 28 reviewed release
+
+OpenCode's draft was independently reviewed, repaired and deployed. The new Journal connects a resumable focus session, reviewed work logs (text/code, TXT/MD and PNG/JPEG/WebP) and a saved next step. NVIDIA Lightning and Super VL analyse the submission; students confirm what to save. Visible artifacts, student explanations and model feedback stay separate. This records submitted evidence, not verified authorship, execution or mastery. Recent saved work informs Pip and planning; deletion removes it from future journal context.
+
+Validation: TypeScript and 169/169 Linux tests passed, along with the inactive production build. Public synthetic image and text workflows passed using actual NVIDIA inference, including cross-user refusal, field-tampering refusal, original-text preservation, duplicate-safe save/close, pause/resume, export and deletion. Production Journal UI was inspected. Backup/restore attachment tests pass. See WORK-JOURNAL.md for limits and remaining evaluation. Broad teaching accuracy, real student engagement, handwriting and all diagrams remain unproven; final submission/demo preparation remains.

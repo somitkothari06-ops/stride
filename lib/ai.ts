@@ -45,7 +45,7 @@ export async function model<T>(
   if (!providerStatus().nebius) throw new Error("MODEL_UNAVAILABLE");
   const selectedModel=options.images?.length?process.env.NEBIUS_MODEL_VISION:process.env.NEBIUS_MODEL_FAST;
   if(!selectedModel)throw new Error("VISION_NOT_CONFIGURED");
-  if(options.images&&(options.images.length>5||options.images.some(image=>!image.startsWith("data:image/png;base64,")||image.length>5000000)))throw new Error("INVALID_REQUEST");
+  if(options.images&&(options.images.length>5||options.images.some(image=>!/^data:image\/(png|jpeg|webp);base64,/.test(image)||image.length>5000000)))throw new Error("INVALID_REQUEST");
   consumeAllowance(session);
   const configId = currentConfigId(selectedModel)!;
   const messages=modelMessages(task,data,options.history);

@@ -99,7 +99,7 @@ test("full backup restores an independent database and original PDF privately", 
     const encrypted = join(output, "full.backup");
     const restored = join(output, "restored");
     assert.deepEqual(createFullBackup(data, key, encrypted), {
-      status: "complete", sessions: 1, documents: 1, bytes: statSync(encrypted).size,
+      status: "complete", sessions: 1, documents: 1, attachments: 0, bytes: statSync(encrypted).size,
     });
     assert.equal(statSync(key).mode & 0o777, 0o600);
     assert.equal(statSync(encrypted).mode & 0o777, 0o600);

@@ -2,6 +2,8 @@ import { z } from "zod";
 import type { Appearance } from "./themes";
 import type { CourseMaterial, CourseExcerpt } from "./course-types";
 import { LifeContextSchema, type LifeContext } from "./personal-context";
+import type { EvidenceEntry } from "./evidence";
+import type { Continuation, FocusSession } from "./focus-session";
 
 export const IntakeSchema = z.object({
   title: z.string().min(1).max(160),
@@ -78,13 +80,14 @@ export type Direction = {
   mode: Mode;
   updatedAt: string;
 };
-export type PipSource = { id: string; title: string; url?: string; locator?: string; excerpt: string };
+export type PipSource = { originId?:string; id: string; title: string; url?: string; locator?: string; excerpt: string };
 export type PipMessage = { id: string; turnId: string; role: "user" | "assistant"; text: string; createdAt: string; intent?: "talk" | "teach" | "search"; sources?: PipSource[]; searchStatus?: "used" | "unavailable" };
 export type PipChat = { version: number; messages: PipMessage[] };
 export type PipThread = {id:string;title:string;createdAt:string;updatedAt:string;titleMode?:"auto"|"manual";titledVersion?:number;chat:PipChat};
 export type PipThreads = {revision:number;activeId:string;items:PipThread[]};
 export type PipThreadSummary = {id:string;title:string;updatedAt:string;messageCount:number;needsTitle:boolean};
 export type PipSnapshot = {chat:PipChat;threadId:string;threadRevision:number;threads:PipThreadSummary[]};
+export type EvidenceJournal = { entries: EvidenceEntry[] };
 export type Workspace = {
   pipChat?: PipChat;
   pipThreads?: PipThreads;
@@ -93,6 +96,9 @@ export type Workspace = {
   appearance?: Appearance;
   dailyPreferences?: {enabled:boolean;hour:number;version:number};
   preferencesVersion?: number;
+  evidence?: EvidenceJournal;
+  focus?: FocusSession | null;
+  returnCard?: Continuation | null;
   version: 1;
   revision: number;
   sample: boolean;

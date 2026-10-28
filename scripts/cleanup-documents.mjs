@@ -6,11 +6,13 @@ import { pathToFileURL } from "node:url";
 const MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const UUID_FILE = /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\.pdf$/;
 const UUID = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+const EVIDENCE_FILE = /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\.([a-z0-9]{1,8})$/;
 
 function referencedDocuments(databasePath) {
   const database = new DatabaseSync(resolve(databasePath), { readOnly: true });
   try {
     const keys = new Set();
+    const evidence = new Set();
     for (const row of database.prepare("SELECT state FROM sessions").iterate()) {
       if (typeof row.state !== "string") throw new Error("Invalid workspace state");
       let state;
@@ -18,18 +20,39 @@ function referencedDocuments(databasePath) {
       if (!state || typeof state !== "object" || Array.isArray(state))
         throw new Error("Invalid workspace state");
       const materials = state.materials;
-      if (materials === undefined) continue;
-      if (!Array.isArray(materials)) throw new Error("Invalid materials list");
-      for (const material of materials) {
-        if (!material || typeof material !== "object" || Array.isArray(material))
-          throw new Error("Invalid material");
-        if (material.storageKey === undefined) continue;
-        if (typeof material.storageKey !== "string" || !UUID.test(material.storageKey))
-          throw new Error("Invalid document reference");
-        keys.add(material.storageKey.toLowerCase());
+      if (materials !== undefined) {
+        if (!Array.isArray(materials)) throw new Error("Invalid materials list");
+        for (const material of materials) {
+          if (!material || typeof material !== "object" || Array.isArray(material))
+            throw new Error("Invalid material");
+          if (material.storageKey === undefined) continue;
+          if (typeof material.storageKey !== "string" || !UUID.test(material.storageKey))
+            throw new Error("Invalid document reference");
+          keys.add(material.storageKey.toLowerCase());
+        }
+      }
+      const entries = state.evidence?.entries;
+      if (entries !== undefined) {
+        if (!Array.isArray(entries)) throw new Error("Invalid evidence journal");
+        for (const entry of entries) {
+          if (!entry || typeof entry !== "object" || Array.isArray(entry))
+            throw new Error("Invalid evidence entry");
+          const attachments = entry.observed?.attachments;
+          if (attachments === undefined) continue;
+          if (!Array.isArray(attachments)) throw new Error("Invalid attachment list");
+          for (const attachment of attachments) {
+            if (!attachment || typeof attachment !== "object" || Array.isArray(attachment))
+              throw new Error("Invalid attachment");
+            if (typeof attachment.key !== "string" || !UUID.test(attachment.key))
+              throw new Error("Invalid attachment reference");
+            if (typeof attachment.extension !== "string" || !/^[a-z0-9]{1,8}$/.test(attachment.extension))
+              throw new Error("Invalid attachment reference");
+            evidence.add(`${attachment.key.toLowerCase()}.${attachment.extension}`);
+          }
+        }
       }
     }
-    return keys;
+    return { keys, evidence };
   } finally {
     database.close();
   }
@@ -47,24 +70,42 @@ export function cleanupDocuments(dataDir, options = {}) {
   const now = clock instanceof Date ? clock.getTime() : clock;
   if (!Number.isFinite(now)) throw new Error("Invalid cleanup time");
   const directory = resolve(dataDir || process.env.STRIDE_DATA_DIR || join(process.cwd(), ".data"));
-  const referenced = referencedDocuments(join(directory, "stride.sqlite"));
+  const references = referencedDocuments(join(directory, "stride.sqlite"));
+  const referenced = references.keys;
   const documentsDirectory = join(directory, "documents");
+  const evidenceDirectory = join(directory, "evidence");
 
-  const directoryInfo = lstatSync(documentsDirectory, { throwIfNoEntry: false });
-  if (!directoryInfo)
-    return { apply, dryRun: !apply, scanned: 0, referenced: referenced.size, candidates: 0, removed: 0 };
-  if (directoryInfo.isSymbolicLink() || !directoryInfo.isDirectory())
-    throw new Error("Document directory is not a private directory");
-  let entries;
-  try { entries = readdirSync(documentsDirectory, { withFileTypes: true }); }
-  catch { throw new Error("Document directory is unavailable"); }
+  const collect = (path) => {
+    const info = lstatSync(path, { throwIfNoEntry: false });
+    if (!info) return [];
+    if (info.isSymbolicLink() || !info.isDirectory())
+      throw new Error("Data directory is not a private directory");
+    try { return readdirSync(path, { withFileTypes: true }); }
+    catch { throw new Error("Data directory is unavailable"); }
+  };
 
   const cutoff = now - MAX_AGE_MS;
   const candidates = [];
-  for (const entry of entries) {
+  let scanned = 0;
+
+  const documentsInfo = collect(documentsDirectory);
+  scanned += documentsInfo.length;
+  for (const entry of documentsInfo) {
     const match = UUID_FILE.exec(entry.name);
     if (!match || !entry.isFile() || referenced.has(match[1].toLowerCase())) continue;
     const path = join(documentsDirectory, entry.name);
+    const info = lstatSync(path);
+    if (info.isSymbolicLink() || !info.isFile()) continue;
+    if (info.mtimeMs >= cutoff) continue;
+    candidates.push(path);
+  }
+
+  const evidenceInfo = collect(evidenceDirectory);
+  scanned += evidenceInfo.length;
+  for (const entry of evidenceInfo) {
+    const match = EVIDENCE_FILE.exec(entry.name);
+    if (!match || !entry.isFile() || references.evidence.has(`${match[1].toLowerCase()}.${match[2]}`)) continue;
+    const path = join(evidenceDirectory, entry.name);
     const info = lstatSync(path);
     if (info.isSymbolicLink() || !info.isFile()) continue;
     if (info.mtimeMs >= cutoff) continue;
@@ -81,8 +122,8 @@ export function cleanupDocuments(dataDir, options = {}) {
   return {
     apply,
     dryRun: !apply,
-    scanned: entries.length,
-    referenced: referenced.size,
+    scanned,
+    referenced: referenced.size + references.evidence.size,
     candidates: candidates.length,
     removed,
   };

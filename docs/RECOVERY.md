@@ -76,3 +76,7 @@ The Devlab's `stride-backup.timer` runs hourly, and `stride-backup-export.sh` st
 ### Inactive release builds
 
 Run `sh scripts/build-release.sh` inside the app with the configured Node on PATH, then restart `stride.service`. The build selects the inactive `.next-a` or `.next-b` directory and only updates `.runtime/next-dist` after success. It preserves older static chunk URLs for already-open tabs. Check public health and the changed workflows after restart. To roll back, restore the validated directory name from `.runtime/previous-dist` into `.runtime/next-dist` and restart the service. Do not run a second build until activation/rollback is finished. A service restart can still interrupt an in-flight request; this is not a rolling multi-instance deployment.
+
+### Journal files
+
+Full backup format 2 adds private evidence/ attachments referenced by confirmed journal records. Format 1 archives remain readable. Pending evidence reviews are cleared on restore, and unreferenced uploads use the 24-hour cleanup grace period. Journal JSON exports include metadata, not attachment bytes; download original files separately or use the encrypted full backup for full recovery.
