@@ -4,6 +4,7 @@ import { body, checkOrigin, failure, requireSession } from "@/lib/http";
 import { getState } from "@/lib/store";
 import { model, providerStatus } from "@/lib/ai";
 import { checkCaptureEvidence, conservativeCapture, createCaptureReview, commitCapture, ProposalsSchema, type Proposal } from "@/lib/companion";
+import {calendarContext,groundDeadline} from "@/lib/calendar";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 const Input = z.discriminatedUnion("action",[
@@ -29,6 +30,9 @@ export async function POST(request: Request) {
         if (!(error instanceof Error) || !["MODEL_UNAVAILABLE","DAILY_LIMIT","CAPTURE_EVIDENCE_INVALID"].includes(error.message)) throw error;
       }
     }
+    const clock=calendarContext(state.profile.timezone);
+    const workCount=proposals.filter(p=>p.destination==="work").length;
+    proposals=proposals.map(p=>{if(p.destination!=="work")return p;const source=workCount===1?input.text:input.text.split(/[.!?\n]/).find(s=>s.includes(p.evidence))||p.evidence;return groundDeadline(p,source,clock);});
     if (getState(id)?.revision !== state.revision) throw new Error("CAPTURE_STALE");
     return NextResponse.json({ review: createCaptureReview(id,state.revision,input.text,proposals,mode) },{headers:{"Cache-Control":"no-store"}});
   } catch (error) { return failure(error); }

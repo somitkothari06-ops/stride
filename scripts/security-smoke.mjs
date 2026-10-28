@@ -7,7 +7,7 @@ for(const path of routes){
   assert.equal(response.status,403,`${path}: ${origin||'missing origin'}`);
  }
 }
-for(const origin of [undefined,'null','https://untrusted.example',base.replace('https:','http:')]){const r=await fetch(base+'/api/preferences',{method:'PUT',headers:{'Content-Type':'application/json',...(origin?{Origin:origin}:{})},body:'{}'});assert.equal(r.status,403);}
+for(const path of ['/api/preferences','/api/daily-preparation'])for(const origin of [undefined,'null','https://untrusted.example',base.replace('https:','http:')]){const r=await fetch(base+path,{method:'PUT',headers:{'Content-Type':'application/json',...(origin?{Origin:origin}:{})},body:'{}'});assert.equal(r.status,403);}
 for(const path of ['/.env.local' ,'/.data/stride.sqlite','/.backups/','/lib/auth.ts']) assert.equal((await fetch(base+path)).status,404,path);
 const revoked=await fetch(base+'/api/account',{method:'POST',headers:{Origin:base,'Content-Type':'application/json',Cookie:'stride_account='+'a'.repeat(64)},body:JSON.stringify({action:'signout'})});
 assert.equal(revoked.status,200);const clear=revoked.headers.getSetCookie();for(const name of ['stride_account','stride_session','stride_oauth'])assert.ok(clear.some(value=>value.startsWith(name+'=')&&/Max-Age=0/i.test(value)));

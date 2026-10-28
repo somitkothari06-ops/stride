@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import {allowGuest} from "@/lib/client-limits";
 import { createSession } from "@/lib/store";
 import { failure, requireSession } from "@/lib/http";
 import { workspaceView } from "@/lib/workspace-view";
@@ -12,6 +13,7 @@ export async function GET(request: Request) {
       session = await requireSession();
     } catch (error) {
       if (!(error instanceof Error) || error.message !== "SESSION_EXPIRED") throw error;
+      allowGuest(request);
       session = createSession(new URL(request.url).searchParams.get("demo") === "1");
     }
     const query=new URL(request.url).searchParams;

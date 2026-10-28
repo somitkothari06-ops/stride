@@ -31,6 +31,10 @@ case "${1:-start}" in
       exit 1
     fi
     cd "$APP_DIR"
+    if [ -f "$PID_DIR/next-dist" ]; then
+      read -r STRIDE_NEXT_DIST_DIR < "$PID_DIR/next-dist"
+      case "$STRIDE_NEXT_DIST_DIR" in .next|.next-a|.next-b) export STRIDE_NEXT_DIST_DIR ;; *) echo 'Invalid release directory.' >&2; exit 1 ;; esac
+    fi
     printf '%s %s %s\n' "$$" "$(start_stamp "$$")" "$(cat /proc/sys/kernel/random/boot_id)" > "$PID_FILE"
     exec "${STRIDE_NODE:-node}" "${STRIDE_SERVER_ENTRY:-$APP_DIR/node_modules/next/dist/bin/next}" start --hostname 0.0.0.0 --port "${PORT:-3000}"
     ;;

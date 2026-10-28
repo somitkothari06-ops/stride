@@ -1,0 +1,4 @@
+import{NextResponse}from"next/server";import{z}from"zod";import{requireSession,checkOrigin,body,failure}from"@/lib/http";import{dailySnapshot,saveDaily}from"@/lib/daily-preparation";
+export const runtime="nodejs";const headers={"Cache-Control":"no-store"};
+export async function GET(){try{const s=await requireSession();return NextResponse.json({...dailySnapshot(s.id,s.state),signedIn:!!s.account},{headers});}catch(e){return failure(e);}}
+export async function PUT(r:Request){try{checkOrigin(r);const s=await requireSession();if(!s.account)return NextResponse.json({error:{message:"Sign in to set up daily preparation."}},{status:403,headers});const i=z.object({enabled:z.boolean(),hour:z.number().int().min(0).max(23),version:z.number().int().nonnegative()}).strict().parse(await body(r,2000));const state=saveDaily(s.id,i.enabled,i.hour,i.version);return NextResponse.json({...dailySnapshot(s.id,state),signedIn:true},{headers});}catch(e){return failure(e);}}

@@ -78,3 +78,4 @@ test("a long story addition is preserved rather than silently truncated",()=>{
   const review=createCaptureReview(a.id,a.state.revision,words,items,"guided");
   assert.equal(commitCapture(a.id,review.id,items).profile.lifeContext?.story,words.trim());
 });
+test('reviewed edits remain allowed but invented or duplicated source spans are rejected',()=>{const a=createSession(false),r=createCaptureReview(a.id,a.state.revision,source,proposals,'live');assert.throws(()=>commitCapture(a.id,r.id,[{...proposals[0],evidence:'I'}]as Proposal[]),/CAPTURE_EVIDENCE_INVALID/);assert.throws(()=>commitCapture(a.id,r.id,[proposals[0],proposals[0]]),/CAPTURE_EVIDENCE_INVALID/);const saved=commitCapture(a.id,r.id,[{...proposals[0],title:'My edited exam'}]as Proposal[]);assert.equal(saved.works[0].title,'My edited exam');});

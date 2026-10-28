@@ -1,0 +1,10 @@
+[Unit]
+Description=Encrypted Stride workspace and PDF backup
+After=docker.service stride.service
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/stride/devlab.env
+ExecStart=/usr/bin/docker exec --user coder --workdir /home/coder/stride ${STRIDE_CONTAINER} /home/coder/.local/node/bin/node --env-file=.env.local scripts/operations-backup.mjs
+ExecStartPost=/usr/local/sbin/stride-backup-export.sh
+TimeoutStartSec=300
+Nice=15

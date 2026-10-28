@@ -59,12 +59,15 @@ export function commitCapture(session: string, reviewId: string, proposed: Propo
   const proposals = ProposalsSchema.parse(proposed), connection = database();
   connection.exec("BEGIN IMMEDIATE");
   try {
-    const row = connection.prepare("SELECT * FROM companion_reviews WHERE id=? AND session=?").get(reviewId,session) as { source: string; revision: number; expires: number; committed: number } | undefined;
+    const row = connection.prepare("SELECT * FROM companion_reviews WHERE id=? AND session=?").get(reviewId,session) as { source: string; payload:string; revision: number; expires: number; committed: number } | undefined;
     if (!row || row.expires <= Date.now()) throw new Error("CAPTURE_EXPIRED");
     const state = getState(session);
     if (!state) throw new Error("SESSION_EXPIRED");
     if (!row.committed) {
       if (state.revision !== row.revision) throw new Error("CAPTURE_STALE");
+      const remaining=ProposalsSchema.parse(JSON.parse(row.payload));
+      for(const proposal of proposals){const index=remaining.findIndex(original=>original.evidence===proposal.evidence);if(index<0)throw Error("CAPTURE_EVIDENCE_INVALID");remaining.splice(index,1);}
+      // Destinations and fields stay editable; original source spans cannot be invented or duplicated.
       checkCaptureEvidence(row.source, proposals);
       applyCapture(state, proposals, row.source);
       connection.prepare("UPDATE sessions SET state=?,updated=? WHERE id=?").run(JSON.stringify(state),new Date().toISOString(),session);

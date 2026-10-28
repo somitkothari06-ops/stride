@@ -1,0 +1,11 @@
+[Unit]
+Description=Restrict direct public access to the Stride development editor
+After=docker.service network-online.target
+Requires=docker.service
+PartOf=docker.service
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/stride-editor-ingress.sh apply
+[Install]
+WantedBy=multi-user.target docker.service

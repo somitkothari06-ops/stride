@@ -47,3 +47,9 @@ Use read-only reviews, test matrices, documentation drafts and small isolated pa
 Free model requests go to external services. Their retention/training policies differ. OpenCode currently documents zero retention/no training for DeepSeek and GLM free providers; NVIDIA free endpoints are trial use and exclude confidential/personal inputs. Free availability is temporary and rate-limited. See [current free-model pricing and privacy](https://opencode.ai/v2/docs/console/models/).
 
 OpenCode helper inference does not draw from Codex's model allowance, but this supervising conversation still does. Savings depend on keeping tasks narrow and reading concise results. Stride's student-facing runtime continues using NVIDIA through Nebius Token Factory; helper models do not replace that integration.
+
+## 28 October release work
+
+OpenCode free GLM implemented a reviewed button-style patch in a disposable source copy. DeepSeek free implemented full encrypted database/PDF backup and recovery tests; independent validation caught and fixed a large-base64 validator failure. Three further free DeepSeek/GLM audits reviewed AI behavior, user flows and operations. A final DeepSeek review examines settings merging and transport recovery. Static findings are not production evidence; RELEASE-AUDIT.md records accepted fixes and practical limits.
+
+KiroCrew's installed adapter was inspected and is Codex-backed here. It therefore does not provide a separate free inference allowance. Heavy follow-up review work goes to OpenCode instead. No private keys, student PDF content or account workspace records were intentionally included in helper tasks.

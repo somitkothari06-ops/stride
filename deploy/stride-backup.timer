@@ -1,0 +1,9 @@
+[Unit]
+Description=Back up Stride every hour
+[Timer]
+OnCalendar=hourly
+Persistent=true
+RandomizedDelaySec=60
+Unit=stride-backup.service
+[Install]
+WantedBy=timers.target

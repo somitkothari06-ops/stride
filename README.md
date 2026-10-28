@@ -6,6 +6,12 @@ A personal workspace for second- and third-year CS/engineering students: decide 
 
 **Status: working hackathon preview.** The app runs on an existing Nebius Devlab. Live NVIDIA inference is configured and verified on the team Devlab; other checkouts need their own private key. Tavily live source retrieval is configured and verified on the team Devlab. AI comparison can fall back to clearly labelled source-only results. This is not yet the final submission or a public production service.
 
+## Current NVIDIA × Nebius runtime
+
+Stride uses NVIDIA Nemotron Lightning for text tasks and Nemotron Super VL for selected PDF-page images through Nebius Token Factory. The application and private workspace storage run on the existing Nebius Devlab. See [runtime evidence and honest limitations](docs/NVIDIA-NEBIUS.md).
+
+New: 21 themes with four coordinated button styles, a dedicated document study room, full encrypted database/PDF backups and optional closed-browser daily preparation. Social sign-in does not grant Gmail or Drive access.
+
 ## Working in this milestone
 
 - A Signal-style landing page at `/`, optional personal-story setup at `/about-you`, and the study app at `/workspace`.
@@ -34,7 +40,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Open the URL printed by Next.js (normally port 3000). You can try the clearly labeled sample workspace at `/workspace` with no keys. `Start fresh` clears the disposable records in the current browser session. Keep private student material out of shared/demo sessions.
+Open the URL printed by Next.js (normally port 3000). You can open an empty guest workspace at `/workspace` with no keys; use `/workspace?demo=1` in a fresh browser session for sample coursework. `Start fresh` clears the disposable records in the current browser session. Keep private student material out of shared/demo sessions.
 
 For a production build:
 

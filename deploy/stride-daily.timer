@@ -1,0 +1,9 @@
+[Unit]
+Description=Check opted-in Stride plans every five minutes
+[Timer]
+OnCalendar=*:0/5
+Persistent=true
+RandomizedDelaySec=15
+Unit=stride-daily.service
+[Install]
+WantedBy=timers.target

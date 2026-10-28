@@ -1,0 +1,9 @@
+[Unit]
+Description=Prepare opted-in Stride daily study plans
+After=docker.service stride.service
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/stride/devlab.env
+ExecStart=/usr/bin/docker exec --user coder --workdir /home/coder/stride ${STRIDE_CONTAINER} /home/coder/.local/node/bin/node --env-file=.env.local --import tsx scripts/daily-preparation.ts --allow-live
+TimeoutStartSec=600
+Nice=10

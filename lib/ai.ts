@@ -50,6 +50,7 @@ export async function model<T>(
   const configId = currentConfigId(selectedModel)!;
   const messages=modelMessages(task,data,options.history);
   const requestMessages=options.images?.length?messages.map((message,index)=>index===messages.length-1?{...message,content:[{type:"text",text:message.content},...options.images!.map(url=>({type:"image_url",image_url:{url}}))]}:message):messages;
+  let transportSucceeded=false;
   try {
     const response = await fetch(
       `${(process.env.NEBIUS_BASE_URL || "https://api.tokenfactory.nebius.com/v1").replace(/\/$/, "")}/chat/completions`,
@@ -74,6 +75,7 @@ export async function model<T>(
       console.warn("Stride inference rejected", { status: response.status });
       throw new Error("MODEL_UNAVAILABLE");
     }
+    transportSucceeded=true;
     const result = await response.json();
     if (result.choices?.[0]?.finish_reason === "length") {
       console.warn("Stride inference truncated", {
@@ -98,7 +100,7 @@ export async function model<T>(
     recordProviderCheck(configId, true);
     return validated.data;
   } catch {
-    recordProviderCheck(configId, false);
+    if(!transportSucceeded)recordProviderCheck(configId, false);
     throw new Error("MODEL_UNAVAILABLE");
   }
 }

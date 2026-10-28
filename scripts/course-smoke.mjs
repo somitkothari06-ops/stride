@@ -32,7 +32,8 @@ assert.equal((await request("/api/materials", "PUT", extracted.data)).data.state
 const crossOrigin = await fetch(`${base}/api/materials`, { method: "PUT", headers: { Cookie: a.cookie, Origin: "https://unrelated.invalid", "Content-Type": "application/json" }, body: JSON.stringify(extracted.data) });
 assert.equal(crossOrigin.status, 403);
 if (process.argv.includes("--allow-live")) {
-  const work = confirmed.data.state.works.find((w) => w.subject === "Database systems");
+  const added=await request("/api/action","POST",{action:"add",work:{title:"Explain a SQL join",subject:"Database systems",kind:"assignment",dueDate:null,summary:"Explain row preservation and NULL in a LEFT JOIN.",uncertainty:"",source:"Synthetic assignment",sourceType:"Assignment"}});assert.equal(added.status,200);
+  const work = added.data.state.works.find((w) => w.subject === "Database systems");
   const prepared = await request("/api/action", "POST", { action: "prepare", id: work.id });
   assert.equal(prepared.status, 200, JSON.stringify(prepared.data));
   assert.ok(prepared.data.state.prepared.courseSources.length, "relevant confirmed course source should be referenced");

@@ -1,0 +1,2 @@
+import test from'node:test';import assert from'node:assert/strict';import{acquireUpload}from'../lib/upload-guard';
+test('uploads bound concurrent parser work, release once and limit repeated previews',()=>{const a=acquireUpload('synthetic-a',0),b=acquireUpload('synthetic-b',0);assert.throws(()=>acquireUpload('synthetic-c',0),/UPLOAD_BUSY/);a();a();const c=acquireUpload('synthetic-c',0);b();c();for(let i=0;i<5;i++)acquireUpload('synthetic-a',0)();assert.throws(()=>acquireUpload('synthetic-a',0),/UPLOAD_RATE_LIMIT/);acquireUpload('synthetic-a',600001)();});

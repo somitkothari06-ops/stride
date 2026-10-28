@@ -1,4 +1,5 @@
 "use client";
+import { connectionMessage } from "@/lib/client-request";
 import SignOut from "./sign-out";
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
@@ -87,13 +88,17 @@ export default function WorkspaceApp() {
   const [toast, setToast] = useState("");
   const [selectedId, setSelectedId] = useState("");
   const [source, setSource] = useState("");
-  const [sourceType, setSourceType] = useState("Class notes");
+  const [sourceType, setSourceType] = useState("My own words");
+  const [messageDate,setMessageDate]=useState("");
   const [candidate, setCandidate] = useState<Candidate | null>(null);
   const [answer, setAnswer] = useState("");
+  const answerDrafts=useRef<Record<string,string>>({});
   const [role, setRole] = useState("");
   const [mobileNav, setMobileNav] = useState(false);
   const [checkedSteps, setCheckedSteps] = useState<number[]>([]);
   const dialogRef = useRef<HTMLElement>(null);
+  const entryHandled=useRef(false);
+  useEffect(()=>{if(!state||entryHandled.current)return;entryHandled.current=true;if(new URLSearchParams(window.location.search).get("open")==="course")setModal("course");},[state]);
 
   useEffect(()=>{const tab=new URLSearchParams(window.location.search).get("view");if(tab&&["today","work","memory","direction"].includes(tab))setView(tab as View);},[]);
   useEffect(() => { setCheckedSteps([]); }, [selectedId, state?.prepared]);
@@ -138,7 +143,7 @@ export default function WorkspaceApp() {
       setProviders(data.providers);
       setAccount(data.account || null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't connect.");
+      setError(connectionMessage(e, "Couldn’t connect to your workspace. Please try again."));
     }
   }, []);
   useEffect(() => {
@@ -190,15 +195,25 @@ export default function WorkspaceApp() {
       setProviders(data.providers);
       return data.state;
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't connect.");
+      // A response can be lost after a plan was saved. Recover it without submitting twice.
+      if ((payload as {action?:string}).action === "plan" && (e instanceof TypeError || e instanceof SyntaxError)) {
+        try {
+          const recovered = await fetch("/api/workspace", {cache:"no-store"});
+          if (recovered.ok) {
+            const data = await recovered.json();
+            if (data.state?.plan && data.state.plan.id !== state?.plan?.id) {
+              setState(data.state); setProviders(data.providers); setToast("Showing your latest saved plan."); return data.state;
+            }
+          }
+        } catch { /* Keep the existing plan and offer a clear retry. */ }
+      }
+      setError(connectionMessage(e, "The connection dropped before we could confirm that. Your saved work is safe. Please try again."));
       return null;
     } finally {
       setBusy("");
     }
   }
   function openAdd() {
-    setCandidate(null);
-    setSource("");
     setModal("add");
   }
   async function extract(e: FormEvent) {
@@ -212,7 +227,7 @@ export default function WorkspaceApp() {
       const response = await fetch("/api/intake", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ source: text }),
+        body: JSON.stringify({ source: text,sourceType:type,...(messageDate&&!["My own words","Voice capture"].includes(type)?{messageDate}:{}) }),
       });
       const data = await response.json();
       if (!response.ok)
@@ -232,18 +247,18 @@ export default function WorkspaceApp() {
       "Saving confirmed work",
     );
     if (result) {
+      setCandidate(null);setSource("");setMessageDate("");setSourceType("My own words");
       setModal(null);
       setToast("Work saved. Refresh your next step when you're ready.");
     }
   }
   async function start(workId: string) {
-    setSelectedId(workId);
-    setAnswer("");
-    setView("work");
-    await act(
-      { action: "prepare", id: workId },
-      "Preparing a focused practice session",
-    );
+    if(selectedId)answerDrafts.current[selectedId]=answer;
+    const previous=answerDrafts.current[workId]||"";
+    if(previous.trim()&&!window.confirm("Prepare a new session? Your unsaved answer will be cleared only if it succeeds."))return;
+    setSelectedId(workId);setAnswer(previous);setView("work");
+    const result=await act({action:"prepare",id:workId},"Preparing a focused practice session");
+    if(result){delete answerDrafts.current[workId];setAnswer("");}
   }
   async function exportData() {
     if (!state) return;
@@ -303,9 +318,8 @@ export default function WorkspaceApp() {
           aria-current={view === "work" && selected?.id === w.id ? "true" : undefined}
           key={w.id}
           onClick={() => {
-            setSelectedId(w.id);
-            setView("work");
-            setAnswer("");
+            if(selectedId)answerDrafts.current[selectedId]=answer;
+            setSelectedId(w.id);setView("work");setAnswer(answerDrafts.current[w.id]||"");
           }}
         >
           <span className={`work-icon ${w.kind}`}>
@@ -1150,9 +1164,10 @@ export default function WorkspaceApp() {
       <nav className="mobile-tabs" aria-label="Mobile navigation">
         {navigation.map((n) => <button key={n.id} aria-current={view === n.id ? "page" : undefined} onClick={() => go(n.id)}><n.icon size={20} /><span>{n.name}</span></button>)}
       <button onClick={()=>launchPipChat()}><MessageCircle size={20}/><span>Pip</span></button></nav>
-      {modal && (
-        <div
+      <div
           className="modal-overlay"
+          style={{display:modal?undefined:"none"}}
+          aria-hidden={!modal}
           onClick={(e) => {
             if (e.target === e.currentTarget && !busy) setModal(null);
           }}
@@ -1203,7 +1218,7 @@ export default function WorkspaceApp() {
                 {busy}…
               </div>
             )}
-            {modal === "course" && <CourseLibrary state={state} onState={setState} />}
+            <div style={{display:modal==="course"?undefined:"none"}}><CourseLibrary state={state} onState={setState}/></div>
             {modal === "add" &&
               (!candidate ? (
                 <form onSubmit={extract}>
@@ -1215,9 +1230,10 @@ export default function WorkspaceApp() {
                   <select
                     id="sourceType"
                     value={sourceType}
-                    onChange={(e) => setSourceType(e.target.value)}
+                    onChange={(e) => {setSourceType(e.target.value);setMessageDate("");}}
                   >
                     {[
+                      "My own words",
                       "Class notes",
                       "WhatsApp",
                       "Email",
@@ -1228,6 +1244,7 @@ export default function WorkspaceApp() {
                       <option key={s}>{s}</option>
                     ))}
                   </select>
+                  {!["My own words","Voice capture"].includes(sourceType)&&<><label htmlFor="source-message-date">Original message date <small>(if it says tomorrow or a weekday)</small></label><input id="source-message-date" type="date" value={messageDate} onChange={e=>setMessageDate(e.target.value)}/></>}
                   <label htmlFor="source">Your work or notice</label>
                   <textarea
                     id="source"
@@ -1522,7 +1539,6 @@ export default function WorkspaceApp() {
             )}
           </section>
         </div>
-      )}
       {toast && (
         <div className="toast" role="status">
           <Check size={16} />

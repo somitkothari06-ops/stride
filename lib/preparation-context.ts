@@ -12,7 +12,7 @@ export function preparationContext(state: Workspace, work: Work, excerpts: Cours
     personalContext: personalContext(state.profile.lifeContext),
     availableMinutes: state.profile.minutes,
     previousAttempts: state.observations
-      .filter((observation) => observation.workId === work.id)
+      .filter((observation) => !observation.removed && observation.workId === work.id)
       .slice(-3)
       .map(({ answer, feedback }) => ({ answer, feedback })),
   };

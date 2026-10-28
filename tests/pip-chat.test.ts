@@ -131,3 +131,4 @@ test("normal workspace payload excludes chat transcripts while full export prese
  assert.equal(workspaceView(state,true).pipThreads?.items[0].chat.messages.length,2);
  assert.equal(chatState(state).messages.length,2);
 });
+test('single-term questions can retrieve a matching course page',()=>{const s=createSession(false).state;s.materials=[{id:'synthetic',title:'Notes',subject:'Databases',kind:'Lecture notes',filename:'notes.txt',addedAt:new Date().toISOString(),warnings:[],pages:[{locator:'Page 1',text:'SQL joins combine rows from two tables.'}]}];assert.equal(chatContext(s,'joins').sources.length,1);});

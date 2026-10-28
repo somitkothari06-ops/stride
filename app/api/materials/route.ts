@@ -7,6 +7,8 @@ import { extname, join } from "node:path";
 import { NextResponse } from "next/server";
 import { body, checkOrigin, failure, requireSession } from "@/lib/http";
 import { mutate } from "@/lib/store";
+import {clientBucket} from "@/lib/client-limits";
+import { acquireUpload } from "@/lib/upload-guard";
 import { retainPdf,removePdf } from "@/lib/document-files";
 import { MaterialSchema } from "@/lib/course-types";
 import { checkCourseDraft, sealCourseDraft } from "@/lib/course-draft";
@@ -16,11 +18,13 @@ export const maxDuration = 120;
 
 export async function POST(request: Request) {
   let directory: string | undefined;
+  let release: (()=>void)|undefined;
   try {
     checkOrigin(request);
     const { id } = await requireSession();
     const limit = 8 * 1024 * 1024 + 32768;
     if (Number(request.headers.get("content-length") || 0) > limit) throw new Error("INPUT_TOO_LARGE");
+    release=acquireUpload(id,Date.now(),clientBucket(request));
     const reader = request.body?.getReader();
     if (!reader) throw new Error("INVALID_REQUEST");
     let size = 0;
@@ -55,7 +59,7 @@ export async function POST(request: Request) {
     });
     return NextResponse.json({ candidate, ...sealCourseDraft(id, candidate) });
   } catch (error) { return failure(error); }
-  finally { if (directory) await rm(directory, { recursive: true, force: true }); }
+  finally { release?.(); if (directory) await rm(directory, { recursive: true, force: true }); }
 }
 
 export async function PUT(request: Request) {

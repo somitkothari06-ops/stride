@@ -6,7 +6,7 @@ test("the latest request follows separate historical user and assistant turns",(
  const turns=modelMessages("Reply in JSON",{latestMessage:"Explain a foreign key"},[{role:"user",content:"hello"},{role:"assistant",content:"Hi, how can I help?"}]);
  assert.deepEqual(turns.map(turn=>turn.role),["system","user","assistant","user"]);
  assert.equal(turns[1].content,"hello");assert.equal(turns[2].content,"Hi, how can I help?");
- assert.deepEqual(JSON.parse(turns.at(-1)!.content),{latestMessage:"Explain a foreign key"});
+ assert.ok(turns.at(-1)!.content.endsWith("Current student message — answer this, not an earlier turn:\nExplain a foreign key"));
 });
 test("model identity comes from configuration, without swallowing unrelated questions",()=>{
  assert.equal(modelIdentityReply("what model are you?","nvidia/test-model"),"I'm Pip, running on nvidia/test-model through Nebius Token Factory.");

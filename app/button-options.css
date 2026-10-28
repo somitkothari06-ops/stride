@@ -1,0 +1,16 @@
+/* Button colour styles: swatch picker, live sample and theme-thumbnail buttons. */
+.button-style-picker{margin-top:22px}
+.button-style-picker-heading h3{margin:0;font-size:15px}
+.button-style-picker-heading p{margin:4px 0 12px;font-size:13px;color:var(--theme-muted)}
+.button-style-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.button-style-option{display:flex;align-items:center;gap:8px;min-height:44px;padding:8px 10px;font:inherit;font-size:13px;font-weight:750;color:var(--theme-ink);background:var(--theme-surface);border:1px solid var(--theme-line);border-radius:10px;cursor:pointer}
+.button-style-option[aria-pressed=true]{outline:2px solid var(--theme-ink);outline-offset:2px}
+.button-style-option:disabled{cursor:default;opacity:.7}
+.button-style-swatch{display:inline-flex;align-items:center;justify-content:center;width:26px;height:20px;border-radius:5px;border:1px solid color-mix(in srgb,currentColor 25%,transparent);flex-shrink:0}
+.button-style-swatch i{display:block;width:13px;height:3px;border-radius:2px;background:currentColor}
+.button-style-option-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.button-style-option svg{margin-left:auto;flex-shrink:0}
+.button-sample{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+.theme-mini-grid b{display:flex;align-items:center;justify-content:center;width:24px;height:10px;border-radius:3px;padding:1px}
+.theme-mini-grid b i{display:block;width:12px;height:3px;border-radius:2px}
+@media(max-width:800px){.button-style-options{grid-template-columns:repeat(2,minmax(0,1fr))}}

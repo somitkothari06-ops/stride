@@ -24,3 +24,4 @@ test("practice source namespace is restricted to supplied excerpt IDs", () => {
   assert.equal(context.courseExcerpts[0].text, excerpt.text);
   assert.equal(JSON.stringify(context).includes("material-private-id"), false);
 });
+test('removed attempts are not sent to the teaching model',()=>{const state=initialWorkspace(true),work=state.works[0];state.observations=[{id:'removed',workId:work.id,title:'Removed',answer:'Private removed answer',feedback:'Removed feedback',method:'self-report',createdAt:new Date().toISOString(),removed:true}];assert.deepEqual(preparationContext(state,work,[]).previousAttempts,[]);});

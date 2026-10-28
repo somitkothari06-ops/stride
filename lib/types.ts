@@ -91,6 +91,7 @@ export type Workspace = {
   notes?: { id: string; text: string; createdAt: string }[];
   materials?: CourseMaterial[];
   appearance?: Appearance;
+  dailyPreferences?: {enabled:boolean;hour:number;version:number};
   preferencesVersion?: number;
   version: 1;
   revision: number;
@@ -123,6 +124,7 @@ export const ConfirmSchema = IntakeSchema.extend({
   dueDate: validDate.nullable(),
   source: z.string().min(1).max(12000),
   sourceType: z.enum([
+    "My own words",
     "Class notes",
     "WhatsApp",
     "Email",

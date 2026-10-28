@@ -5,14 +5,12 @@ import { body, checkOrigin, failure, requireSession } from "@/lib/http";
 import { ActionSchema, type Plan, type Prepared } from "@/lib/types";
 import { mutate } from "@/lib/store";
 import {
-  guidedPlan,
   guidedPreparation,
   initialWorkspace,
-  selectWork,
 } from "@/lib/planner";
 import { model, providerStatus, searchRoles } from "@/lib/ai";
 import { courseExcerpts } from "@/lib/course-types";
-import { personalContext } from "@/lib/personal-context";
+import { generateNextPlan } from "@/lib/next-plan";
 import { roleComparison } from "@/lib/role-comparison";
 import { preparationContext } from "@/lib/preparation-context";
 
@@ -22,7 +20,7 @@ export const maxDuration = 60;
 export async function POST(request: Request) {
   try {
     checkOrigin(request);
-    const { id, state } = await requireSession();
+    const { id, state,account } = await requireSession();
     const input = ActionSchema.parse(await body(request, 100000));
     const currentRevision = state.revision;
     const save = (change: Parameters<typeof mutate>[1]) =>
@@ -51,9 +49,10 @@ export async function POST(request: Request) {
         current.direction = null;
       });
     } else if (input.action === "reset") {
-      next = save((current) =>
-        Object.assign(current, initialWorkspace(input.sample), { notes: [] }),
-      );
+      next = save((current) => {const profile=current.profile,revision=current.revision+1;
+        Object.assign(current, initialWorkspace(input.sample), {notes:[],revision});
+        if(account)current.profile=profile;
+      });
     } else if (input.action === "profile") {
       next = save((current) => {
         current.profile = {
@@ -91,6 +90,7 @@ export async function POST(request: Request) {
           work.dueDate = input.dueDate;
         }
         if (input.action === "complete") work.completed = !work.completed;
+        if(current.prepared?.workId===input.id)current.prepared=null;
         if (input.action === "deleteWork") {
           current.works = current.works.filter((w) => w.id !== input.id);
           current.observations = current.observations.filter(
@@ -114,45 +114,7 @@ export async function POST(request: Request) {
         current.direction = null;
       });
     } else if (input.action === "plan") {
-      let plan = guidedPlan(state);
-      if (plan && providerStatus().nebius) {
-        const result = await model(
-          id,
-          'Prepare ONE feasible next action for the supplied priority work. Respect available time; urgent coursework overrides career extras. Return JSON with exactly these field types: title string, description string, minutes integer, reasons array of 1-4 short strings, sourceIds array of strings. Example shape: {"title":"Practise one join","description":"Use the supplied toy data","minutes":15,"reasons":["A confirmed deadline is near"],"sourceIds":[]}. minutes must fit availableMinutes. sourceIds may only use supplied IDs. Be concrete and concise.',
-          {
-            priorityWork: selectWork(state),
-            availableMinutes: state.profile.minutes,
-            goal: state.profile.goal,
-            personalContext: personalContext(state.profile.lifeContext),
-            observations: state.observations
-              .filter((o) => !o.removed)
-              .slice(-8),
-            validSourceIds: [
-              ...state.works.map((w) => w.id),
-              ...state.observations.map((o) => o.id),
-            ],
-          },
-          z.object({
-            title: z.string().min(1).max(180),
-            description: z.string().min(1).max(1000),
-            minutes: z.number().int().min(5).max(state.profile.minutes),
-            reasons: z.array(z.string().max(300)).min(1).max(4),
-            sourceIds: z.array(z.string()).max(10),
-          }),
-        );
-        const valid = new Set([
-          ...state.works.map((w) => w.id),
-          ...state.observations.map((o) => o.id),
-        ]);
-        if (result.sourceIds.some((s) => !valid.has(s)))
-          throw new Error("MODEL_UNAVAILABLE");
-        plan = {
-          ...plan,
-          ...result,
-          sourceIds: [...new Set([plan.workId, ...result.sourceIds])],
-          mode: "live",
-        } as Plan;
-      }
+      const plan = await generateNextPlan(id,state);
       next = save((current) => {
         current.plan = plan;
         current.notice = null;

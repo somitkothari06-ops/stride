@@ -26,3 +26,7 @@ This is a bounded application/source and live negative-path review, not an indep
 3. Add per-client ingress/upload throttling and a guest retention/cleanup policy. Global inference allowances bound AI spending but do not bound unlimited guest-record creation or parser concurrency.
 4. Add a nonce-based Content Security Policy and stronger document-parser isolation before accepting hostile files at scale. Current framing/type/referrer/HTTPS headers do not replace those controls.
 5. Complete email recovery, scheduled backups, audience-wide Google testing and independent student/device trials. AI output and prompt-injection resistance need ongoing evaluation even with evidence checks and reviewed writes.
+
+## 28 October audit update
+
+External direct editor access on TCP 8080 is now blocked on the current single-interface VM, while loopback editor access, SSH and app health were checked. Firewall rules persist across service stops; removal is an explicit manual rollback. Full encrypted backups now include retained original PDFs and are copied off-container and to the Mac. Restores clear authentication sessions and OAuth attempts, rotate anonymous IDs and disable daily generation. Rate limits bound anonymous workspace creation and upload parser concurrency; they are per-process and do not replace upstream abuse protection. Proxy access logs exclude request headers, URLs, client addresses and response headers. No private student document content was read during this audit.

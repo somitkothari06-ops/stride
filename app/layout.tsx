@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./signal.css";
 import "./themes.css";
+import "./button-options.css";
+import "./landing-refresh.css";
 import AppearanceProvider from "@/components/appearance-provider";
 import { themes, defaultAppearance } from "@/lib/themes";
 import Companion from "@/components/companion";
@@ -17,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head><script dangerouslySetInnerHTML={{__html:`(()=>{try{const all=${JSON.stringify(themes)},fallback=${JSON.stringify(defaultAppearance)},p=JSON.parse(localStorage.getItem('stride-appearance')||'null')||fallback;const t=Object.hasOwn(all,p.theme)?all[p.theme]:all.original;const h=document.documentElement;for(const [k,v]of Object.entries(t))if(k!=='name'&&k!=='note')h.style.setProperty('--theme-'+k,v);h.dataset.appearance=Object.hasOwn(all,p.theme)?p.theme:'original';h.dataset.textSize=p.textSize==='large'?'large':'standard';h.dataset.motion=p.motion==='reduced'?'reduced':'system';h.dataset.pattern=String(p.pattern!==false);}catch{}})();`}}/></head>
+      <head><script dangerouslySetInnerHTML={{__html:`(()=>{try{const all=${JSON.stringify(themes)},fallback=${JSON.stringify(defaultAppearance)},sources={theme:['cta','ctaInk'],bold:['ink','surface'],soft:['tint','ink'],focus:['hero','heroInk']},p=JSON.parse(localStorage.getItem('stride-appearance')||'null')||fallback;const t=Object.hasOwn(all,p.theme)?all[p.theme]:all.original;const bs=sources[p.buttonStyle]?p.buttonStyle:'theme';const pair=sources[bs];const h=document.documentElement;for(const [k,v]of Object.entries(t))if(k!=='name'&&k!=='note')h.style.setProperty('--theme-'+k,v);h.style.setProperty('--theme-cta',t[pair[0]]);h.style.setProperty('--theme-ctaInk',t[pair[1]]);h.dataset.appearance=Object.hasOwn(all,p.theme)?p.theme:'original';h.dataset.buttonStyle=bs;h.dataset.textSize=p.textSize==='large'?'large':'standard';h.dataset.motion=p.motion==='reduced'?'reduced':'system';h.dataset.pattern=String(p.pattern!==false);}catch{}})();`}}/></head>
       <body><AppearanceProvider>{children}<Companion/></AppearanceProvider></body>
     </html>
   );
