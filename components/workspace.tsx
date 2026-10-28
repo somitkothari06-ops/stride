@@ -1,6 +1,8 @@
 "use client";
 import { connectionMessage } from "@/lib/client-request";
 import SignOut from "./sign-out";
+import TimePocket from "./time-pocket";
+import SaveMoment from "./save-moment";
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import {
@@ -85,6 +87,7 @@ export default function WorkspaceApp() {
   const [view, setView] = useState<View>("today");
   const [modal, setModal] = useState<Modal>(null);
   const [busy, setBusy] = useState("");
+  const [saveSequence,setSaveSequence]=useState(0);
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
   const [selectedId, setSelectedId] = useState("");
@@ -194,18 +197,20 @@ export default function WorkspaceApp() {
         );
       setState(data.state);
       setProviders(data.providers);
+      if(["attempt","add","saveNote"].includes((payload as {action?:string}).action||""))setSaveSequence(n=>n+1);
       return data.state;
     } catch (e) {
       // A response can be lost after a plan was saved. Recover it without submitting twice.
-      if (["plan","direction","explainDirection"].includes((payload as {action?:string}).action||"") && (e instanceof TypeError || e instanceof SyntaxError)) {
+      if (["plan","direction","explainDirection","setTime"].includes((payload as {action?:string}).action||"") && (e instanceof TypeError || e instanceof SyntaxError)) {
         try {
           const recovered = await fetch("/api/workspace", {cache:"no-store"});
           if (recovered.ok) {
             const data = await recovered.json();
             const action=(payload as {action?:string}).action;
             const directionRecovered=action==="direction" ? data.state?.direction?.searchId && data.state.direction.searchId!==state?.direction?.searchId && data.state.direction.role===(payload as {role?:string}).role : action==="explainDirection" && data.state?.direction?.searchId===(payload as {searchId?:string}).searchId && !data.state.direction.explanationPending;
-            if (directionRecovered || action==="plan" && data.state?.plan && data.state.plan.id !== state?.plan?.id) {
-              setState(data.state); setProviders(data.providers); setToast(action==="plan"?"Showing your latest saved plan.":"Your search is ready."); return data.state;
+            const timeRecovered=action==="setTime" && data.state?.profile?.minutes===(payload as {minutes?:number}).minutes && (!data.state.plan || data.state.plan.minutes===(payload as {minutes?:number}).minutes && data.state.plan.contextRevision===data.state.revision);
+            if (timeRecovered || directionRecovered || action==="plan" && data.state?.plan && data.state.plan.id !== state?.plan?.id) {
+              setState(data.state); setProviders(data.providers); setToast(action==="plan"?"Showing your latest saved plan.":action==="setTime"?"Your time is updated.":"Your search is ready."); return data.state;
             }
           }
         } catch { /* Keep the existing plan and offer a clear retry. */ }
@@ -356,7 +361,7 @@ export default function WorkspaceApp() {
     );
 
   return (
-    <div className="app-shell">
+    <div className="app-shell"><SaveMoment sequence={saveSequence}/>
       <a className="skip-link" href="#main-content">Skip to workspace</a>
       {mobileNav && <button className="nav-scrim" aria-label="Close navigation" onClick={() => setMobileNav(false)} />}
       <aside className={`sidebar ${mobileNav ? "mobile-open" : ""}`}>
@@ -517,6 +522,7 @@ export default function WorkspaceApp() {
               {(state.focus&&!state.focus.closedAt||state.returnCard?.kind==="saved"&&!state.returnCard.skipped)&&<a className="journal-continue" href="/journal"><NotebookPen size={23}/><span><strong>{state.focus&&!state.focus.closedAt?"Continue your session":"Pick up where you left off"}</strong><span>{state.focus&&!state.focus.closedAt?state.focus.title:state.returnCard?.note}</span></span><ArrowRight size={20}/></a>}
               <CompanionInvite/>
               {(state.notes || []).length > 0 && <details className="quick-capture thought-inbox"><summary><span>Thought inbox</span><span>{state.notes!.length} saved <ChevronRight size={16}/></span></summary>{[...state.notes!].reverse().map(note=><article key={note.id}><p>{note.text}</p><button className="btn subtle" disabled={!!busy} onClick={()=>void act({action:"deleteNote",id:note.id},"Removing thought")}>Remove<span className="sr-only"> thought</span></button></article>)}</details>}
+              <TimePocket current={state.profile.minutes} disabled={!!busy} hasWork={state.works.some(work=>!work.completed)} onAdd={openAdd} onUse={async minutes=>{const result=await act({action:"setTime",minutes},"Fitting your next step");if(result)setToast("Your next step fits this time.");return result;}}/>
               <div className="dashboard-grid">
                 <section className="next-step-card">
                   <div className="card-overline">

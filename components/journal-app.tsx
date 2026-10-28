@@ -15,6 +15,7 @@ import type { EvidenceEntry, EvidenceAttachment } from "@/lib/evidence";
 import type { Workspace } from "@/lib/types";
 import SignOut from "./sign-out";
 import FilePicker from "./file-picker";
+import SaveMoment from "./save-moment";
 import { launchPipChat } from "@/lib/pip-navigation";
 import { connectionMessage } from "@/lib/client-request";
 
@@ -56,6 +57,7 @@ export default function JournalApp() {
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
+  const [saveSequence,setSaveSequence]=useState(0);
 
   // Focused session form
   const [title, setTitle] = useState("");
@@ -110,7 +112,7 @@ export default function JournalApp() {
       setState(data.state as Workspace);
       setCard(data.card as Card);
       if(action==="start"||action==="close"){setSummary("");setNextStep("");}
-      setToast(action==="close"?"Session saved. Your next step is ready.":"");
+      setToast(action==="close"?"Session saved. Your next step is ready.":"");if(action==="close")setSaveSequence(n=>n+1);
     } catch (caught) {
       setError(connectionMessage(caught, "We couldn’t confirm that request. Your draft is still here. Check saved work before retrying."));
     } finally {
@@ -163,7 +165,7 @@ export default function JournalApp() {
       setActivityDate("");
       setDraft(emptyCandidate);
       setDraftDate("");
-      setToast("Saved to your journal.");setTab("history");
+      setToast("Saved to your journal.");setSaveSequence(n=>n+1);setTab("history");
     } catch (caught) {
       setError(connectionMessage(caught, "We couldn’t confirm the save. Your draft is still here; try again or check saved work."));
     } finally {
@@ -215,7 +217,7 @@ export default function JournalApp() {
 
   if (!state)
     return (
-      <div className="journal-shell">
+      <div className="journal-shell"><SaveMoment sequence={saveSequence}/>
         <p className="journal-muted">Opening your journal…</p>
         {error && <><p role="alert" className="journal-error">{error}</p><button className="btn subtle" onClick={()=>void load()}>Try again</button></>}
       </div>
@@ -226,7 +228,7 @@ export default function JournalApp() {
   const materials = state.materials || [];
 
   return (
-    <div className="journal-shell">
+    <div className="journal-shell"><SaveMoment sequence={saveSequence}/>
       <nav className="journal-top"><a className="site-brand" href="/workspace">stride.</a><div><a className="btn subtle" href="/workspace">Back to workspace</a><a className="btn subtle" href="/settings">Settings</a><SignOut/></div></nav>
       <header className="journal-head">
         <p className="site-kicker">YOUR WORK JOURNAL</p>
@@ -486,9 +488,11 @@ export default function JournalApp() {
               Log something you worked on, then see your progress here.
             </p>
           )}
-          {[...entries].reverse().map((entry: EvidenceEntry) => (
-            <details key={entry.id} className="journal-entry" id={`entry-${entry.id}`}><summary>
-              <span className="journal-tag">{entry.kind === "session" ? "Session note" : "Evidence"}</span>
+          {entries.length>0&&<div className="trail-summary"><div><strong>{entries.filter(entry=>entry.kind==="session").length}</strong><span>session notes</span></div><div><strong>{entries.filter(entry=>entry.kind!=="session").length}</strong><span>work records</span></div><div><strong>{new Set(entries.map(entry=>new Date(entry.createdAt).toLocaleDateString("en-CA",{timeZone:state.profile.timezone}))).size}</strong><span>days with a saved entry</span></div></div>}
+          <div className="learning-trail">
+          {[...entries].reverse().map((entry: EvidenceEntry,index) => (
+            <details key={entry.id} className="journal-entry trail-stop" id={`entry-${entry.id}`}><summary>
+              <span className="trail-marker" aria-hidden="true">{String(entries.length-index).padStart(2,"0")}</span><span className="journal-tag">{entry.kind === "session" ? "Session note" : "Work record"}</span>
               <strong>{entry.reported.activity}</strong><small>Saved {new Date(entry.createdAt).toLocaleDateString()}</small></summary><div className="journal-entry-body">
               <p className="journal-preserve">{entry.reported.explanation}</p>{entry.originalSubmission&&entry.originalSubmission!==entry.reported.explanation&&<details><summary>Original submitted text</summary><pre>{entry.originalSubmission}</pre></details>}
               {entry.observed.artifactShows && (
@@ -531,6 +535,7 @@ export default function JournalApp() {
               </div>
             </div></details>
           ))}
+          </div>
         </div>
       </section>}
     </div>

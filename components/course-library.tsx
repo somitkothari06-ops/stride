@@ -1,4 +1,5 @@
 "use client";
+import "../app/bookshelf.css";
 import { useState, type FormEvent } from "react";
 import { ArrowRight, FileText, Upload, Trash2 } from "lucide-react";
 import { type MaterialDraft } from "@/lib/course-types";
@@ -6,12 +7,21 @@ import CourseExplorer from "./course-explorer";
 import FilePicker from "./file-picker";
 import type { Workspace } from "@/lib/types";
 
+// Cover colour comes from the Signal theme, chosen by what the document is.
+const kindTone: Record<string, string> = {
+  "Syllabus": "syllabus",
+  "Lecture notes": "notes",
+  "Lecture slides": "slides",
+  "Past questions": "questions",
+};
+
 export default function CourseLibrary({ state, onState }: { state: Workspace; onState: (state: Workspace) => void }) {
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [draft, setDraft] = useState<MaterialDraft | null>(null);
   const [seal, setSeal] = useState<{ proof: string; expiresAt: number } | null>(null);
   const [subject, setSubject] = useState("");
+  const [filter, setFilter] = useState("");
   async function send(url: string, options: RequestInit, label: string) {
     if (busy) return null;
     setBusy(label); setError("");
@@ -33,6 +43,9 @@ export default function CourseLibrary({ state, onState }: { state: Workspace; on
     const result = await send("/api/materials", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate: draft, ...seal }) }, "Saving confirmed course context");
     if (result) { onState(result.state); setDraft(null); }
   }
+  const materials = state.materials ?? [];
+  const subjects = [...new Set(materials.map((m) => m.subject))];
+  const shown = filter ? materials.filter((m) => m.subject === filter) : materials;
   return <div className="course-library"><datalist id="course-subjects">{[...new Set(state.works.map((w) => w.subject))].map((s) => <option key={s} value={s} />)}</datalist>
     <p className="modal-description">Add your syllabus, notes, slides or past questions. Check the text before adding it.</p>
     <details className="upload-details"><summary>Which files can I add?</summary><p>PDFs with selectable text, PowerPoint, Word, TXT or Markdown. Up to 8 MB, 500 PDF pages or 100 slides per file. PDF originals are kept privately so the study room can read page images. Text extraction alone may miss diagrams and equations. Relevant passages go to Nebius when you ask for help.</p></details>
@@ -50,13 +63,44 @@ export default function CourseLibrary({ state, onState }: { state: Workspace; on
       <FilePicker id="course-file" name="file" title="Bring your course material" hint="PDF, slides, Word or text · up to 8 MB" accept=".pdf,.pptx,.docx,.txt,.md" required disabled={!!busy} />
       <button className="btn primary" disabled={!!busy} style={{ marginTop: 16 }}><Upload size={16} /> Read document</button>
     </form>}
-    <section className="saved-materials"><div className="section-title"><h3>Your course documents</h3><span className="count">{state.materials?.length || 0}/12</span></div>
-      {!state.materials?.length && <div className="empty-state"><FileText size={24} /><h3>Start with your actual course.</h3><p>Add a syllabus or a set of class notes to get started.</p></div>}
-      {state.materials?.map((material) => <article className="saved-material" key={material.id}><div className="section-title"><div><h3>{material.title}</h3><p className="field-help">{material.subject} · {material.kind} · {material.filename}</p></div><button className="icon-btn danger" aria-label={`Remove course material ${material.title}`} disabled={!!busy} onClick={async () => {
-        if (!window.confirm("Remove this document's extracted text from your course library? Existing attempts and older backups may still contain derived references.")) return;
-        const result = await send("/api/materials", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: material.id }) }, "Removing course material");
-        if (result) { onState(result.state); }
-      }}><Trash2 size={16} /></button></div>{material.storageKey&&<p className="material-coverage">Original PDF available for diagrams & images</p>}{material.coverage&&<p className="material-coverage">{material.coverage.processedPages}/{material.coverage.totalPages} pages processed · {material.coverage.emptyPages.length} with little text</p>}<a className="btn primary material-study-link" href={`/study/${material.id}`}>Study this document <ArrowRight size={15}/></a>{material.warnings.map((warning) => <p className="warning-text" key={warning}>{warning}</p>)}<details><summary>Read document text</summary><div className="extracted-pages">{material.pages.map((p) => <details key={p.locator}><summary>{p.locator}</summary><p>{p.text}</p></details>)}</div></details></article>)}
+    <section className="saved-materials course-bookshelf" aria-labelledby="bookshelf-title">
+      <div className="section-title"><h3 id="bookshelf-title">Your course documents</h3><span className="count">{materials.length}/12</span></div>
+      {!materials.length ? <div className="empty-state"><FileText size={24} /><h3>Start with your actual course.</h3><p>Add a syllabus or a set of class notes to get started.</p></div> : <>
+        {subjects.length > 1 && <div className="bookshelf-filters" role="group" aria-label="Filter documents by subject">
+          <button type="button" className={`bookshelf-chip${!filter ? " is-active" : ""}`} aria-pressed={!filter} onClick={() => setFilter("")}>All subjects</button>
+          {subjects.map((s) => <button type="button" key={s} className={`bookshelf-chip${filter === s ? " is-active" : ""}`} aria-pressed={filter === s} onClick={() => setFilter(filter === s ? "" : s)}>{s}<span className="bookshelf-chip-count">{materials.filter((m) => m.subject === s).length}</span></button>)}
+        </div>}
+        {!shown.length ? <div className="empty-state bookshelf-filter-empty">
+          <FileText size={24} />
+          <h3>No documents for {filter}.</h3>
+          <p>That document may have been removed. Show the whole shelf to find what you need.</p>
+          <button type="button" className="btn subtle" onClick={() => setFilter("")}>Show all documents</button>
+        </div> : <ul className="bookshelf">
+          {shown.map((material) => <li className="bookshelf-item" key={material.id}>
+            <article className="bookshelf-book">
+              <a href={`/study/${material.id}`} aria-label={`Study ${material.title} · ${material.subject} · ${material.kind}`} className={`book-cover tone-${kindTone[material.kind] ?? "notes"}`}>
+                <span className="book-spine" aria-hidden="true"></span>
+                <span className="book-subject">{material.subject}</span>
+                <h3 className="book-title" title={material.title}>{material.title}</h3>
+                <span className="book-kind">{material.kind}</span>
+              </a>
+              <p className="field-help book-filename">{material.filename}</p>
+              {material.storageKey && <p className="material-coverage">Original PDF available for diagrams &amp; images</p>}
+              {material.coverage && <p className="material-coverage">{material.coverage.processedPages}/{material.coverage.totalPages} pages processed · {material.coverage.emptyPages.length} with little text</p>}
+              {material.warnings.map((warning) => <p className="warning-text" key={warning}>{warning}</p>)}
+              <div className="book-actions">
+                <a className="btn primary material-study-link" href={`/study/${material.id}`}>Study this document <ArrowRight size={15} /></a>
+                <button className="icon-btn danger" aria-label={`Remove course material ${material.title}`} disabled={!!busy} onClick={async () => {
+                  if (!window.confirm("Remove this document's extracted text from your course library? Existing attempts and older backups may still contain derived references.")) return;
+                  const result = await send("/api/materials", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: material.id }) }, "Removing course material");
+                  if (result) { onState(result.state); }
+                }}><Trash2 size={16} /></button>
+              </div>
+              <details className="book-pages"><summary>Read document text</summary><div className="extracted-pages">{material.pages.map((p) => <details key={p.locator}><summary>{p.locator}</summary><p>{p.text}</p></details>)}</div></details>
+            </article>
+          </li>)}
+        </ul>}
+      </>}
     </section>
     <CourseExplorer state={state} onAddNotes={value=>{if(draft){setError("Finish or discard the document preview before adding another file.");document.querySelector(".document-review")?.scrollIntoView({block:"center"});return;}setSubject(value);document.getElementById("material-subject")?.scrollIntoView({block:"center",behavior:"smooth"});document.getElementById("material-subject")?.focus();}}/>
   </div>;

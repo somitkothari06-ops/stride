@@ -1,0 +1,59 @@
+/* Pinned canvas: a working margin beside the full Pip chat. Rendered only when
+   `full` is set (the /pip room); the inline companion stays untouched. Pins are
+   plain-text snapshots shown through the existing safe Answer/CodeBlock
+   components — never raw HTML or executable code. Kept in memory per thread,
+   maximum 6, cleared with the chat. */
+
+/* Code block tools: Copy keeps its look; Pin appears only in the full chat view. */
+.pip-code-block-tools { position: absolute; top: 9px; right: 10px; display: flex; gap: 6px; z-index: 1; }
+.pip-code-block-tools > button { display: inline-flex; align-items: center; gap: 5px; border: 1px solid #ffffff55; color: #fff; background: #ffffff12; border-radius: 7px; padding: 7px 10px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.pip-code-block-tools > button:hover:not(:disabled) { background: #ffffff26; }
+.pip-code-block-tools > button:disabled { opacity: .75; cursor: default; }
+.pip-code-block-tools > button:focus-visible { outline: 2px solid var(--theme-cta); outline-offset: 1px; }
+
+/* Toolbar toggle with a live pin count. */
+.pip-canvas-toggle { position: relative; }
+.pip-canvas-count { position: absolute; top: -6px; right: -6px; display: grid; place-items: center; min-width: 18px; height: 18px; padding: 0 4px; border: 1px solid var(--theme-ink); border-radius: 9px; background: var(--theme-cta); color: var(--theme-ctaInk); font-size: 11px; font-weight: 800; line-height: 1; }
+.pip-canvas-toggle[aria-pressed=true] { border-color: var(--theme-ink); box-shadow: inset 0 0 0 1px var(--theme-ink); }
+
+/* Desktop: a third grid column beside history and conversation. */
+.pip-chat-full.pip-canvas-open { grid-template-columns: 270px minmax(0,1fr) clamp(300px,30vw,420px); }
+.pip-canvas { display: flex; flex-direction: column; min-height: 0; min-width: 0; background: var(--theme-surface); border-left: 1px solid var(--theme-line); }
+.pip-canvas:focus { outline: none; }
+.pip-canvas-top { display: flex; flex-shrink: 0; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--theme-line); background: var(--theme-surface); }
+.pip-canvas-top h2 { margin: 0; font-size: 16px; font-weight: 800; letter-spacing: -.4px; color: var(--theme-ink); }
+.pip-canvas-top .icon-btn { display: grid; place-items: center; min-width: 38px; width: 38px; min-height: 38px; height: 38px; border: 1px solid var(--theme-line); border-radius: 9px; background: var(--theme-surface); color: var(--theme-ink); cursor: pointer; }
+.pip-canvas-top .icon-btn:hover:not(:disabled) { background: var(--theme-tint); }
+
+.pip-canvas-pins { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 14px; padding: 16px; background: var(--theme-bg); }
+.pip-canvas-pin { border: 1px solid var(--theme-line); border-radius: 12px; background: var(--theme-surface); box-shadow: 0 3px 0 var(--theme-line); overflow: hidden; }
+.pip-canvas-pin-head { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 14px; border-bottom: 1px solid var(--theme-line); background: var(--theme-bg); }
+.pip-canvas-pin-head > span { display: flex; align-items: center; gap: 7px; margin-right: auto; min-width: 0; font-size: 12px; font-weight: 800; color: var(--theme-muted); }
+.pip-canvas-pin-head > span svg { flex-shrink: 0; }
+.pip-canvas-pin-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.pip-canvas-pin-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 34px; padding: 0 10px; border: 1px solid var(--theme-line); border-radius: 8px; background: var(--theme-surface); color: var(--theme-ink); font: inherit; font-size: 12px; font-weight: 750; cursor: pointer; }
+.pip-canvas-pin-actions button:hover { border-color: var(--theme-ink); }
+.pip-canvas-pin-actions button:focus-visible { outline: 2px solid var(--theme-cta); outline-offset: 1px; }
+.pip-canvas-pin-body { padding: 8px 14px 12px; }
+.pip-canvas-pin-body p { font-size: 14px; line-height: 1.75; color: var(--theme-ink); white-space: pre-wrap; overflow-wrap: anywhere; margin: 10px 0; }
+.pip-canvas-pin-body p > code { padding: 2px 5px; border-radius: 4px; background: var(--theme-tint); color: var(--theme-ink); font-size: .9em; }
+.pip-canvas-pin-body .pip-code-block { margin: 10px 0 6px; }
+
+.pip-canvas-empty { flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 24px 18px; }
+.pip-canvas-empty svg { color: var(--theme-ink); flex-shrink: 0; }
+.pip-canvas-empty p { font-size: 14px; line-height: 1.75; color: var(--theme-muted); margin: 0; max-width: 38ch; }
+.pip-canvas-foot { flex-shrink: 0; display: flex; align-items: center; min-height: 40px; padding: 9px 16px; border-top: 1px solid var(--theme-line); font-size: 12px; line-height: 1.5; color: var(--theme-muted); }
+
+/* Returning to a pinned message marks it briefly; a static outline, so reduced
+   motion is unaffected. */
+.pip-message-recall { outline: 3px solid var(--theme-cta); outline-offset: 2px; }
+
+/* Mobile: the canvas stacks above the conversation as a closable drawer. */
+.pip-canvas-scrim { display: none; }
+@media(max-width:800px) {
+ .pip-canvas-scrim { display: block; position: absolute; inset: 0; z-index: 7; border: 0; background: #17265355; cursor: pointer; }
+ .pip-canvas { position: absolute; left: 0; right: 0; bottom: 0; height: min(74dvh,640px); z-index: 8; border-left: 0; border-top: 1px solid var(--theme-line); border-radius: 16px 16px 0 0; box-shadow: 0 -10px 30px #17265326; }
+}
+
+.pip-canvas-top h2{font-size:20px}.pip-canvas-pin-body p{font-size:16px;line-height:1.8}.pip-canvas-pin-body .pip-message-table{overflow:auto}.pip-canvas .pip-code-block-tools>button{color:#fff}.pip-canvas-close:focus-visible{outline:3px solid var(--theme-ink);outline-offset:3px}
+@media(min-width:801px) and (max-width:1100px){.pip-chat-full.pip-canvas-open{grid-template-columns:minmax(0,1fr) minmax(300px,36%)}.pip-chat-full.pip-canvas-open .pip-history{display:none}.pip-chat-full.pip-canvas-open .pip-show-chats{display:grid}.pip-chat-full.pip-canvas-open .pip-history.is-open{display:flex;position:absolute;inset:0 auto 0 0;width:270px;z-index:10;box-shadow:8px 0 30px var(--theme-line)}.pip-chat-full.pip-canvas-open .pip-history-close{display:grid}.pip-chat-full.pip-canvas-open .pip-history-scrim{display:block;position:absolute;inset:0;z-index:9;border:0;background:color-mix(in srgb,var(--theme-ink) 30%,transparent)}}

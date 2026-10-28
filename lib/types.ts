@@ -144,6 +144,7 @@ export const ConfirmSchema = IntakeSchema.extend({
   uncertainty: z.string().max(500).default(""),
 });
 export const ActionSchema = z.discriminatedUnion("action", [
+  z.object({action:z.literal("setTime"),minutes:z.union([z.literal(15),z.literal(30),z.literal(60)])}),
   z.object({ action: z.literal("saveNote"), text: z.string().trim().min(1).max(6000) }),
   z.object({ action: z.literal("deleteNote"), id: z.string().min(1) }),
   z.object({ action: z.literal("aboutYou"), name: z.string().trim().min(1).max(60), year: z.enum(["2nd year", "3rd year"]), goal: z.string().max(120), minutes: z.number().int().min(5).max(180), context: LifeContextSchema }),

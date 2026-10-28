@@ -1,0 +1,14 @@
+# Learning interactions
+
+- **Today / time pocket:** preview 15, 30 or 60 minutes without a request. “Use this time” saves only that time preference and a deterministic next-work plan. It preserves deadline priority and makes no model or search call. This is a suggested allocation, not measured study time.
+- **Course Library / bookshelf:** real documents get theme-aware covers. Filter by actual subject and open a cover directly into its Study Room. Existing document review, source details and removal controls remain.
+- **Study Room / reveal:** paragraphs and numbered worked-example steps are revealed progressively. An optional prediction scratchpad stays only in the mounted lesson; it is not saved or graded. Back and Read it all remain available. Fenced code stays intact.
+- **Journal / learning trail:** saved records appear chronologically, with counts of session notes, work records and calendar days with a save. These are activity counts, not scores or proof of understanding. Entries still expose their original context, feedback, dates and deletion action.
+- **Pip / working canvas:** pin a reply or an individual fenced code block beside the full chat. Pinning is local and immediate; it does not call a model. Pins remain isolated by chat during the mounted Pip visit, with a six-pin limit; existing pins are never silently evicted. Reloading/leaving Pip clears them. The narrow-screen drawer has focus containment, Escape and close controls.
+- **Save moment:** successful saves produce a brief Pip/check response. It celebrates saving, not demonstrated mastery. OS and in-app reduced-motion settings disable the movement.
+
+OpenCode free GLM drafted the bookshelf and canvas in source-only disposable copies. Supervising review added actual theme roles, clickable/accessible covers, component-scoped pin memory, refusal instead of silent eviction, atomic thread pin switching and mobile focus handling. No private PDFs, keys or account data were supplied to the helpers.
+
+A live synthetic lesson exposed an existing citation-length failure. Text citations now validate their entire raw quote against the supplied page before shortening the displayed excerpt; invented endings remain rejected. The lesson prompt also requests concise quotations and separated example steps. No teaching passage is silently clipped by that citation fix.
+
+Verification: TypeScript, 177 automated tests and release build passed. The public budget workflow tested all three allocations, save/reload, duplicate-safe replay, invalid input and an empty workspace with zero model calls. Browser checks used explicitly synthetic TXT/MD notes and checked subject filters, cover navigation, lesson prediction/reveal/back, actual saved Journal entries, full-chat explanation/code pins, duplicate refusal, removal, chat isolation and continued chatting. These checks are not a broad learning-quality study or a guarantee against provider outages.

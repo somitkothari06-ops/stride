@@ -1,0 +1,85 @@
+/* Course Library bookshelf.
+   Loaded by components/course-library.tsx. Covers use Signal theme colours only —
+   no images, no progress bars. The shelf board under each row aligns because every
+   row of the auto-fill grid stretches its items to equal height. */
+
+.bookshelf-filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 4px; }
+.bookshelf-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  min-height: 40px; padding: 6px 14px;
+  border: 1px solid var(--theme-ink); border-radius: 999px;
+  background: var(--theme-surface); color: var(--theme-ink);
+  font-size: 13px; font-weight: 700;
+  transition: background-color 120ms ease, box-shadow 120ms ease;
+}
+.bookshelf-chip:hover { background: var(--theme-tint); }
+.bookshelf-chip.is-active { background: var(--theme-ink); color: var(--theme-surface); box-shadow: 0 3px 0 var(--theme-shadow); }
+.bookshelf-chip-count {
+  display: inline-grid; place-items: center;
+  min-width: 22px; height: 20px; padding: 0 6px;
+  border-radius: 999px; background: var(--theme-tint); color: var(--theme-ink);
+  font-size: 11px; font-weight: 800;
+}
+.bookshelf-chip.is-active .bookshelf-chip-count { background: var(--theme-cta); color: var(--theme-ctaInk); }
+
+.bookshelf { list-style: none; margin: 0; padding: 20px 0 8px; display: grid; grid-template-columns: repeat(auto-fill, minmax(212px, 1fr)); gap: 28px 20px; }
+.bookshelf-item { display: flex; flex-direction: column; min-width: 0; }
+.bookshelf-item::after {
+  content: ""; height: 7px; border-radius: 3px;
+  margin: auto -8px 0;
+  background: var(--theme-line);
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--theme-ink) 14%, transparent);
+}
+.bookshelf-book { flex: 1; display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; min-width: 0; }
+
+/* The cover: a raised card with a spine, tinted by what the document is. */
+.book-cover {
+  position: relative; display: flex; flex-direction: column;
+  min-height: 208px; padding: 16px 16px 14px 26px;
+  border: 1px solid var(--theme-ink); border-radius: 4px 12px 12px 4px;
+  box-shadow: 0 4px 0 var(--theme-shadow); overflow: hidden;
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+.book-cover.tone-syllabus { background: var(--theme-hero); color: var(--theme-heroInk); }
+.book-cover.tone-slides { background: var(--theme-ink); color: var(--theme-surface); }
+.book-cover.tone-notes { background: var(--theme-surface); color: var(--theme-ink); }
+.book-cover.tone-questions { background: var(--theme-cta); color: var(--theme-ctaInk); }
+.book-spine {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 10px;
+  background: color-mix(in srgb, currentColor 16%, transparent);
+  border-right: 1px solid color-mix(in srgb, currentColor 32%, transparent);
+}
+.bookshelf-book:hover .book-cover, .bookshelf-book:focus-within .book-cover { transform: translateY(-4px); box-shadow: 0 8px 0 var(--theme-shadow); }
+.book-subject { font-size: 10px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; opacity: .8; overflow-wrap: anywhere; }
+.book-title {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
+  overflow-wrap: anywhere; margin: 8px 0;
+  font-size: 16px; font-weight: 750; line-height: 1.4; letter-spacing: -.3px;
+}
+.book-kind {
+  margin-top: auto; width: fit-content; padding: 4px 9px;
+  border: 1px solid color-mix(in srgb, currentColor 35%, transparent); border-radius: 6px;
+  font-size: 11px; font-weight: 800;
+}
+
+.book-filename { margin: 2px 0 0; overflow-wrap: anywhere; }
+.material-coverage { margin: 0; font-size: 12px; line-height: 1.6; color: var(--theme-muted); }
+.book-actions { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
+.book-actions .material-study-link { flex: 1; min-width: 0; font-size: 13px; }
+.book-actions .icon-btn { flex-shrink: 0; }
+.book-pages { font-size: 13px; color: var(--theme-muted); }
+.book-pages > summary { display: flex; align-items: center; min-height: 44px; }
+.book-pages .extracted-pages { margin: 0 0 12px; }
+.bookshelf-filter-empty { margin-top: 12px; }
+
+@media (max-width: 480px) {
+  .bookshelf { grid-template-columns: 1fr; }
+  .bookshelf-item::after { margin: auto -4px 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .book-cover, .bookshelf-chip { transition: none; }
+  .bookshelf-book:hover .book-cover, .bookshelf-book:focus-within .book-cover { transform: none; }
+}
+
+.app-shell .course-bookshelf .book-cover{text-decoration:none}.app-shell .course-bookshelf .book-cover .book-title{color:inherit;font-size:21px;line-height:1.35;font-weight:800;margin:14px 0}.book-cover:focus-visible{outline:3px solid var(--theme-ink);outline-offset:4px}
+html[data-motion=reduced] .book-cover,html[data-motion=reduced] .bookshelf-chip{transition:none}html[data-motion=reduced] .bookshelf-book:hover .book-cover,html[data-motion=reduced] .bookshelf-book:focus-within .book-cover{transform:none}

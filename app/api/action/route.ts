@@ -6,6 +6,7 @@ import { ActionSchema, type Plan, type Prepared } from "@/lib/types";
 import { mutate } from "@/lib/store";
 import {
   guidedPreparation,
+  guidedPlan,
   initialWorkspace,
 } from "@/lib/planner";
 import { model, providerStatus, searchRoles } from "@/lib/ai";
@@ -13,6 +14,7 @@ import { courseExcerpts } from "@/lib/course-types";
 import { generateNextPlan } from "@/lib/next-plan";
 import { roleComparison } from "@/lib/role-comparison";
 import { reusableDirection } from "@/lib/role-search";
+import { pocketDescription } from "@/lib/time-pocket";
 import { preparationContext } from "@/lib/preparation-context";
 
 export const runtime = "nodejs";
@@ -32,7 +34,16 @@ export async function POST(request: Request) {
       });
     let next;
 
-    if (input.action === "saveNote") {
+    if(input.action==="setTime"){
+      const description=pocketDescription(input.minutes);
+      if(state.profile.minutes===input.minutes&&state.plan?.description===description&&state.plan.contextRevision===state.revision)
+        return NextResponse.json({state,providers:providerStatus()});
+      next=save(current=>{
+        current.profile.minutes=input.minutes;current.revision++;current.prepared=null;current.direction=null;
+        const plan=guidedPlan(current);
+        current.plan=plan?{...plan,minutes:input.minutes,description}:null;
+      });
+    } else if (input.action === "saveNote") {
       next = save((current) => {
         if ((current.notes || []).length >= 100) throw new Error("INPUT_TOO_LARGE");
         current.notes = [...(current.notes || []), { id: randomUUID(), text: input.text, createdAt: new Date().toISOString() }];

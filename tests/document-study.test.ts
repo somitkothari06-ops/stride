@@ -11,3 +11,13 @@ test("visual claims require a supplied page image; scanned pages are not treated
  const visual={evidence:[{locator:"Page 1",quote:"A visible arrow joins two labelled boxes.",basis:"image"}]} as Lesson;
  assert.throws(()=>validateLesson(visual,scanned.pages),/STUDY_EVIDENCE_INVALID/);assert.equal(validateLesson(visual,scanned.pages,["Page 1"]),visual);
 });
+
+test("a long exact citation is validated in full before shortening its displayed excerpt",()=>{
+ const text='A source sentence explains the mechanism. '.repeat(25);
+ const lesson={evidence:[{locator:'Text section 1',quote:text,basis:'text'}]} as Lesson;
+ const validated=validateLesson(lesson,[{locator:'Text section 1',text}]);
+ assert.equal(validated.evidence[0].quote,text.slice(0,500));assert.equal(validated.evidence[0].excerptShortened,true);
+ assert.equal(lesson.evidence[0].quote,text);
+ const invented={evidence:[{locator:'Text section 1',quote:text.slice(0,550)+' invented tail',basis:'text'}]} as Lesson;
+ assert.throws(()=>validateLesson(invented,[{locator:'Text section 1',text}]),/STUDY_EVIDENCE_INVALID/);
+});
