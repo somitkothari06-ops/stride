@@ -3,6 +3,8 @@ import { connectionMessage, requestJson } from "@/lib/client-request";
 import SignOut from "./sign-out";
 import TimePocket from "./time-pocket";
 import RoleBridge from "./role-bridge";
+import FilePicker from "./file-picker";
+import type {MaterialDraft} from "@/lib/course-types";
 import SaveMoment from "./save-moment";
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
@@ -95,6 +97,9 @@ export default function WorkspaceApp() {
   const [source, setSource] = useState("");
   const [sourceType, setSourceType] = useState("My own words");
   const [messageDate,setMessageDate]=useState("");
+  const [workFile,setWorkFile]=useState<{candidate:MaterialDraft;proof:string;expiresAt:number;materialId:string}|null>(null);
+  const [filePickerVersion,setFilePickerVersion]=useState(0);
+  const intakeCache=useRef<{key:string;candidate:Candidate}|null>(null);
   const [candidate, setCandidate] = useState<Candidate | null>(null);
   const [answer, setAnswer] = useState("");
   const answerDrafts=useRef<Record<string,string>>({});
@@ -230,6 +235,8 @@ export default function WorkspaceApp() {
     await extractSource(source, sourceType);
   }
   async function extractSource(text: string, type: string) {
+    const key=JSON.stringify({text,type,messageDate,day:new Date().toLocaleDateString("en-CA",{timeZone:state?.profile.timezone||"UTC"})});
+    if(intakeCache.current?.key===key){setCandidate(intakeCache.current.candidate);setError("");return;}
     setBusy("Reading your work");
     setError("");
     try {
@@ -241,26 +248,43 @@ export default function WorkspaceApp() {
       const data = await response.json();
       if (!response.ok)
         throw new Error(data.error?.message || "Couldn't read that text.");
-      setCandidate({ ...data.candidate, source: text, sourceType: type, mode: data.mode });
+      const reviewed={ ...data.candidate, source: text, sourceType: type, mode: data.mode };
+      intakeCache.current={key,candidate:reviewed};setCandidate(reviewed);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't connect.");
     } finally {
       setBusy("");
     }
   }
-  async function confirm(e: FormEvent) {
-    e.preventDefault();
-    if (!candidate) return;
-    const result = await act(
-      { action: "add", work: candidate },
-      "Saving confirmed work",
-    );
-    if (result) {
-      setCandidate(null);setSource("");setMessageDate("");setSourceType("My own words");
-      setModal(null);
-      setToast("Work saved. Refresh your next step when you're ready.");
-    }
+  async function uploadWork(file:File){
+    if(file.size>8*1024*1024){setError("Choose a document under 8 MB.");return;}
+    setBusy("Reading your file");setError("");
+    try{
+      const form=new FormData();form.set("file",file);form.set("subject","Assignment");form.set("kind","Lecture notes");
+      const response=await fetch("/api/materials",{method:"POST",body:form});const data=await response.json();
+      if(!response.ok)throw Error(data.error?.message||"Couldn’t read this file.");
+      const text=(data.candidate as MaterialDraft).pages.map(page=>page.text).join("\n").trim();
+      if(text.length<10)throw Error("This file has too little readable text. Paste the assignment below, or use the course library’s image and diagram reader.");
+      setWorkFile(data);setSource(`Assignment file: ${data.candidate.filename}\n${text}`.slice(0,12000));setSourceType("Assignment");setMessageDate("");setCandidate(null);
+    }catch(error){setError(connectionMessage(error,"Couldn’t read the file. Your text is still here; please try again."));}finally{setBusy("");}
   }
+  async function confirm(e: FormEvent) {
+    e.preventDefault();if(!candidate||busy)return;
+    let result:Workspace|null=null;
+    if(workFile){
+      setBusy("Saving your assignment and file");setError("");
+      try{
+        const response=await fetch("/api/materials",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({...workFile,work:candidate})});
+        const data=await response.json();if(!response.ok)throw Error(data.error?.message||"Couldn’t save this assignment.");result=data.state;
+      }catch(error){
+        if(error instanceof TypeError||error instanceof SyntaxError){try{const recovered=await requestJson<{state:Workspace}>("/api/workspace",{cache:"no-store"},{retryNetwork:true});if(recovered.state.works.some(work=>work.materialId===workFile.materialId))result=recovered.state;}catch{/* Keep the review for a safe retry. */}}
+        if(!result)setError(connectionMessage(error,"Couldn’t confirm the save. Your review is still here; check saved work or try again."));
+      }finally{setBusy("");}
+      if(result){setState(result);setSaveSequence(n=>n+1);}
+    }else result=await act({action:"add",work:candidate},"Saving confirmed work");
+    if(result){setCandidate(null);setSource("");setMessageDate("");setSourceType("My own words");setWorkFile(null);setFilePickerVersion(n=>n+1);setModal(null);setToast(workFile?"Assignment and file saved.":"Work saved.");}
+  }
+
   async function start(workId: string) {
     if(selectedId)answerDrafts.current[selectedId]=answer;
     const previous=answerDrafts.current[workId]||"";
@@ -521,7 +545,7 @@ export default function WorkspaceApp() {
               {(state.focus&&!state.focus.closedAt||state.returnCard?.kind==="saved"&&!state.returnCard.skipped)&&<a className="journal-continue" href="/journal"><NotebookPen size={23}/><span><strong>{state.focus&&!state.focus.closedAt?"Continue your session":"Pick up where you left off"}</strong><span>{state.focus&&!state.focus.closedAt?state.focus.title:state.returnCard?.note}</span></span><ArrowRight size={20}/></a>}
               <CompanionInvite/>
               {(state.notes || []).length > 0 && <details className="quick-capture thought-inbox"><summary><span>Thought inbox</span><span>{state.notes!.length} saved <ChevronRight size={16}/></span></summary>{[...state.notes!].reverse().map(note=><article key={note.id}><p>{note.text}</p><button className="btn subtle" disabled={!!busy} onClick={()=>void act({action:"deleteNote",id:note.id},"Removing thought")}>Remove<span className="sr-only"> thought</span></button></article>)}</details>}
-              <TimePocket current={state.profile.minutes} disabled={!!busy} hasWork={state.works.some(work=>!work.completed)} onAdd={openAdd} onUse={async minutes=>{const result=await act({action:"setTime",minutes},"Fitting your next step");if(result)setToast("Your next step fits this time.");return result;}}/>
+              <TimePocket current={state.profile.minutes} disabled={!!busy} hasWork={state.works.some(work=>!work.completed)} onAdd={openAdd} onUse={minutes=>act({action:"setTime",minutes},"Saving your available time")}/>
               <div className="dashboard-grid">
                 <section className="next-step-card">
                   <div className="card-overline">
@@ -751,6 +775,7 @@ export default function WorkspaceApp() {
                         </div>
                       </div>
                       <h2>{selected.title}</h2>
+                      {selected.materialId&&state.materials?.some(material=>material.id===selected.materialId)&&<a className="btn subtle" href={`/study/${selected.materialId}`}>Study the attached file <BookOpen size={17}/></a>}
                       <button className="btn subtle ask-pip-button" onClick={()=>launchPipChat(`Help me understand ${selected.title} (${selected.subject}).`)}>Explain this with Pip <ArrowRight size={16}/></button>
                       <div className="detail-meta">
                         <span>{selected.subject}</span>
@@ -1229,9 +1254,10 @@ export default function WorkspaceApp() {
               (!candidate ? (
                 <form onSubmit={extract}>
                   <p className="modal-description">
-                    Paste an assignment, a class message, or a project excerpt.
-                    Keep unrelated personal details out.
+                    Upload an assignment or paste its instructions.
                   </p>
+                  <FilePicker key={filePickerVersion} title="Attach your assignment" hint="PDF, DOCX, PPTX, TXT or Markdown · up to 8 MB" accept=".pdf,.docx,.pptx,.txt,.md" disabled={!!busy} onChange={event=>{const file=event.target.files?.[0];if(file)void uploadWork(file);}}/>
+                  {workFile&&<div className="work-file-attached"><span><strong>{workFile.candidate.filename}</strong><small>Will be kept with this task in your course library.</small></span><button type="button" className="btn subtle" disabled={!!busy} onClick={()=>{setWorkFile(null);setFilePickerVersion(n=>n+1);}}>Remove file</button></div>}
                   <label htmlFor="sourceType">Where is this from?</label>
                   <select
                     id="sourceType"
@@ -1264,9 +1290,7 @@ export default function WorkspaceApp() {
                     autoFocus
                   />
                   <p className="field-help">
-                    {providers.nebius
-                      ? "Selected text will be sent to Nebius for extraction. Review the result before saving."
-                      : "Local guidance recognizes simple text and ISO dates. An AI key is not configured yet."}
+                    {workFile&&workFile.candidate.pages.reduce((total,page)=>total+page.text.length,0)>11900?"Task details use the first part of this file. The complete document is kept for studying.":"Check the subject and due date before saving."}
                   </p>
                   <button
                     className="btn primary"
@@ -1277,6 +1301,7 @@ export default function WorkspaceApp() {
                 </form>
               ) : (
                 <form onSubmit={confirm}>
+                  {workFile&&<p className="field-help">Attached: {workFile.candidate.filename}</p>}
                   <div className="review-note">
                     <ShieldCheck size={18} />
                     <p>

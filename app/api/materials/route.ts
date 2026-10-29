@@ -10,6 +10,8 @@ import { mutate } from "@/lib/store";
 import {clientBucket} from "@/lib/client-limits";
 import { acquireUpload } from "@/lib/upload-guard";
 import { retainPdf,removePdf } from "@/lib/document-files";
+import { ConfirmSchema } from "@/lib/types";
+import { saveAttachedWork } from "@/lib/attached-work";
 import { MaterialSchema } from "@/lib/course-types";
 import { checkCourseDraft, sealCourseDraft } from "@/lib/course-draft";
 
@@ -57,7 +59,8 @@ export async function POST(request: Request) {
       filename: file.name.replace(/^.*[\\/]/, "").slice(0, 160), ...extracted,
       ...(extension === ".pdf" ? {storageKey:await retainPdf(path)} : {}),
     });
-    return NextResponse.json({ candidate, ...sealCourseDraft(id, candidate) });
+    const sealed=sealCourseDraft(id,candidate);
+    return NextResponse.json({ candidate,...sealed,materialId:createHash("sha256").update(sealed.proof).digest("hex") });
   } catch (error) { return failure(error); }
   finally { release?.(); if (directory) await rm(directory, { recursive: true, force: true }); }
 }
@@ -70,13 +73,8 @@ export async function PUT(request: Request) {
     const candidate = MaterialSchema.parse(input.candidate);
     checkCourseDraft(id, candidate, input.proof, input.expiresAt);
     const materialId = createHash("sha256").update(input.proof).digest("hex");
-    const state = mutate(id, (current) => {
-      if (current.materials?.some((m) => m.id === materialId)) return;
-      if ((current.materials?.length || 0) >= 12) throw new Error("LIBRARY_FULL");
-      current.materials = [...(current.materials || []), { ...candidate, id: materialId, addedAt: new Date().toISOString() }];
-      current.revision++;
-      current.prepared = null;
-    });
+    const work=input.work===undefined?undefined:ConfirmSchema.parse(input.work);
+    const state=mutate(id,current=>saveAttachedWork(current,materialId,candidate,work));
     return NextResponse.json({ state });
   } catch (error) { return failure(error); }
 }

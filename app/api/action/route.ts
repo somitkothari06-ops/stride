@@ -36,7 +36,7 @@ export async function POST(request: Request) {
 
     if(input.action==="setTime"){
       const description=pocketDescription(input.minutes);
-      if(state.profile.minutes===input.minutes&&state.plan?.description===description&&state.plan.contextRevision===state.revision)
+      if(state.profile.minutes===input.minutes)
         return NextResponse.json({state,providers:providerStatus()});
       next=save(current=>{
         current.profile.minutes=input.minutes;current.revision++;current.prepared=null;current.direction=null;
@@ -135,7 +135,7 @@ export async function POST(request: Request) {
       const work = state.works.find((w) => w.id === input.id);
       if (!work) throw new Error("NOT_FOUND");
       let prepared: Prepared = guidedPreparation(work, state.revision);
-      const excerpts = courseExcerpts(state.materials || [], work.subject, `${work.title} ${work.summary}`);
+      const excerpts = courseExcerpts(work.materialId ? (state.materials || []).filter(material=>material.id===work.materialId) : state.materials || [], work.subject, `${work.title} ${work.summary}`);
       if (providerStatus().nebius) {
         const result = await model(
           id,
@@ -174,7 +174,7 @@ export async function POST(request: Request) {
                 ? state.prepared.question
                 : null,
             answer: input.answer,
-            courseExcerpts: courseExcerpts(state.materials || [], work.subject, work.title),
+            courseExcerpts: courseExcerpts(work.materialId ? (state.materials || []).filter(material=>material.id===work.materialId) : state.materials || [], work.subject, work.title),
           },
           z.object({
             title: z.string().max(180),

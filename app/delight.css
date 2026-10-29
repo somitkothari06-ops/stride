@@ -14,3 +14,6 @@ html[data-motion=reduced] .save-moment,html[data-motion=reduced] .save-moment>i{
 html[data-motion=reduced] .pocket-go:hover,html[data-motion=reduced] .pocket-go:active{translate:none}
 
 .save-moment>.pip-mark{width:46px;height:46px;flex-shrink:0}
+.work-file-attached{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:14px 0 22px;padding:16px;background:var(--theme-tint);border:1px solid var(--theme-line);border-radius:12px;color:var(--theme-ink)}.work-file-attached>span{min-width:0}.work-file-attached strong{display:block;overflow-wrap:anywhere;font-size:17px}.work-file-attached small{display:block;font-size:14px;color:var(--theme-muted);margin-top:5px}.time-pocket .pocket-go:disabled{opacity:1;background:var(--theme-tint);color:var(--theme-ink);box-shadow:none;border:1px solid var(--theme-line)}
+
+.time-pocket .pocket-go:disabled:hover,.time-pocket .pocket-go:disabled:active{translate:none}

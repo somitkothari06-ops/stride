@@ -268,3 +268,7 @@ Today has a local 15/30/60-minute time-pocket preview and a replay-safe save act
 ### Role-to-practice bridge and daily settings recovery
 
 Direction now builds three actionable steps from web excerpts and recent learner records, including Journal entries, with a beginner route when no records exist. Each step has a deliverable, inspectable sources and a specific Pip handoff. Source pages arrive before the model path. Derived claims are invalidated on Journal changes/deletions; cached pages can be reused. Daily settings now recover uncertain saves through a server read rather than replaying a version-incrementing write, and offer an inline reload on failure. See ROLE-BRIDGE.md for provenance and validation limits.
+
+### Add work attachments and time no-op
+
+Add work now supports document upload and an atomic task+library save, with a direct study link from the task. Selecting an already-saved time budget sends no request; the server preserves the current plan on same-budget requests. The misleading time toast is gone. 205 tests and the release build passed; live synthetic attachment/replay/ownership checks and budget checks are included in scripts/attached-work-smoke.mjs and scripts/delight-smoke.mjs.

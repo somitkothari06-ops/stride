@@ -20,6 +20,7 @@ export type Intake = z.infer<typeof IntakeSchema>;
 export type View = "today" | "work" | "memory" | "direction";
 export type Mode = "guided" | "live";
 export type Work = Intake & {
+  materialId?: string;
   id: string;
   source: string;
   sourceType: string;
