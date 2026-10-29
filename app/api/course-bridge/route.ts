@@ -3,7 +3,7 @@ import { z } from "zod";
 import { body, checkOrigin, failure, requireSession } from "@/lib/http";
 import { getState } from "@/lib/store";
 import { courseBenchmarks, courseExcerpts } from "@/lib/course-types";
-import { checkReference, ReferenceSelection } from "@/lib/course-references";
+import { checkReference, ReferenceSelection, courseSourceAllowed } from "@/lib/course-references";
 import { model } from "@/lib/ai";
 
 export const runtime = "nodejs";
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     const input = z.object({ subject: z.string().trim().min(1).max(80), benchmark: z.string().optional(), selection: ReferenceSelection.optional() }).strict().refine(value=>Boolean(value.benchmark)!==Boolean(value.selection)).parse(await body(request));
     const benchmark = input.selection ? checkReference(id,input.subject,input.selection) : courseBenchmarks.find((b) => b.id === input.benchmark);
     const excerpts = courseExcerpts(state.materials || [], input.subject);
-    if (!benchmark || !excerpts.length) throw new Error("COURSE_CONTEXT_NEEDED");
+    if (!benchmark || !courseSourceAllowed(benchmark.url) || !excerpts.length) throw new Error("COURSE_CONTEXT_NEEDED");
     const localQuotes = excerpts.flatMap((e) => passages(e.text).slice(0, 4).map((text) => ({ sourceId: e.id, text }))).slice(0, 20).map((quote, i) => ({ ...quote, quoteId: `local-${i + 1}` }));
     const externalQuotes = passages(benchmark.focus).map((text, i) => ({ text, quoteId: `external-${i + 1}` }));
     if (!localQuotes.length || !externalQuotes.length) throw new Error("COURSE_CONTEXT_NEEDED");

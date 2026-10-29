@@ -15,3 +15,5 @@ test("model identity comes from configuration, without swallowing unrelated ques
  assert.equal(modelIdentityReply("What model are you recommending for my project?","test"),undefined);
  assert.equal(modelIdentityReply("What is a database model?","test"),undefined);
 });
+
+test("latest message is sent once without mutating supporting context",()=>{const data={latestMessage:"UNIQUE_CURRENT_REQUEST",workspace:{subject:"SQL"}};const current=modelMessages("Task",data).at(-1)!.content;assert.equal(current.split("UNIQUE_CURRENT_REQUEST").length-1,1);assert.match(current,/SQL/);assert.equal(data.latestMessage,"UNIQUE_CURRENT_REQUEST");});

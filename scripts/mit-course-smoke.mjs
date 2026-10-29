@@ -1,0 +1,4 @@
+import assert from'node:assert/strict';
+const base=process.env.STRIDE_BASE_URL||'http://127.0.0.1:3000';const boot=await fetch(base+'/api/workspace?fresh=1');assert.equal(boot.status,200);const cookie=boot.headers.get('set-cookie').split(';')[0];const timings=[];
+for(const[subject,id]of[['Data Structures and Algorithms','mit-algorithms'],['Operating systems','mit-os'],['Database systems','mit-database']]){const began=performance.now();const response=await fetch(base+'/api/course-references',{method:'POST',headers:{Cookie:cookie,Origin:base,'Content-Type':'application/json'},body:JSON.stringify({subject})});const data=await response.json();assert.equal(response.status,200);assert.equal(data.curatedId,id);assert.deepEqual(data.references,[]);timings.push({subject,ms:Math.round(performance.now()-began)});}
+console.log(JSON.stringify({passed:true,mitOnly:true,knownCoursesUseNoSearch:true,timings},null,2));

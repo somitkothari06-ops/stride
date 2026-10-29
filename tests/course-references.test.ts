@@ -1,8 +1,8 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {courseSourceAllowed,sealReference,checkReference} from '../lib/course-references';
-test('course discovery only accepts HTTPS educational sources, without credentials or alternate ports',()=>{
- for(const u of ['https://ocw.mit.edu/courses/x/','https://nptel.ac.in/courses/1','https://www.cs.ox.ac.uk/teaching/'])assert.equal(courseSourceAllowed(u),true);
- for(const u of ['https://mit.edu.attacker.com/course','https://example.com/course','http://mit.edu/course','https://name:secret@mit.edu/course','https://mit.edu:3000/course','http://127.0.0.1'])assert.equal(courseSourceAllowed(u),false);
+test('course discovery only accepts HTTPS MIT sources, without credentials or alternate ports',()=>{
+ for(const u of ['https://ocw.mit.edu/courses/x/','https://pdos.csail.mit.edu/6.1810/2025/overview.html'])assert.equal(courseSourceAllowed(u),true);
+ for(const u of ['https://mit.edu.attacker.com/course','https://example.com/course','https://www.sjsu.edu/course','https://nptel.ac.in/courses/1','https://www.cs.ox.ac.uk/teaching/','http://mit.edu/course','https://name:secret@mit.edu/course','https://mit.edu:3000/course','http://127.0.0.1'])assert.equal(courseSourceAllowed(u),false);
 });
 test('a discovered reference is bound to session, subject, exact text and a short expiry',()=>{
  const source={url:'https://ocw.mit.edu/courses/example/',title:'Synthetic networks course',excerpt:'Computer networks topics include protocols, packet routing and transport.',retrievedAt:'2026-10-28T00:00:00Z'};

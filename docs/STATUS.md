@@ -272,3 +272,7 @@ Direction now builds three actionable steps from web excerpts and recent learner
 ### Add work attachments and time no-op
 
 Add work now supports document upload and an atomic task+library save, with a direct study link from the task. Selecting an already-saved time budget sends no request; the server preserves the current plan on same-budget requests. The misleading time toast is gone. 205 tests and the release build passed; live synthetic attachment/replay/ownership checks and budget checks are included in scripts/attached-work-smoke.mjs and scripts/delight-smoke.mjs.
+
+### MIT discovery, Pip latency and platform recheck
+
+Course discovery now accepts MIT domains only and uses curated MIT DSA/OS/database pages without a web search. Pip removes redundant source/latest-message copies and skips query-classification inference for known public technical topics; recent search results are cached by workspace/query with failure, expiry and isolation checks. Existing chat startup uses one read; pending user text appears immediately. Source validation, auth errors, version conflicts and daily allowances remain enforced. Inference timing/token logs contain metadata only. 214 tests and the release build passed. Native response schemas now constrain field types before independent source validation. See PERFORMANCE.md and NVIDIA-NEBIUS.md for the actual before/after sample, live provider/vision/background checks, remaining submission tasks and limits.

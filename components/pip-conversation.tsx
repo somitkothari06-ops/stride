@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, BookOpen, ChevronDown, Code, CornerUpLeft, MoreHorizontal, Pin, RefreshCw, Trash2, Plus, Pencil, X, MessageCircle, PanelLeft } from "lucide-react";
+import { loadPipSnapshot } from "@/lib/pip-load";
 import { connectionMessage, requestJson } from "@/lib/client-request";
 import { Dictation } from "./voice-capture";
 import { completePipLaunch } from "@/lib/pip-navigation";
@@ -32,6 +33,7 @@ function Answer({text,onPinCode}:{text:string;onPinCode?:(code:string)=>void}) {
 
 export default function PipConversation({active,onKeep,onListening,onBusy,onDraftChange,onThreadChange,full=false,prompt}:{full?:boolean;onThreadChange?:(value:string)=>void;onDraftChange?:(value:string)=>void;prompt?:{id:string;text:string;autoSend?:boolean;threadId?:string};active:boolean;onBusy:(value:boolean)=>void;onKeep:(text:string)=>void;onListening:(value:boolean)=>void}) {
  const [chat,setChat]=useState<PipChat>({version:0,messages:[]}),[draft,setDraft]=useState(""),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(""),[listening,setListening]=useState(false),[newReply,setNewReply]=useState(false);
+ const [sending,setSending]=useState(false);
  const [busyText,setBusyText]=useState("Pip is working on your message…");
  const pinsByThread=useRef(new Map<string,PipPin[]>()).current;
  const [canvasMobile,setCanvasMobile]=useState(false);
@@ -56,7 +58,7 @@ export default function PipConversation({active,onKeep,onListening,onBusy,onDraf
  async function load(requestedId?:string) {
   if(prompt?.autoSend)launched.current="";
   const sequence=++loadSequence.current;setLoading(true);setError("");
-  try {await requestJson("/api/workspace?fresh=1&bootstrap=1",{cache:"no-store"},{retryNetwork:true});const data=await requestJson<PipSnapshot>("/api/pip-chat"+(requestedId?`?threadId=${encodeURIComponent(requestedId)}`:""),{cache:"no-store"},{retryNetwork:true});if(sequence!==loadSequence.current)return;
+  try {const data=await loadPipSnapshot(requestedId);if(sequence!==loadSequence.current)return;
    apply(data,true);
   }catch(e){if(sequence===loadSequence.current)setError(connectionMessage(e,"Couldn’t connect. Please try again."));}finally{if(sequence===loadSequence.current)setLoading(false);}
  }
@@ -110,7 +112,7 @@ export default function PipConversation({active,onKeep,onListening,onBusy,onDraf
  useEffect(()=>{if(active){const box=transcript.current;if(box&&stickToBottom.current){box.scrollTop=box.scrollHeight;setNewReply(false);}else if(box)setNewReply(true);}},[chat,active,busy]);
  async function send(overrideText?:string,turnId?:string,target?:PipSnapshot) {
   const text=(overrideText||draft).trim(),destination=target?.threadId||threadId,version=target?.chat.version??chat.version;if(!text||busy||listening||!destination)return;
-  stickToBottom.current=true;setBusyText("Pip is working on your message…");setBusy(true);setError("");
+  stickToBottom.current=true;setSending(true);setBusyText("Working on your reply…");setBusy(true);setError("");
   pending.current=pendingByThread.current[destination]||null;
   if(!pending.current||pending.current.text!==text||pending.current.version!==version||pending.current.threadId!==destination)pending.current={id:turnId||crypto.randomUUID(),text,version,threadId:destination};
   pendingByThread.current[destination]=pending.current;
@@ -118,7 +120,7 @@ export default function PipConversation({active,onKeep,onListening,onBusy,onDraf
    const response=await fetch("/api/pip-chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"send",turnId:pending.current.id,threadId:destination,version,text,allowSearch:true})});
    const data=await response.json();if(!response.ok)throw new Error(data.error?.message||"Pip couldn't answer. Your message is still here.");
    if(pending.current)completePipLaunch(pending.current.id);apply(data);setDraft("");delete drafts.current[destination];delete pendingByThread.current[destination];pending.current=null;window.dispatchEvent(new Event("stride-workspace-changed"));input.current?.focus();
-  }catch(e){setError(connectionMessage(e,"Couldn’t confirm the reply. Your message is still here; reconnect before retrying."));}finally{setBusy(false);}
+  }catch(e){setError(connectionMessage(e,"Couldn’t confirm the reply. Your message is still here; reconnect before retrying."));}finally{setBusy(false);setSending(false);}
  }
  useEffect(()=>{
   if(!prompt?.autoSend||!active||loading||busy||launched.current===prompt.id)return;
@@ -144,7 +146,7 @@ export default function PipConversation({active,onKeep,onListening,onBusy,onDraf
 
 
   <div className="pip-chat-transcript" ref={transcript} onScroll={()=>{const box=transcript.current;if(box){stickToBottom.current=box.scrollHeight-box.scrollTop-box.clientHeight<100;if(stickToBottom.current)setNewReply(false);}}} role="log" aria-label="Conversation with Pip" aria-live="polite" aria-relevant="additions">
-   {loading ? <p className="pip-chat-empty">Opening our conversation…</p>:!chat.messages.length ? <div className="pip-chat-welcome"><h3>What’s going on?</h3><p>A confusing topic, a rough day, an idea you’re excited about. Start wherever you are.</p><span><BookOpen size={17}/>We can work it through together.</span></div>:null}
+   {loading ? <p className="pip-chat-empty">Opening our conversation…</p>:!chat.messages.length&&!sending ? <div className="pip-chat-welcome"><h3>What’s going on?</h3><p>A confusing topic, a rough day, an idea you’re excited about. Start wherever you are.</p><span><BookOpen size={17}/>We can work it through together.</span></div>:null}
    {chat.messages.map(message=>{
     const pinnedWhole=pins.some(pin=>pin.messageId===message.id&&pin.kind==="message"&&pin.text===message.text);
     return <article className={`pip-message pip-message-${message.role}`} key={message.id} data-message-id={message.id}><span>{message.role==="user"?"You":"Pip"}{message.intent==="teach" ? " · Learning together":""}</span><Answer text={message.text} onPinCode={full&&message.role==="assistant"?(code:string)=>pinToCanvas("code",message.id,code):undefined}/>{message.role==="user" && <details className="pip-message-menu"><summary aria-label="Message options"><MoreHorizontal size={18}/></summary><button type="button" disabled={busy||listening} onClick={()=>onKeep(message.text)}>Save from this message</button></details>}
@@ -153,6 +155,7 @@ export default function PipConversation({active,onKeep,onListening,onBusy,onDraf
     {message.searchStatus==="unavailable"&&<small className="pip-search-unavailable">Web search didn’t return usable results.</small>}
     </article>;
    })}
+   {sending&&pending.current&&<article className="pip-message pip-message-user" aria-label="Your message being sent"><span>You</span><p>{pending.current.text}</p></article>}
    {busy&&<p className="pip-chat-pending" role="status">{busyText}</p>}
   </div>
   {newReply&&<button className="pip-latest-reply" onClick={()=>{stickToBottom.current=true;const box=transcript.current;if(box)box.scrollTop=box.scrollHeight;setNewReply(false);}}>Latest reply ↓</button>}

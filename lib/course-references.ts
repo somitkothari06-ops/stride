@@ -7,7 +7,7 @@ export const ReferenceSchema=z.object({id:z.string().min(1).max(80),name:z.strin
 export const ReferenceSelection=z.object({reference:ReferenceSchema,proof:z.string().regex(/^[a-f0-9]{64}$/),expiresAt:z.number().int()}).strict();
 export type CourseReference=z.infer<typeof ReferenceSchema>;
 export type SealedReference=z.infer<typeof ReferenceSelection>;
-export function courseSourceAllowed(value:string){try{const u=new URL(value);return u.protocol==='https:'&&!u.username&&!u.password&&!u.port&&(/(?:^|\.)edu$|\.edu\.[a-z]{2}$|\.ac\.[a-z]{2}$/i.test(u.hostname)||u.hostname==='cs186berkeley.net');}catch{return false;}}
+export function courseSourceAllowed(value:string){try{const u=new URL(value);return u.protocol==='https:'&&!u.username&&!u.password&&!u.port&&(u.hostname==='mit.edu'||u.hostname.endsWith('.mit.edu'));}catch{return false;}}
 function signature(session:string,subject:string,reference:CourseReference,expiresAt:number){return createHmac('sha256',secret).update(JSON.stringify({session,subject:subject.trim().toLowerCase(),reference,expiresAt})).digest('hex');}
 export function sealReference(session:string,subject:string,source:RoleSource,index:number,now=Date.now()):SealedReference|null{
  if(!courseSourceAllowed(source.url)||source.excerpt.trim().length<20)return null;

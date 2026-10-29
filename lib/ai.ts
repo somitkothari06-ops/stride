@@ -1,4 +1,5 @@
 import { z } from "zod";
+import {structuredResponseFormat} from "./structured-output";
 import { modelMessages, type ConversationTurn } from "./model-messages";
 import type { RoleSource } from "./types";
 import { roleSearchQuery } from "./role-search";
@@ -51,6 +52,7 @@ export async function model<T>(
   const configId = currentConfigId(selectedModel)!;
   const messages=modelMessages(task,data,options.history);
   const requestMessages=options.images?.length?messages.map((message,index)=>index===messages.length-1?{...message,content:[{type:"text",text:message.content},...options.images!.map(url=>({type:"image_url",image_url:{url}}))]}:message):messages;
+  const inferenceStarted=Date.now();
   let transportSucceeded=false;
   try {
     const response = await fetch(
@@ -65,8 +67,8 @@ export async function model<T>(
         body: JSON.stringify({
           model: selectedModel,
           temperature: 0.2,
-          max_tokens: Math.min(4000, Math.max(512, options.maxTokens || 1800)),
-          response_format: { type: "json_object" },
+          max_tokens: Math.min(4000, Math.max(128, options.maxTokens || 1800)),
+          response_format: structuredResponseFormat(schema),
           ...structuredTaskOptions(process.env.NEBIUS_DISABLE_THINKING),
           messages: requestMessages,
         }),
@@ -98,6 +100,7 @@ export async function model<T>(
       });
       throw new Error("MODEL_UNAVAILABLE");
     }
+    console.info("Stride inference completed",{model:selectedModel,ms:Date.now()-inferenceStarted,promptTokens:result.usage?.prompt_tokens??null,completionTokens:result.usage?.completion_tokens??null});
     recordProviderCheck(configId, true);
     return validated.data;
   } catch {
