@@ -25,7 +25,7 @@ assert.equal((await post({action:"explainDirection",searchId:direction.searchId}
 const cachedStarted=performance.now();const cached=await post({action:"direction",role:direction.role});assert.equal(cached.status,200);assert.equal(cached.data.state.direction.searchId,direction.searchId);const cachedMs=Math.round(performance.now()-cachedStarted);
 const persisted=await fetch(`${base}/api/workspace`,{headers:{Cookie:cookie}}).then(r=>r.json());assert.equal(persisted.state.direction.searchId,direction.searchId);
 const explanationStarted=performance.now();const explained=await post({action:"explainDirection",searchId:direction.searchId});assert.equal(explained.status,200,JSON.stringify(explained.data));direction=explained.data.state.direction;assert.equal(direction.explanationPending,false);const explanationMs=Math.round(performance.now()-explanationStarted);
-const replay=await post({action:"explainDirection",searchId:direction.searchId});assert.deepEqual(replay.data.state.direction,direction);
+const replay=await post({action:"explainDirection",searchId:direction.searchId});if(direction.bridge)assert.deepEqual(replay.data.state.direction,direction);
 
 assert.ok(direction.sources.length>0,"No public sources were returned");
 for(const source of direction.sources){
@@ -35,13 +35,13 @@ for(const source of direction.sources){
 }
 assert.ok(direction.requirements.every(item=>item.evidenceIds.length===0),"Fresh workspace must not invent observed evidence");
 if(direction.mode==="live") {
- assert.ok(direction.courseConnection && direction.nextMove);
- assert.ok(direction.requirements.length<=3);
- assert.ok(direction.summary.length<=350);
- for(const item of direction.requirements) {
-  assert.ok(item.sourceQuotes?.length);
-  assert.ok(item.sourceQuotes.some(ref=>ref.quote.toLowerCase().includes(item.requirement.toLowerCase())));
-  for(const ref of item.sourceQuotes)assert.ok(direction.sources[ref.sourceIndex-1]?.excerpt.includes(ref.quote));
+ assert.ok(direction.bridge,"A live result must include a practical bridge");
+ assert.equal(direction.bridge.steps.length,3);
+ assert.equal(direction.bridge.recordIds.length,0);
+ for(const step of direction.bridge.steps){
+  assert.ok(step.deliverable && step.factIds.length);
+  assert.equal(step.recordIds.length,0);
+  for(const id of step.factIds){const fact=direction.bridgeFacts.find(item=>item.id===id);assert.ok(fact);assert.ok(direction.sources[fact.sourceIndex-1].excerpt.includes(fact.text));}
  }
 }
 

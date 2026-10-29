@@ -1,7 +1,8 @@
 "use client";
-import { connectionMessage } from "@/lib/client-request";
+import { connectionMessage, requestJson } from "@/lib/client-request";
 import SignOut from "./sign-out";
 import TimePocket from "./time-pocket";
+import RoleBridge from "./role-bridge";
 import SaveMoment from "./save-moment";
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
@@ -138,14 +139,12 @@ export default function WorkspaceApp() {
 
   const load = useCallback(async () => {
     try {
-      const response = await fetch("/api/workspace", { cache: "no-store" });
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.error?.message || "Couldn't load your workspace.");
+      const data=await requestJson<{state:Workspace;providers:Providers;account:{email:string}|null}>("/api/workspace",{cache:"no-store"},{retryNetwork:true});
       if (data.account && !data.state.profile.onboardingComplete) { window.location.replace("/about-you"); return; }
       setState(data.state);
       setProviders(data.providers);
       setAccount(data.account || null);
+      setError("");
     } catch (e) {
       setError(connectionMessage(e, "Couldn’t connect to your workspace. Please try again."));
     }
@@ -1138,21 +1137,14 @@ export default function WorkspaceApp() {
                 <>
                   <section className="direction-brief" aria-label="Role exploration brief">
                     <header className="direction-brief-header">
-                      <span className="tag">{state.direction.explanationPending ? "Pages found" : state.direction.mode === "live" ? "Your guide" : "Pages to explore"}</span>
+                      <span className="tag">{state.direction.explanationPending ? "Pages found" : state.direction.bridge ? "Your path" : "Pages to explore"}</span>
                       <h2>{state.direction.role}</h2>
                       <p>{state.direction.summary}</p>
                       <small>{state.direction.sources.length} public sources · Updated {new Date(state.direction.updatedAt).toLocaleDateString("en-IN")}</small>
                     </header>
-                    {state.direction.courseConnection && <div className="direction-course-link"><BookOpen size={23}/><div><h3>How this connects to your classes</h3><p>{state.direction.courseConnection}</p></div></div>}
-                    {!!state.direction.requirements.length && <div className="role-skill-list"><h3>What you could learn</h3>{state.direction.requirements.map((r,i)=><article className="role-skill" key={i}>
-                      <span className="role-skill-number">0{i+1}</span><div><h4>{r.friendlyLabel || r.requirement}</h4><p>{r.nextStep}</p>
-                      {!!r.evidenceIds.length && <button className="text-button" onClick={()=>go("memory")}><Link2 size={14}/>See related notes you saved</button>}
-                      {!!r.sourceQuotes?.length && <details><summary>Where this came from</summary>{r.sourceQuotes.map((ref,j)=>{const source=state.direction!.sources[ref.sourceIndex-1];return source ? <blockquote key={j}><p>“{ref.quote}”</p><a href={source.url} target="_blank" rel="noopener noreferrer">Source {ref.sourceIndex} · {new URL(source.url).hostname} ↗</a></blockquote>:null;})}</details>}
-                      </div></article>)}</div>}
-                    {state.direction.explanationPending && !busy && <button className="btn subtle" onClick={()=>act({action:"explainDirection",searchId:state.direction!.searchId},"Putting together your guide")}>Finish my guide <ArrowRight size={16}/></button>}
-                    {state.direction.nextMove && <div className="direction-next-move"><span><Compass size={22}/>ONE WAY TO TRY IT</span><h3>{state.direction.nextMove}</h3><small>Try it and see whether you enjoy it.</small><button className="btn subtle" onClick={()=>launchPipChat("Help me try the activity we just chose, one step at a time.")}>Try this with Pip <ArrowRight size={16}/></button></div>}
+                    {state.direction.bridge ? <RoleBridge key={state.direction.searchId} direction={state.direction}/> : busy ? <div className="bridge-working" role="status">Connecting the pages to your next steps…</div> : !!state.direction.sources.length && <div className="bridge-pending"><p>Turn these pages into three practical steps, shaped around what you’ve shared.</p><button className="btn primary" onClick={()=>act({action:"explainDirection",searchId:state.direction!.searchId},"Building your path")}>Build my path <ArrowRight size={18}/></button></div>}
                   </section>
-                  <details key={state.direction.searchId || state.direction.updatedAt} open={state.direction.mode !== "live" || undefined} className="direction-source-list direction-page-links"><summary>Open the original pages <span>{state.direction.sources.length} links</span><ChevronDown size={18}/></summary>
+                  <details key={state.direction.searchId || state.direction.updatedAt} open={state.direction.mode !== "live" || undefined} className="direction-source-list direction-page-links"><summary>Explore the sources <span>{state.direction.sources.length} links</span><ChevronDown size={18}/></summary>
                     <p>Open a page to check the details and whether it’s still open.</p>
                     <div className="direction-link-grid">{state.direction.sources.map((source,index)=><a className="direction-page-link" href={source.url} target="_blank" rel="noopener noreferrer" key={source.url}><span>{new URL(source.url).hostname.replace(/^www\./,"")}<ArrowUpRight size={18}/></span><strong>{source.title}</strong><small>{new URL(source.url).hostname.includes("reddit.com") ? "Read the discussion" : "Open page"} →</small></a>)}</div>
                   </details>

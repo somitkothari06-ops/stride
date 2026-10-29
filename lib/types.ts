@@ -67,6 +67,10 @@ export type RoleSource = {
 export type Direction = {
   searchId?: string;
   explanationPending?: boolean;
+  bridge?: import("./role-bridge").RoleBridge;
+  bridgeFacts?: import("./role-bridge").BridgeFact[];
+  bridgeRecords?: { id: string; activity: string }[];
+  bridgeContextKey?: string;
   role: string;
   summary: string;
   courseConnection?: string;

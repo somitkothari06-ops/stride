@@ -1,3 +1,4 @@
+import { invalidateRoleBridge } from "@/lib/role-bridge";
 import { NextResponse } from "next/server";
 import { body, checkOrigin, failure, requireSession } from "@/lib/http";
 import { clientBucket } from "@/lib/client-limits";
@@ -186,6 +187,7 @@ export async function DELETE(request: Request) {
         entries: (current.evidence?.entries || []).filter((item) => item.id !== input.id),
       };
       current.revision++;
+      invalidateRoleBridge(current);
       // A saved continuation derived from the deleted entry must not survive it.
       clearReturnCardIfStale(current);
     });

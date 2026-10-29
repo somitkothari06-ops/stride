@@ -17,7 +17,7 @@ import SignOut from "./sign-out";
 import FilePicker from "./file-picker";
 import SaveMoment from "./save-moment";
 import { launchPipChat } from "@/lib/pip-navigation";
-import { connectionMessage } from "@/lib/client-request";
+import { connectionMessage, requestJson } from "@/lib/client-request";
 
 type Candidate = {
   activity: string;
@@ -80,14 +80,12 @@ export default function JournalApp() {
   const load = useCallback(async () => {
     setError("");
     try {
-      const workspaceResponse = await fetch("/api/workspace", { cache: "no-store" });
-      const workspaceData = await workspaceResponse.json();
-      if (!workspaceResponse.ok) throw new Error(workspaceData.error?.message || "Couldn’t open your workspace.");
+      const workspaceData=await requestJson<{state:Workspace;account:{email:string}|null}>("/api/workspace",{cache:"no-store"},{retryNetwork:true});
       if(workspaceData.account&&!workspaceData.state.profile.onboardingComplete){window.location.replace("/about-you");return;}
       setState(workspaceData.state as Workspace);
-      const focusResponse = await fetch("/api/focus", { cache: "no-store" });
-      const focusData = await focusResponse.json();
-      if (focusResponse.ok) setCard(focusData.card as Card);
+      const focusData=await requestJson<{card:Card}>("/api/focus",{cache:"no-store"},{retryNetwork:true});
+      setCard(focusData.card);
+
     } catch (caught) {
       setError(connectionMessage(caught, "Couldn’t open your workspace. Check your connection and reload."));
     }

@@ -1,3 +1,4 @@
+import { invalidateRoleBridge } from "./role-bridge";
 import { z } from "zod";
 import { randomUUID } from "node:crypto";
 import type { Workspace } from "./types";
@@ -382,6 +383,7 @@ export async function commitEvidence(
       };
       state.evidence = { entries: [...(state.evidence?.entries || []), entry] };
       state.revision++;
+      invalidateRoleBridge(state);
       connection
         .prepare("UPDATE sessions SET state=?,updated=? WHERE id=?")
         .run(JSON.stringify(state), now, session);
@@ -413,6 +415,7 @@ export async function deleteEvidenceEntry(state: Workspace, entryId: string) {
   if (!entry) throw new Error("NOT_FOUND");
   state.evidence = { entries: (state.evidence?.entries || []).filter((item) => item.id !== entryId) };
   state.revision++;
+  invalidateRoleBridge(state);
   // A saved continuation that points at the deleted entry is derived from
   // evidence that no longer exists; it must not survive the delete.
   clearReturnCardIfStale(state);

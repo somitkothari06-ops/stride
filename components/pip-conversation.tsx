@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, BookOpen, ChevronDown, Code, CornerUpLeft, MoreHorizontal, Pin, RefreshCw, Trash2, Plus, Pencil, X, MessageCircle, PanelLeft } from "lucide-react";
+import { connectionMessage, requestJson } from "@/lib/client-request";
 import { Dictation } from "./voice-capture";
 import { completePipLaunch } from "@/lib/pip-navigation";
 import type { PipChat, PipSnapshot, PipThreadSummary } from "@/lib/types";
@@ -55,9 +56,9 @@ export default function PipConversation({active,onKeep,onListening,onBusy,onDraf
  async function load(requestedId?:string) {
   if(prompt?.autoSend)launched.current="";
   const sequence=++loadSequence.current;setLoading(true);setError("");
-  try {const boot=await fetch("/api/workspace?fresh=1&bootstrap=1",{cache:"no-store"});if(!boot.ok)throw new Error("Open your workspace or sign in again.");const response=await fetch("/api/pip-chat"+(requestedId?`?threadId=${encodeURIComponent(requestedId)}`:""),{cache:"no-store"});const data=await response.json();if(!response.ok)throw new Error(data.error?.message||"Couldn't load this chat.");if(sequence!==loadSequence.current)return;
+  try {await requestJson("/api/workspace?fresh=1&bootstrap=1",{cache:"no-store"},{retryNetwork:true});const data=await requestJson<PipSnapshot>("/api/pip-chat"+(requestedId?`?threadId=${encodeURIComponent(requestedId)}`:""),{cache:"no-store"},{retryNetwork:true});if(sequence!==loadSequence.current)return;
    apply(data,true);
-  }catch(e){if(sequence===loadSequence.current)setError(e instanceof Error?e.message:"Couldn't connect.");}finally{if(sequence===loadSequence.current)setLoading(false);}
+  }catch(e){if(sequence===loadSequence.current)setError(connectionMessage(e,"Couldn’t connect. Please try again."));}finally{if(sequence===loadSequence.current)setLoading(false);}
  }
  async function manage(payload:unknown){
   const response=await fetch("/api/pip-chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});const data=await response.json();if(!response.ok)throw new Error(data.error?.message||"Couldn't update this chat.");return data as PipSnapshot;
@@ -117,7 +118,7 @@ export default function PipConversation({active,onKeep,onListening,onBusy,onDraf
    const response=await fetch("/api/pip-chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"send",turnId:pending.current.id,threadId:destination,version,text,allowSearch:true})});
    const data=await response.json();if(!response.ok)throw new Error(data.error?.message||"Pip couldn't answer. Your message is still here.");
    if(pending.current)completePipLaunch(pending.current.id);apply(data);setDraft("");delete drafts.current[destination];delete pendingByThread.current[destination];pending.current=null;window.dispatchEvent(new Event("stride-workspace-changed"));input.current?.focus();
-  }catch(e){setError(e instanceof Error?e.message:"Couldn't connect. Your message is still here.");}finally{setBusy(false);}
+  }catch(e){setError(connectionMessage(e,"Couldn’t confirm the reply. Your message is still here; reconnect before retrying."));}finally{setBusy(false);}
  }
  useEffect(()=>{
   if(!prompt?.autoSend||!active||loading||busy||launched.current===prompt.id)return;

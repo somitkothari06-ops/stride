@@ -1,3 +1,4 @@
+import { invalidateRoleBridge } from "./role-bridge";
 import { randomUUID } from "node:crypto";
 import type { Workspace } from "./types";
 import type { EvidenceEntry } from "./evidence";
@@ -135,6 +136,7 @@ export function closeFocus(
     focusId: focus.id,
   };
   state.evidence = { entries: [...(state.evidence?.entries || []), entry] };
+  invalidateRoleBridge(state);
   const carry = nextStep || entries.findLast((item) => item.nextSuggestion)?.nextSuggestion || "";
   const card: Continuation = {
     id: randomUUID(),
