@@ -22,22 +22,23 @@ export default function CourseLibrary({ state, onState }: { state: Workspace; on
   const [seal, setSeal] = useState<{ proof: string; expiresAt: number } | null>(null);
   const [subject, setSubject] = useState("");
   const [filter, setFilter] = useState("");
+  const [previewPage,setPreviewPage]=useState(0);
   async function send(url: string, options: RequestInit, label: string) {
     if (busy) return null;
     setBusy(label); setError("");
     try {
-      const response = await fetch(url, options);
+      const response = await fetch(url, { ...options, signal: AbortSignal.timeout(150000) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error?.message || "This request didn't complete. Try again.");
       return result;
-    } catch (e) { setError(e instanceof Error ? e.message : "Couldn't connect."); return null; }
+    } catch (e) { setError(e instanceof Error && (e.name === "TimeoutError" || e.name === "AbortError") ? options.method === "POST" ? "This upload took too long. Your saved documents are safe. Choose the file and try again." : "Couldn’t confirm that save. Reload the library before trying again." : e instanceof Error ? e.message : "Couldn't connect."); return null; }
     finally { setBusy(""); }
   }
   async function extract(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const result = await send("/api/materials", { method: "POST", body: form }, "Reading the document text");
-    if (result) { setDraft(result.candidate); setSeal({ proof: result.proof, expiresAt: result.expiresAt }); }
+    if (result) { setPreviewPage(0); setDraft(result.candidate); setSeal({ proof: result.proof, expiresAt: result.expiresAt }); }
   }
   async function save() {
     const result = await send("/api/materials", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ candidate: draft, ...seal }) }, "Saving confirmed course context");
@@ -56,8 +57,8 @@ export default function CourseLibrary({ state, onState }: { state: Workspace; on
       <label htmlFor="material-title">Document title</label><input id="material-title" value={draft.title} maxLength={160} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
       <p className="field-help">{draft.subject} · {draft.kind} · {draft.pages.length} extracted sections</p>
       {draft.warnings.map((warning) => <p className="warning-text" key={warning}>{warning}</p>)}
-      <div className="extracted-pages">{draft.pages.map((page) => <details key={page.locator}><summary>{page.locator}</summary><p>{page.text}</p></details>)}</div>
-      <div className="form-actions"><button className="btn primary" disabled={!!busy || !draft.title.trim()} onClick={save}>Confirm and use this text <ArrowRight size={15} /></button><button className="text-button" disabled={!!busy} onClick={() => setDraft(null)}>Discard preview</button></div>
+      <div className="extracted-pages">{draft.pages.slice(previewPage*8,previewPage*8+8).map((page) => <details key={page.locator}><summary>{page.locator}</summary><p>{page.text}</p></details>)}</div>
+      {draft.pages.length>8&&<div className="studio-pagination"><button type="button" className="btn subtle" disabled={previewPage===0} onClick={()=>setPreviewPage(p=>p-1)}>Back</button><span>{previewPage+1} / {Math.ceil(draft.pages.length/8)}</span><button type="button" className="btn subtle" disabled={(previewPage+1)*8>=draft.pages.length} onClick={()=>setPreviewPage(p=>p+1)}>Next</button></div>}<div className="form-actions"><button className="btn primary" disabled={!!busy || !draft.title.trim()} onClick={save}>Confirm and use this text <ArrowRight size={15} /></button><button className="text-button" disabled={!!busy} onClick={() => setDraft(null)}>Discard preview</button></div>
     </section> : <form onSubmit={extract} className="material-upload">
       <div className="form-grid"><div><label htmlFor="material-subject">Subject</label><input id="material-subject" list="course-subjects" name="subject" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Database systems" maxLength={80} required /></div><div><label htmlFor="material-kind">What kind of material?</label><select id="material-kind" name="kind"><option>Syllabus</option><option>Lecture notes</option><option>Lecture slides</option><option>Past questions</option></select></div></div>
       <FilePicker id="course-file" name="file" title="Bring your course material" hint="PDF, slides, Word or text · up to 8 MB" accept=".pdf,.pptx,.docx,.txt,.md" required disabled={!!busy} />
@@ -87,7 +88,7 @@ export default function CourseLibrary({ state, onState }: { state: Workspace; on
               <p className="field-help book-filename">{material.filename}</p>
               {material.storageKey && <p className="material-coverage">Original PDF available for diagrams &amp; images</p>}
               {material.coverage && <p className="material-coverage">{material.coverage.processedPages}/{material.coverage.totalPages} pages processed · {material.coverage.emptyPages.length} with little text</p>}
-              {material.warnings.map((warning) => <p className="warning-text" key={warning}>{warning}</p>)}
+              {!!material.warnings.length&&<details className="book-import-details"><summary>Import details</summary>{material.warnings.map((warning)=><p className="warning-text" key={warning}>{warning}</p>)}</details>}
               <div className="book-actions">
                 <a className="btn primary material-study-link" href={`/study/${material.id}`}>Study this document <ArrowRight size={15} /></a>
                 <button className="icon-btn danger" aria-label={`Remove course material ${material.title}`} disabled={!!busy} onClick={async () => {

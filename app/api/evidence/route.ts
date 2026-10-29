@@ -1,4 +1,5 @@
 import { invalidateRoleBridge } from "@/lib/role-bridge";
+import {removeBuildEvidence} from "@/lib/student-build";
 import { NextResponse } from "next/server";
 import { body, checkOrigin, failure, requireSession } from "@/lib/http";
 import { clientBucket } from "@/lib/client-limits";
@@ -164,7 +165,7 @@ export async function PUT(request: Request) {
       candidate,
       input.activityDate,
     );
-    return NextResponse.json({ state });
+    return NextResponse.json({ state, entryId:state.evidence?.entries.find(entry=>entry.captureId===String(input.reviewId||""))?.id });
   } catch (error) {
     return failure(error);
   }
@@ -183,6 +184,7 @@ export async function DELETE(request: Request) {
     const state = mutate(id, (current) => {
       if (!(current.evidence?.entries || []).some((item) => item.id === input.id))
         throw new Error("NOT_FOUND");
+      removeBuildEvidence(current,input.id);
       current.evidence = {
         entries: (current.evidence?.entries || []).filter((item) => item.id !== input.id),
       };

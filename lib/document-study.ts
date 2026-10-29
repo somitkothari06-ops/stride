@@ -10,4 +10,34 @@ export function selectStudyPages(material:CourseMaterial,from:number,count:numbe
  if(pages.reduce((n,p)=>n+p.text.length,0)>24000)throw Error("STUDY_RANGE_TOO_LARGE");
  return {from,to,total,pages};
 }
-export function validateLesson(lesson:Lesson,pages:{locator:string;text:string}[],imageLocators:string[]=[]){for(const item of lesson.evidence){if(item.basis==="image"){if(item.quote.length>500||!imageLocators.includes(item.locator))throw Error("STUDY_EVIDENCE_INVALID");}else if(!pages.some(page=>page.locator===item.locator&&page.text.includes(item.quote)))throw Error("STUDY_EVIDENCE_INVALID");}return lesson.evidence.some(item=>item.quote.length>500)?{...lesson,evidence:lesson.evidence.map(item=>item.quote.length>500?{...item,quote:item.quote.slice(0,500),excerptShortened:true}:item)}:lesson;}
+// Preserve the original excerpt while accepting equivalent PDF line wrapping.
+export function exactStudyExcerpt(text:string,quote:string):string|null{
+ if(text.includes(quote))return quote;
+ const chars:string[]=[],starts:number[]=[],ends:number[]=[];
+ for(let i=0;i<text.length;i++){
+  const char=text[i];
+  if(/\s/u.test(char)){
+   if(chars.at(-1)===' '){ends[ends.length-1]=i+1;continue;}
+   chars.push(' ');
+  }else chars.push(char);
+  starts.push(i);ends.push(i+1);
+ }
+ const needle=quote.replace(/\s+/gu,' ').trim();
+ if(needle.length<8)return null;
+ const at=chars.join('').indexOf(needle);
+ return at<0?null:text.slice(starts[at],ends[at+needle.length-1]);
+}
+export function validateLesson(lesson:Lesson,pages:{locator:string;text:string}[],imageLocators:string[]=[]){
+ const evidence=lesson.evidence.map(item=>{
+  if(item.basis==="image"){
+   if(item.quote.length>500||!imageLocators.includes(item.locator))throw Error("STUDY_EVIDENCE_INVALID");
+   return item;
+  }
+  let quote:string|null=null;
+  for(const page of pages){if(page.locator===item.locator){quote=exactStudyExcerpt(page.text,item.quote);if(quote!==null)break;}}
+  if(quote===null)throw Error("STUDY_EVIDENCE_INVALID");
+  if(quote===item.quote&&quote.length<=500)return item;
+  return {...item,quote:quote.length>500?quote.slice(0,500):quote,...(quote.length>500?{excerptShortened:true}:{})};
+ });
+ return evidence.every((item,index)=>item===lesson.evidence[index])?lesson:{...lesson,evidence};
+}

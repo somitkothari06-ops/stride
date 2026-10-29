@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+if(!process.argv.includes('--allow-live'))throw new Error('Requires --allow-live: uses real NVIDIA inference with synthetic project data.');
+const base=process.env.STRIDE_BASE_URL||'http://127.0.0.1:3100';
+const boot=await fetch(base+'/api/workspace?fresh=1');assert.equal(boot.status,200);const cookie=boot.headers.get('set-cookie').split(';')[0];
+async function call(input,origin=base){const r=await fetch(base+'/api/build',{method:'POST',headers:{Cookie:cookie,Origin:origin,'Content-Type':'application/json'},body:JSON.stringify(input)});return {status:r.status,data:await r.json()};}
+const read=()=>fetch(base+'/api/build',{headers:{Cookie:cookie}}).then(r=>r.json());
+const initial=await read();assert.equal(initial.build.project,null);
+const create={action:'create',version:0,requestId:randomUUID(),idea:'A small football match organiser for my friends. I am a beginner. Start with a paper database schema, not a complete app.',subject:'Databases',minutes:15};
+assert.equal((await call(create,'https://unrelated.example')).status,403);
+let r=await call(create);assert.equal(r.status,200,JSON.stringify(r.data));assert.ok(r.data.build.project.current.deliverable);assert.ok(r.data.build.project.current.minutes<=15);const projectId=r.data.build.project.id;
+assert.equal((await call(create)).data.build.version,1);
+const outsider=await fetch(base+'/api/workspace?fresh=1');const foreignCookie=outsider.headers.get('set-cookie').split(';')[0];const foreign=await fetch(base+'/api/build',{headers:{Cookie:foreignCookie}}).then(r=>r.json());assert.equal(foreign.build.project,null);
+assert.equal((await call({action:'submit',version:1,requestId:randomUUID(),text:'I drew two tables for players and teams.',evidenceId:'foreign-entry'})).status,409);
+const submit={action:'submit',version:1,requestId:randomUUID(),text:'My design has Team(team_id primary key, name) and Player(player_id primary key, name, team_id foreign key). A player may have no team, so team_id can be NULL. I have only drawn this schema on paper; I have not executed code.'};
+r=await call(submit);assert.equal(r.status,200,JSON.stringify(r.data));assert.equal(r.data.build.project.attempts.length,1);assert.equal(r.data.build.project.awaitingNext,true);assert.equal((await call(submit)).data.build.project.attempts.length,1);assert.ok(r.data.build.project.attempts[0].feedback.question);console.log("Synthetic feedback:",JSON.stringify(r.data.build.project.attempts[0].feedback));
+assert.equal((await call({action:'pause',version:0,requestId:randomUUID()})).status,409);
+r=await call({action:'advance',version:2,requestId:randomUUID()});assert.equal(r.status,200);assert.equal(r.data.build.project.awaitingNext,false);assert.equal(r.data.build.project.attempts[0].text,submit.text);
+r=await call({action:'pause',version:3,requestId:randomUUID()});assert.equal(r.data.build.project.paused,true);assert.equal((await call({...submit,version:4,requestId:randomUUID()})).status,409);
+r=await call({action:'resume',version:4,requestId:randomUUID()});assert.equal(r.data.build.project.paused,false);assert.equal((await read()).build.project.id,projectId);
+r=await call({action:'delete',version:5,requestId:randomUUID()});assert.equal(r.data.build.project,null);assert.equal((await call(create)).data.build.project,null);
+console.log(JSON.stringify({passed:true,creation:true,realModelFeedback:true,explicitContinuation:true,replaySafe:true,ownerIsolation:true,staleTabRefused:true,pauseResume:true,deleteReplaySafe:true}));

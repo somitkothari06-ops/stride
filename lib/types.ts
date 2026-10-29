@@ -96,6 +96,8 @@ export type PipThreadSummary = {id:string;title:string;updatedAt:string;messageC
 export type PipSnapshot = {chat:PipChat;threadId:string;threadRevision:number;threads:PipThreadSummary[]};
 export type EvidenceJournal = { entries: EvidenceEntry[] };
 export type Workspace = {
+  demo?: boolean;
+  build?: import("./build-types").BuildState;
   pipChat?: PipChat;
   pipThreads?: PipThreads;
   notes?: { id: string; text: string; createdAt: string }[];

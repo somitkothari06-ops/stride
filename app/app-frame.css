@@ -1,0 +1,247 @@
+/* app-frame.css — site-wide navigation chrome for <AppFrame />.
+   Scoped to .app-frame: fixed 216px left rail on desktop, sticky header +
+   dismissible drawer + bottom quick links below 860px. Paired theme tokens
+   only (--theme-cta/ctaInk, --theme-tint+ink, --theme-surface/ink). */
+
+.app-frame { min-height: 100vh; }
+
+/* Desktop rail */
+.app-frame-rail {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 216px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  background: var(--theme-surface);
+  border-right: 1px solid var(--theme-line);
+  padding: 24px 12px 16px;
+  z-index: 40;
+}
+.frame-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  padding: 4px 8px 22px;
+  font-family: "Manrope", sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: var(--theme-ink);
+  text-decoration: none;
+}
+.frame-brand-mark { display: flex; align-items: flex-end; gap: 3px; width: 20px; height: 20px; }
+.frame-brand-mark i { width: 5px; background: var(--theme-cta); border-radius: 2px; }
+.frame-brand-mark i:nth-child(1) { height: 9px; }
+.frame-brand-mark i:nth-child(2) { height: 15px; }
+.frame-brand-mark i:nth-child(3) { height: 20px; }
+
+.frame-nav { display: flex; flex-direction: column; flex: 1 0 auto; }
+.frame-group { display: flex; flex-direction: column; gap: 3px; margin: 0 0 16px; }
+.frame-group-label { margin: 0; padding: 4px 12px 8px; font-size: 12.5px; font-weight: 700; color: var(--theme-muted); }
+.frame-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--theme-ink);
+  text-decoration: none;
+}
+.frame-link:hover { background: var(--theme-tint); }
+.frame-link.active { background: var(--theme-tint); box-shadow: inset 3px 0 0 var(--theme-cta); }
+.frame-link:focus-visible { outline: 3px solid var(--theme-hero); outline-offset: 2px; }
+
+.frame-rail-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: auto;
+  border-top: 1px solid var(--theme-line);
+  padding-top: 8px;
+}
+.frame-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--theme-ink);
+  text-decoration: none;
+}
+.frame-profile:hover { background: var(--theme-tint); }
+.frame-profile-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.frame-avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--theme-cta);
+  color: var(--theme-ctaInk);
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+  overflow: hidden;
+}
+
+/* Main area uses the full remaining width; children stay flexible */
+.app-frame-body { margin-left: 216px; min-width: 0; display: flow-root; min-height: 100vh; }
+.app-frame-body > * { min-width: 0; }
+
+.frame-demo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 20px;
+  background: var(--theme-tint);
+  border-bottom: 1px solid var(--theme-line);
+}
+.frame-demo a { font-size: 13.5px; font-weight: 700; color: var(--theme-ink); text-decoration: none; }
+.frame-demo a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.frame-demo-leave {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--theme-cta);
+  color: var(--theme-ctaInk);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Scoped layout anchors (necessary only) */
+.app-frame .app-shell { display: block; }
+.app-frame .main-shell { margin-left: 0; width: auto; }
+.app-frame .workspace { max-width: none; }
+
+/* Retire the old workspace navigation; Pip's own chat-history sidebar stays */
+.app-frame:not([data-route="/pip"]) .sidebar,
+.app-frame:not([data-route="/pip"]) .nav-scrim { display: none; }
+.app-frame .mobile-tabs,
+.app-frame .mobile-menu { display: none; }
+.app-frame-body .site-brand,
+.app-frame-body .pip-room-wordmark { display: none; }
+
+/* Pip room height pinned to the viewport, no transforms on ancestors */
+.app-frame[data-route="/pip"] .app-frame-body { display: flex; flex-direction: column; height: 100vh; }
+.app-frame[data-route="/pip"] .app-frame-body > * { min-height: 0; min-width: 0; }
+
+/* Compact screens: header, drawer, bottom links only */
+.frame-top, .frame-tabs, .frame-drawer, .frame-scrim { display: none; }
+
+@media (max-width: 860px) {
+  .app-frame-rail { display: none; }
+  .app-frame-body { margin-left: 0; padding-bottom: 96px; }
+
+  .frame-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 45;
+    background: var(--theme-surface);
+    border-bottom: 1px solid var(--theme-line);
+    padding: 10px 14px;
+  }
+  .frame-top .frame-brand { padding: 0; font-size: 21px; }
+  .frame-top-actions { display: flex; align-items: center; gap: 10px; }
+  .frame-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 10px 18px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--theme-cta);
+    color: var(--theme-ctaInk);
+    font-size: 13.5px;
+    font-weight: 700;
+  }
+
+  .frame-scrim.open {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: color-mix(in srgb, var(--theme-ink) 40%, transparent);
+  }
+  .frame-drawer {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: min(85vw, 322px);
+    z-index: 70;
+    padding: 18px 12px 20px;
+    background: var(--theme-surface);
+    border-right: 1px solid var(--theme-line);
+    overflow-y: auto;
+    transform: translateX(-105%);
+    transition: transform 180ms ease;
+    visibility: hidden;
+  }
+  .frame-drawer.open { transform: none; visibility: visible; }
+  .frame-drawer .frame-brand { padding: 4px 52px 22px 8px; }
+  .frame-close {
+    position: absolute;
+    top: 14px;
+    right: 10px;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 50%;
+    font-size: 15px;
+    color: var(--theme-ink);
+  }
+  .frame-close:hover { background: var(--theme-tint); }
+
+  .frame-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: var(--theme-surface);
+    border-top: 1px solid var(--theme-line);
+    padding: 6px 8px max(8px, env(safe-area-inset-bottom));
+  }
+  .frame-tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    border: 0;
+    border-radius: 10px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--theme-muted);
+    background: none;
+    text-decoration: none;
+  }
+  .frame-tab:hover { background: var(--theme-tint); color: var(--theme-ink); }
+  .frame-tab[aria-current="page"] { background: var(--theme-tint); color: var(--theme-ink); }
+  .frame-tab:focus-visible { outline: 3px solid var(--theme-hero); outline-offset: 2px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frame-drawer { transform: none; transition: none; visibility: hidden; }
+  .frame-drawer.open { visibility: visible; }
+}
+.frame-brand{font-family:'Plus Jakarta Sans',sans-serif;font-size:36px;letter-spacing:-2px;padding:8px 12px 32px}.frame-link{font-size:15px;font-weight:750;min-height:48px}.frame-link.active{background:var(--theme-hero);color:var(--theme-heroInk);box-shadow:none}.frame-group-label{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-top:8px}.frame-profile{border:1px solid var(--theme-line);border-radius:14px;padding:12px;background:var(--theme-bg);margin:12px 0}.frame-profile-name{font-weight:800}.app-frame-body{min-width:0}.app-frame .app-shell>.sidebar,.app-frame .mobile-tabs,.app-frame .mobile-menu{display:none!important}.app-frame .app-shell .main-shell{margin:0;width:100%;min-width:0}.app-frame .workspace{padding:32px;max-width:none}.app-frame .topbar{padding:16px 32px;min-height:72px}.app-frame .welcome-main:has(.profile-canvas){padding:32px}.app-frame .profile-canvas{grid-template-columns:minmax(200px,.6fr) minmax(0,1.4fr);gap:24px}.app-frame .profile-cover{padding:28px}.app-frame-body>.build-desk .build-header{position:static}.app-frame-body>.build-desk .build-header-inner>.build-brand{display:none}.app-frame-body>.build-desk .build-header-inner{justify-content:flex-end;min-height:64px}.app-frame .frame-demo{position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 32px;background:var(--theme-cta);color:var(--theme-ctaInk);border-bottom:1px solid var(--theme-ink);font-size:14px;font-weight:800}.app-frame .frame-demo>a{color:inherit}.app-frame[data-demo=true] .signout-control{display:none}.app-frame .pip-room-main>header>.site-brand{display:none}.app-frame .pip-room-main{max-width:none}.app-frame .pip-room{width:100%;min-width:0}.app-frame .frame-tabs .frame-tab{flex-direction:column;gap:4px}.app-frame .build-desk .build-main{width:calc(100% - 48px)}.app-frame .build-desk .build-header-inner{width:calc(100% - 48px)}@media(max-width:1100px){.app-frame .profile-canvas{grid-template-columns:1fr}.app-frame .profile-cover{position:static;min-height:0}.app-frame .build-desk .build-grid{grid-template-columns:1fr}.app-frame .build-poster{display:none}.app-frame .build-mobile-title{display:block}}@media(max-width:860px){.frame-brand{font-size:29px;padding:8px}.app-frame .workspace{padding:24px 16px}.app-frame .topbar{padding:12px 16px}.app-frame .welcome-main:has(.profile-canvas){padding:16px 12px}.app-frame .frame-demo{padding:12px 16px;font-size:12px}.app-frame .frame-menu-btn{display:flex;align-items:center;gap:8px}.app-frame .frame-tabs{padding-bottom:max(8px,env(safe-area-inset-bottom))}.app-frame .frame-tab{font-size:12px;font-weight:800}.app-frame[data-route="/pip"] .app-frame-body{height:calc(100dvh - 128px);padding-bottom:0}.app-frame .build-desk .build-main{width:calc(100% - 24px)}.app-frame .build-desk .build-header-inner{width:calc(100% - 24px)}.app-frame .frame-drawer:not(.open){display:none}.app-frame .profile-cover{padding:20px}.app-frame .profile-cover h1{font-size:28px}}

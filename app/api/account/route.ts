@@ -18,6 +18,7 @@ const Input = z.discriminatedUnion("action", [
 ]);
 export async function GET() {
   try {
+    if((await cookies()).get("stride_demo_mode")?.value==="1")return NextResponse.json({configured:authConfigured(),account:null,demo:true},{headers:{"Cache-Control":"no-store"}});
     const account = await currentAccount();
     return NextResponse.json({ configured: authConfigured(), account: account ? { email: account.email } : null }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) { return failure(error); }
@@ -60,6 +61,7 @@ export async function POST(request: Request) {
     deleteOAuthAttempt(jar.get(oauthCookie)?.value);
     const response = NextResponse.json({ signedIn: true, claimed, next }, { headers: { "Cache-Control": "no-store" } });
     response.cookies.set(oauthCookie, "", { httpOnly: true, sameSite: "lax", path: "/", maxAge: 0 });
+    response.cookies.set("stride_demo_mode","",{path:"/",maxAge:0,httpOnly:true});response.cookies.set("stride_demo_session","",{path:"/",maxAge:0,httpOnly:true});
     response.cookies.set(accountCookie, token, { httpOnly: true, sameSite: "lax", secure: new URL(origin).protocol === "https:", maxAge: accountLifetime, path: "/" });
     response.cookies.set("stride_session", "", { httpOnly: true, sameSite: "lax", path: "/", maxAge: 0 });
     return response;

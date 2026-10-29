@@ -1,4 +1,5 @@
 import {journalSources,retainedChatSources} from "./journal-context";
+import {retrieveMemory} from "./long-memory";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { getState, mutate } from "./store";
@@ -68,12 +69,13 @@ export function existingTurn(state: Workspace, turnId: string, text: string,thre
   if(user && user.text!==text)throw new Error("CHAT_STALE");
   return user && chat.messages.some(message=>message.turnId===turnId && message.role==="assistant") ? chat : null;
 }
-export function chatContext(state: Workspace, text: string) {
+export function chatContext(state: Workspace, text: string, threadId?:string) {
   const terms=new Set(text.toLowerCase().match(/[a-z]{3,}/g)||[]);
   const pages=(state.materials||[]).flatMap(material=>material.pages.map(page=>{const searchable=`${material.subject} ${material.title} ${page.text}`.toLowerCase();return {title:material.title,locator:page.locator,text:page.text,subject:material.subject,score:[...terms].reduce((n,term)=>n+(searchable.includes(term)?1:0),0)};})).filter(page=>page.score>0).sort((a,b)=>b.score-a.score).slice(0,3);
   const sources:PipSource[]=pages.map((page,index)=>({id:`course-${index+1}`,title:page.title,locator:page.locator,excerpt:page.text.slice(0,1600)}));
   sources.push(...journalSources(state));
-  return {focusedSession:state.focus&&!state.focus.closedAt?{outcome:state.focus.title,minutes:state.focus.minutes,paused:Boolean(state.focus.pausedAt)}:null,profile:{name:state.profile.name,year:state.profile.year,minutes:state.profile.minutes,goal:state.profile.goal,context:personalContext(state.profile.lifeContext)},coursework:state.works.filter(work=>!work.completed).slice(0,12).map(work=>({title:work.title,subject:work.subject,dueDate:work.dueDate,summary:work.summary.slice(0,400),source:text.toLowerCase().includes(work.title.toLowerCase())?work.source.slice(0,1500):undefined})),currentActivity:state.direction?{role:state.direction.role,activity:state.direction.nextMove}:null,recentThoughts:(state.notes||[]).slice(-3).map(note=>note.text.slice(0,700)),recentObservations:state.observations.filter(item=>!item.removed).slice(-3).map(item=>({title:item.title,feedback:item.feedback.slice(0,500),method:item.method})),sources};
+  sources.push(...retrieveMemory(state,text,{excludeThread:threadId,budget:3600,limit:4}));
+  return {currentBuild:state.build?.project?{title:state.build.project.title,idea:state.build.project.idea,paused:state.build.project.paused,currentStep:state.build.project.current,lastAttempt:state.build.project.attempts.at(-1)?.text.slice(0,1200)}:null,focusedSession:state.focus&&!state.focus.closedAt?{outcome:state.focus.title,minutes:state.focus.minutes,paused:Boolean(state.focus.pausedAt)}:null,profile:{name:state.profile.name,year:state.profile.year,minutes:state.profile.minutes,goal:state.profile.goal,context:personalContext(state.profile.lifeContext)},coursework:state.works.filter(work=>!work.completed).slice(0,12).map(work=>({title:work.title,subject:work.subject,dueDate:work.dueDate,summary:work.summary.slice(0,400),source:text.toLowerCase().includes(work.title.toLowerCase())?work.source.slice(0,1500):undefined})),currentActivity:state.direction?{role:state.direction.role,activity:state.direction.nextMove}:null,recentThoughts:(state.notes||[]).slice(-3).map(note=>note.text.slice(0,700)),recentObservations:state.observations.filter(item=>!item.removed).slice(-3).map(item=>({title:item.title,feedback:item.feedback.slice(0,500),method:item.method})),sources};
 }
 export function validateChatSources(ids: string[], sources: PipSource[]) {
   const byId=new Map(sources.map(source=>[source.id,source]));
@@ -89,6 +91,7 @@ export function commitChatTurn(session: string, version: number, turnId: string,
     const thread=findThread(state,threadId),chat=thread.chat;
     if(chat.messages.length>=200)throw new Error("CHAT_FULL");
     if(chat.version!==version)throw new Error("CHAT_STALE");
+    if(retainedChatSources(answer.sources,state).length!==answer.sources.length)throw new Error("CHAT_STALE");
     const createdAt=new Date().toISOString();
     const messages:PipMessage[]=[...chat.messages,{id:randomUUID(),turnId,role:"user",text,createdAt},{id:randomUUID(),turnId,role:"assistant",text:answer.text,intent:answer.intent,sources:answer.sources,...(answer.searchStatus ? {searchStatus:answer.searchStatus} : {}),createdAt}];
     result={version:version+1,messages};

@@ -1,4 +1,5 @@
 import type {Workspace,PipSource} from './types';
+import {retainedMemorySources} from './long-memory';
 // Selected saved records, not an ability assessment or the student's complete history.
 export function journalSources(state:Workspace,maxChars=3000):PipSource[]{
  let budget=maxChars;const out:PipSource[]=[];
@@ -12,5 +13,5 @@ export function journalSources(state:Workspace,maxChars=3000):PipSource[]{
 
 export function retainedChatSources(sources:PipSource[],state:Workspace):PipSource[]{
  const present=new Set((state.evidence?.entries||[]).map(entry=>`journal-${entry.id}`));
- return sources.filter(source=>{const origin=source.originId||source.id;return !origin.startsWith('journal-')||present.has(origin);});
+ return retainedMemorySources(sources,state).filter(source=>{const origin=source.originId||source.id;return !origin.startsWith('journal-')||present.has(origin);});
 }

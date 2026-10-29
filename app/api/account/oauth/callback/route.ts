@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     finishOAuthAttempt(flowToken!);
     const { token, next } = completeAccountSignIn(data.session, guest, account);
     response = NextResponse.redirect(new URL(next, origin), 303);
-    response.cookies.set(accountCookie, token, { httpOnly: true, sameSite: "lax", secure: new URL(origin).protocol === "https:", maxAge: accountLifetime, path: "/" });
+    response.cookies.set("stride_demo_mode","",{path:"/",maxAge:0,httpOnly:true});response.cookies.set("stride_demo_session","",{path:"/",maxAge:0,httpOnly:true});response.cookies.set(accountCookie, token, { httpOnly: true, sameSite: "lax", secure: new URL(origin).protocol === "https:", maxAge: accountLifetime, path: "/" });
     response.cookies.set("stride_session", "", { httpOnly: true, sameSite: "lax", path: "/", maxAge: 0 });
   } catch (error) {
     if (claimed) deleteOAuthAttempt(flowToken);

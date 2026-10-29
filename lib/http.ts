@@ -5,6 +5,12 @@ import { currentAccount } from "./auth";
 import { mutationOrigin } from "./auth-origin";
 
 export async function requireSession() {
+  const jar=await cookies();
+  if(jar.get("stride_demo_mode")?.value==="1"){
+    const demo=guestWorkspace(jar.get("stride_demo_session")?.value);
+    if(!demo?.state.demo)throw new Error("DEMO_EXPIRED");
+    return {...demo,account:null};
+  }
   const account = await currentAccount();
   if (account) return { ...ownedWorkspace(account.id), account };
   const token = (await cookies()).get("stride_session")?.value;
@@ -37,6 +43,15 @@ export async function body(request: Request, limit = 30000) {
 export function failure(error: unknown) {
   const code = error instanceof Error ? error.message : "UNKNOWN";
   const known: Record<string, [number, string]> = {
+    DEMO_EXPIRED:[401,"This demo session expired. Open the demo page to start a fresh copy."],
+    BUILD_STALE:[409,"Your build changed in another tab. Reload it; your draft is still here."],
+    BUILD_EXISTS:[409,"You already have a build. Continue it or remove it before starting another."],
+    BUILD_NOT_FOUND:[404,"This build is no longer available. Reload to start another."],
+    BUILD_PAUSED:[409,"Your build is paused. Resume whenever you’re ready."],
+    BUILD_ADVANCE:[409,"Your attempt is saved. Choose your next step before adding another."],
+    BUILD_FULL:[409,"This build has 50 saved attempts. Export it before starting another."],
+    BUILD_EVIDENCE_MISSING:[409,"That journal entry is no longer available. Choose another; your draft is still here."],
+    BUILD_SOURCE_INVALID:[502,"That feedback could not be linked to your saved work. Try again; your draft is still here."],
     CLIENT_RATE_LIMIT:[429,"Too many requests from this connection. Wait a little and try again. Saved work is unchanged."],
     UPLOAD_BUSY:[429,"A few files are being processed. Try again in a moment."],
     UPLOAD_RATE_LIMIT:[429,"You’ve tried several uploads. Wait ten minutes before adding more."],

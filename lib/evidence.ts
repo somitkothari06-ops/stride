@@ -172,6 +172,7 @@ export type EvidenceAttachment = z.infer<typeof EvidenceAttachmentSchema>;
 
 export const EvidenceEntrySchema = z.object({
   id: z.string().min(1),
+  captureId: z.string().optional(),
   createdAt: z.string().min(1),
   activityDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
   kind: z.enum(["evidence", "session"]),
@@ -369,6 +370,7 @@ export async function commitEvidence(
         throw new Error("EVIDENCE_LIMIT");
       const entry: EvidenceEntry = {
         id: randomUUID(),
+        captureId: reviewId,
         createdAt: now,
         activityDate: date,
         kind: "evidence",

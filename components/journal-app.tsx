@@ -51,6 +51,7 @@ function formatBytes(size: number) {
 }
 
 export default function JournalApp() {
+  const [historyPage,setHistoryPage]=useState(0);
   const [tab,setTab]=useState<"session"|"record"|"history">("session");
   const [state, setState] = useState<Workspace | null>(null);
   const [card, setCard] = useState<Card | null>(null);
@@ -488,9 +489,9 @@ export default function JournalApp() {
           )}
           {entries.length>0&&<div className="trail-summary"><div><strong>{entries.filter(entry=>entry.kind==="session").length}</strong><span>session notes</span></div><div><strong>{entries.filter(entry=>entry.kind!=="session").length}</strong><span>work records</span></div><div><strong>{new Set(entries.map(entry=>new Date(entry.createdAt).toLocaleDateString("en-CA",{timeZone:state.profile.timezone}))).size}</strong><span>days with a saved entry</span></div></div>}
           <div className="learning-trail">
-          {[...entries].reverse().map((entry: EvidenceEntry,index) => (
+          {[...entries].reverse().slice(historyPage*6,historyPage*6+6).map((entry: EvidenceEntry,index) => (
             <details key={entry.id} className="journal-entry trail-stop" id={`entry-${entry.id}`}><summary>
-              <span className="trail-marker" aria-hidden="true">{String(entries.length-index).padStart(2,"0")}</span><span className="journal-tag">{entry.kind === "session" ? "Session note" : "Work record"}</span>
+              <span className="trail-marker" aria-hidden="true">{String(entries.length-historyPage*6-index).padStart(2,"0")}</span><span className="journal-tag">{entry.kind === "session" ? "Session note" : "Work record"}</span>
               <strong>{entry.reported.activity}</strong><small>Saved {new Date(entry.createdAt).toLocaleDateString()}</small></summary><div className="journal-entry-body">
               <p className="journal-preserve">{entry.reported.explanation}</p>{entry.originalSubmission&&entry.originalSubmission!==entry.reported.explanation&&<details><summary>Original submitted text</summary><pre>{entry.originalSubmission}</pre></details>}
               {entry.observed.artifactShows && (
@@ -533,7 +534,7 @@ export default function JournalApp() {
               </div>
             </div></details>
           ))}
-          </div>
+          </div>{entries.length>6&&<nav className="studio-pagination" aria-label="Journal pages"><button className="btn subtle" disabled={historyPage===0} onClick={()=>setHistoryPage(n=>n-1)}>Newer</button><span>Page {historyPage+1}</span><button className="btn subtle" disabled={(historyPage+1)*6>=entries.length} onClick={()=>setHistoryPage(n=>n+1)}>Older</button></nav>}
         </div>
       </section>}
     </div>

@@ -16,3 +16,6 @@ coverage/
 test-results/
 playwright-report/
 .runtime/
+
+# Local visual checks can contain private workspace metadata.
+outputs/

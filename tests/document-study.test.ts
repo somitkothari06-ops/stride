@@ -21,3 +21,12 @@ test("a long exact citation is validated in full before shortening its displayed
  const invented={evidence:[{locator:'Text section 1',quote:text.slice(0,550)+' invented tail',basis:'text'}]} as Lesson;
  assert.throws(()=>validateLesson(invented,[{locator:'Text section 1',text}]),/STUDY_EVIDENCE_INVALID/);
 });
+
+
+test('PDF line wrapping can match without accepting changed words or invented locators',()=>{
+ const source={locator:'Page 2',text:'A LEFT\n  JOIN keeps every row. The team may be NULL.'};
+ const lesson={visualUncertainty:[],title:'Joins',prerequisite:'',explanation:'x'.repeat(100),workedExample:'x'.repeat(60),commonMistake:'Do not drop unmatched rows.',question:'Which row stays?',evidence:[{locator:'Page 2',quote:'A LEFT JOIN keeps every row.',basis:'text' as const}]};
+ assert.equal(validateLesson(lesson,[source]).evidence[0].quote,'A LEFT\n  JOIN keeps every row.');
+ assert.throws(()=>validateLesson({...lesson,evidence:[{...lesson.evidence[0],quote:'A RIGHT JOIN keeps every row.'}]},[source]),/STUDY_EVIDENCE_INVALID/);
+ assert.throws(()=>validateLesson({...lesson,evidence:[{...lesson.evidence[0],locator:'Page 3'}]},[source]),/STUDY_EVIDENCE_INVALID/);
+});

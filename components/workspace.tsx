@@ -4,6 +4,7 @@ import SignOut from "./sign-out";
 import TimePocket from "./time-pocket";
 import RoleBridge from "./role-bridge";
 import FilePicker from "./file-picker";
+import BuildPortal from "./build-portal";
 import type {MaterialDraft} from "@/lib/course-types";
 import SaveMoment from "./save-moment";
 
@@ -88,6 +89,8 @@ export default function WorkspaceApp() {
     model: null,
   });
   const [view, setView] = useState<View>("today");
+  const [progressTab,setProgressTab]=useState<"attempts"|"work"|"context">("attempts");
+  const [progressPage,setProgressPage]=useState(0);
   const [modal, setModal] = useState<Modal>(null);
   const [busy, setBusy] = useState("");
   const [saveSequence,setSaveSequence]=useState(0);
@@ -108,9 +111,10 @@ export default function WorkspaceApp() {
   const [checkedSteps, setCheckedSteps] = useState<number[]>([]);
   const dialogRef = useRef<HTMLElement>(null);
   const entryHandled=useRef(false);
-  useEffect(()=>{if(!state||entryHandled.current)return;entryHandled.current=true;if(new URLSearchParams(window.location.search).get("open")==="course")setModal("course");},[state]);
+  useEffect(()=>{if(!state||entryHandled.current)return;entryHandled.current=true;const open=new URLSearchParams(window.location.search).get("open");if(open==="course")setModal("course");if(open==="add")setModal("add");if(open==="integrations")setModal("integrations");},[state]);
 
   useEffect(()=>{const tab=new URLSearchParams(window.location.search).get("view");if(tab&&["today","work","memory","direction"].includes(tab))setView(tab as View);},[]);
+  useEffect(()=>{window.dispatchEvent(new CustomEvent("stride-view-change",{detail:view}));},[view]);
   useEffect(() => { setCheckedSteps([]); }, [selectedId, state?.prepared]);
   useEffect(() => { window.scrollTo({ top: 0, behavior: "instant" }); }, [view]);
   useEffect(() => {
@@ -416,7 +420,7 @@ export default function WorkspaceApp() {
               {view === n.id && <span className="nav-active-dot" />}
             </button>
           ))}
-          <a className="nav-item" href="/journal"><NotebookPen size={18}/><span>Journal</span></a>
+          <a className="nav-item" href="/build"><NotebookPen size={18}/><span>My Build</span></a>
           <a className="nav-item" href="/pip"><MessageCircle size={18}/><span>Pip</span></a>
         </nav>
         <div className="sidebar-note">
@@ -543,6 +547,7 @@ export default function WorkspaceApp() {
                 <button onClick={() => setView("memory")}><ListChecks size={18} /><span><strong>{state.observations.filter((o) => !o.removed).length}</strong> {state.observations.filter((o) => !o.removed).length === 1 ? "attempt" : "attempts"} saved</span><ArrowRight size={14} /></button>
               </div>
               {(state.focus&&!state.focus.closedAt||state.returnCard?.kind==="saved"&&!state.returnCard.skipped)&&<a className="journal-continue" href="/journal"><NotebookPen size={23}/><span><strong>{state.focus&&!state.focus.closedAt?"Continue your session":"Pick up where you left off"}</strong><span>{state.focus&&!state.focus.closedAt?state.focus.title:state.returnCard?.note}</span></span><ArrowRight size={20}/></a>}
+              <BuildPortal project={state.build?.project||null}/>
               <CompanionInvite/>
               {(state.notes || []).length > 0 && <details className="quick-capture thought-inbox"><summary><span>Thought inbox</span><span>{state.notes!.length} saved <ChevronRight size={16}/></span></summary>{[...state.notes!].reverse().map(note=><article key={note.id}><p>{note.text}</p><button className="btn subtle" disabled={!!busy} onClick={()=>void act({action:"deleteNote",id:note.id},"Removing thought")}>Remove<span className="sr-only"> thought</span></button></article>)}</details>}
               <TimePocket current={state.profile.minutes} disabled={!!busy} hasWork={state.works.some(work=>!work.completed)} onAdd={openAdd} onUse={minutes=>act({action:"setTime",minutes},"Saving your available time")}/>
@@ -930,9 +935,9 @@ export default function WorkspaceApp() {
             <>
               <div className="page-heading">
                 <div>
-                  <h1>Your learning, remembered.</h1>
+                  <h1>Look how far you’ve come.</h1>
                   <p>
-                    Your work, what you tried, and what helped.
+                    Your attempts, the feedback, and what you chose to keep.
                   </p>
                 </div>
                 <button className="btn subtle" onClick={exportData}>
@@ -940,8 +945,9 @@ export default function WorkspaceApp() {
                   Export my data
                 </button>
               </div>
-              <div className="memory-grid">
-                <section className="card memory-context-card">
+              <nav className="studio-page-tabs" aria-label="Progress views">{([['attempts','My attempts'],['work','Coursework'],['context','About me']] as const).map(([id,label])=><button key={id} aria-pressed={progressTab===id} onClick={()=>setProgressTab(id)}>{label}</button>)}<a href="/journal">Open my journal <ArrowUpRight size={16}/></a></nav>
+              <div className="memory-grid" hidden={progressTab==='attempts'}>
+                <section className="card memory-context-card" hidden={progressTab!=="context"}>
                   <div className="section-title">
                     <h2>What shapes your plan</h2>
                     <button
@@ -955,12 +961,12 @@ export default function WorkspaceApp() {
                   <div className="fact">
                     <small>INTERESTED IN</small>
                     <strong>{state.profile.goal || "Still exploring"}</strong>
-                    <span>Self-reported preference · editable</span>
+                    <span>You can change this anytime.</span>
                   </div>
                   <div className="fact">
                     <small>TIME AVAILABLE TODAY</small>
                     <strong>{state.profile.minutes} minutes</strong>
-                    <span>Used to keep the next step manageable</span>
+                    <span></span>
                   </div>
                   <div className="memory-principle">
                     <ShieldCheck size={19} />
@@ -969,7 +975,7 @@ export default function WorkspaceApp() {
                     </p>
                   </div>
                 </section>
-                <section className="card memory-work-card">
+                <section className="card memory-work-card" hidden={progressTab!=="work"}>
                   <div className="section-title">
                     <h2>Confirmed work</h2>
                     <span className="count">{state.works.length}</span>
@@ -1000,7 +1006,7 @@ export default function WorkspaceApp() {
                           onClick={async () => {
                             if (
                               window.confirm(
-                                "Remove this work, its source and related attempts from this disposable workspace? Future plans will stop using them.",
+                                "Remove this coursework and its class-practice attempts?",
                               )
                             )
                               await act(
@@ -1024,13 +1030,13 @@ export default function WorkspaceApp() {
                   )}
                 </section>
               </div>
-              <section className="card observation-list">
+              <section className="card observation-list" hidden={progressTab!=="attempts"}>
                 <div className="section-title">
                   <h2>What you tried</h2>
                   <span className="count">{state.observations.length}</span>
                 </div>
                 {state.observations.length ? (
-                  [...state.observations].reverse().map((o) => (
+                  [...state.observations].reverse().slice(progressPage*6,progressPage*6+6).map((o) => (
                     <article className="observation" key={o.id}>
                       <div className="observation-heading">
                         <span className="tag">
@@ -1044,7 +1050,7 @@ export default function WorkspaceApp() {
                           onClick={async () => {
                             if (
                               window.confirm(
-                                "Remove this observation from this disposable workspace? Future advice will no longer use it.",
+                                "Remove this saved attempt? Future advice will stop using it.",
                               )
                             )
                               await act(
@@ -1074,8 +1080,7 @@ export default function WorkspaceApp() {
                     <Leaf size={28} />
                     <h3>Your trail starts with an attempt.</h3>
                     <p>
-                      Work through a session and save your response. No
-                      readiness scores. Just what was actually observed.
+                      Work through a session and save your response. Keep the work and feedback you want to return to.
                     </p>
                     <button className="btn subtle" onClick={() => go("work")}>
                       Open my work <ArrowRight size={15} />
@@ -1083,6 +1088,7 @@ export default function WorkspaceApp() {
                   </div>
                 )}
               </section>
+              {progressTab==='attempts'&&state.observations.length>6&&<nav className="studio-pagination" aria-label="Saved attempt pages"><button className="btn subtle" disabled={progressPage===0} onClick={()=>setProgressPage(n=>n-1)}>Newer</button><span>Page {progressPage+1}</span><button className="btn subtle" disabled={(progressPage+1)*6>=state.observations.length} onClick={()=>setProgressPage(n=>n+1)}>Older</button></nav>}
             </>
           )}
 
@@ -1193,7 +1199,7 @@ export default function WorkspaceApp() {
 
       <nav className="mobile-tabs" aria-label="Mobile navigation">
         {navigation.map((n) => <button key={n.id} aria-current={view === n.id ? "page" : undefined} onClick={() => go(n.id)}><n.icon size={20} /><span>{n.name}</span></button>)}
-      <button onClick={()=>{window.location.href="/journal";}}><NotebookPen size={20}/><span>Journal</span></button>
+      <button onClick={()=>{window.location.href="/build";}}><NotebookPen size={20}/><span>My Build</span></button>
       <button onClick={()=>launchPipChat()}><MessageCircle size={20}/><span>Pip</span></button></nav>
       <div
           className="modal-overlay"
