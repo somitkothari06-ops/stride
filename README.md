@@ -1,5 +1,7 @@
 # Stride
 
+**[MIT licensed](LICENSE)** · NVIDIA × Nebius Hackathon · Personal AI
+
 Your notes. Your ideas. Your next move.
 
 A personal desktop for second- and third-year CS/engineering students: learn from college files, turn a concept into a chosen project, try code, keep the work and return to a useful next step.
@@ -8,6 +10,15 @@ A personal desktop for second- and third-year CS/engineering students: learn fro
 - **[Isolated judge demo](https://stride-213-239-171-145.sslip.io/demo)** — Riya's illustrative month, with 20 sample study sessions, project files, chats and a build. Each visitor gets a separate copy. Sample history is not real login telemetry or verified achievement.
 - **[NVIDIA × Nebius runtime evidence](docs/NVIDIA-NEBIUS.md)**
 - **[Implementation status and limits](docs/STATUS.md)**
+
+## For judges
+
+1. Open the [judge demo](https://stride-213-239-171-145.sslip.io/demo) and choose **Step into Riya’s workspace**. No account or shared password is required.
+2. Open **Coursework**, **My Build** and **Pip** from the dock. Run the JavaScript example or save an attempt and request feedback.
+3. Ask Pip: **What project did I choose a month ago, and what was the unresolved question in that first saved thought?** Inspect the dated source it uses.
+4. Open **Journal → My progress** for the sample month and downloadable artifacts. Use Settings to personalise the desktop.
+
+New AI requests use the connected services. The preloaded history and conversations are labelled samples. Leaving the demo restores your previous workspace. Private college files used during testing are not bundled into a new judge copy; upload your own file to test document reading.
 
 ## What works
 
@@ -73,6 +84,10 @@ STRIDE_BASE_URL=http://localhost:3000 node scripts/demo-smoke.mjs
 ```
 
 These checks establish tested workflows, not universal correctness or learning efficacy. Long-term recall uses bounded lexical/topic retrieval, not every old word in every request. PDF lessons use selected page ranges; diagrams can be misread. SQL/Python/C are not executed by the browser JavaScript runner. Public capacity and hosting-credit runway need monitoring through judging. Social sign-in does not grant email or Drive scopes.
+
+## Platform feedback
+
+Token Factory’s OpenAI-compatible endpoint and structured responses supported shared validation code across text workflows. The separate NVIDIA vision model let us combine selected PDF-page images with extracted text. Explicit output budgets and direct-answer configuration mattered for short tasks. Date resolution, source checks and PDF rendering still needed application-side validation. A CPU Devlab was sufficient to host the app because inference ran on Token Factory. More predictable cold/warm latency and clearer per-model schema/capability guidance would help future development. These are observations from this project, not a general model benchmark.
 
 ## License
 
