@@ -89,6 +89,7 @@ export default function WorkspaceApp() {
     model: null,
   });
   const [view, setView] = useState<View>("today");
+  const [timeOpen,setTimeOpen]=useState(false);
   const [progressTab,setProgressTab]=useState<"attempts"|"work"|"context">("attempts");
   const [progressPage,setProgressPage]=useState(0);
   const [modal, setModal] = useState<Modal>(null);
@@ -510,7 +511,7 @@ export default function WorkspaceApp() {
           )}
 
           {view === "today" && (
-            <>
+            <div className="today-studio">
               <div className="today-welcome">
                 <div>
                   <h1>Hey, {state.profile.name}<span className="welcome-period">.</span></h1>
@@ -543,14 +544,10 @@ export default function WorkspaceApp() {
               )}
               <div className="day-context" aria-label="Your workspace at a glance">
                 <button onClick={() => setView("work")}><BookOpen size={18} /><span><strong>{active.length}</strong> open tasks</span><ArrowRight size={14} /></button>
-                <button onClick={() => setModal("profile")}><Clock3 size={18} /><span><strong>{state.profile.minutes} min</strong> to focus</span><Pencil size={13} /></button>
+                <button aria-expanded={timeOpen} aria-controls="today-time" onClick={() => {setTimeOpen(true);requestAnimationFrame(()=>document.getElementById("today-time")?.scrollIntoView({block:"center"}));}}><Clock3 size={18} /><span><strong>{state.profile.minutes} min</strong> to focus</span><Pencil size={13} /></button>
                 <button onClick={() => setView("memory")}><ListChecks size={18} /><span><strong>{state.observations.filter((o) => !o.removed).length}</strong> {state.observations.filter((o) => !o.removed).length === 1 ? "attempt" : "attempts"} saved</span><ArrowRight size={14} /></button>
               </div>
               {(state.focus&&!state.focus.closedAt||state.returnCard?.kind==="saved"&&!state.returnCard.skipped)&&<a className="journal-continue" href="/journal"><NotebookPen size={23}/><span><strong>{state.focus&&!state.focus.closedAt?"Continue your session":"Pick up where you left off"}</strong><span>{state.focus&&!state.focus.closedAt?state.focus.title:state.returnCard?.note}</span></span><ArrowRight size={20}/></a>}
-              <BuildPortal project={state.build?.project||null}/>
-              <CompanionInvite/>
-              {(state.notes || []).length > 0 && <details className="quick-capture thought-inbox"><summary><span>Thought inbox</span><span>{state.notes!.length} saved <ChevronRight size={16}/></span></summary>{[...state.notes!].reverse().map(note=><article key={note.id}><p>{note.text}</p><button className="btn subtle" disabled={!!busy} onClick={()=>void act({action:"deleteNote",id:note.id},"Removing thought")}>Remove<span className="sr-only"> thought</span></button></article>)}</details>}
-              <TimePocket current={state.profile.minutes} disabled={!!busy} hasWork={state.works.some(work=>!work.completed)} onAdd={openAdd} onUse={minutes=>act({action:"setTime",minutes},"Saving your available time")}/>
               <div className="dashboard-grid">
                 <section className="next-step-card">
                   <div className="card-overline">
@@ -643,6 +640,7 @@ export default function WorkspaceApp() {
                     </div>
                   )}
                 </section>
+              <BuildPortal project={state.build?.project||null}/>
                 <section className="card upcoming">
                   <div className="section-title">
                     <h2>Coming up</h2>
@@ -721,7 +719,16 @@ export default function WorkspaceApp() {
                   </button>
                 </section>
               </div>
-            </>
+              <div className="today-utility-grid">
+                <div className="today-pip-entry"><CompanionInvite/></div>
+                <details id="today-time" className="today-time" open={timeOpen} onToggle={event=>setTimeOpen(event.currentTarget.open)}>
+                  <summary><Clock3 size={19}/><span>Make room for a little focus</span><strong>{state.profile.minutes} min</strong><ChevronRight size={17}/></summary>
+              <TimePocket current={state.profile.minutes} disabled={!!busy} hasWork={state.works.some(work=>!work.completed)} onAdd={openAdd} onUse={minutes=>act({action:"setTime",minutes},"Saving your available time")}/>
+                </details>
+              {(state.notes || []).length > 0 && <details className="quick-capture thought-inbox"><summary><span>Thought inbox</span><span>{state.notes!.length} saved <ChevronRight size={16}/></span></summary>{[...state.notes!].reverse().map(note=><article key={note.id}><p>{note.text}</p><button className="btn subtle" disabled={!!busy} onClick={()=>void act({action:"deleteNote",id:note.id},"Removing thought")}>Remove<span className="sr-only"> thought</span></button></article>)}</details>}
+              </div>
+
+            </div>
           )}
 
           {view === "work" && (

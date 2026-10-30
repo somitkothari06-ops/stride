@@ -1,0 +1,956 @@
+/* ==================================================================
+   cinematic-lab.css — cinematic hero workbench for the Nordic landing
+   Pairs with components/landing-live-lab.tsx (no markup changes needed).
+   Rules of engagement:
+   - Only Nordic --theme-* tokens and fonts the page already loads; no
+     network assets, no constant colours that break a theme swap.
+   - Base CSS state is fully visible. The cinematic entrance lives in a
+     prefers-reduced-motion:no-preference block, so content is never
+     hidden by default, and reduced-motion users get zero animation.
+   - Every control is reachable and clickable as soon as it renders;
+     the entrance is short, transform/opacity only, and never blocks.
+   - Mini-workbench, not marketing: real editor, real Run, real output.
+   ================================================================== */
+
+.live-lab-scene {
+  --ll-hairline: color-mix(in srgb, var(--theme-line) 72%, transparent);
+  --ll-shadow: color-mix(in srgb, var(--theme-shadow) 26%, transparent);
+  --ll-shadow-strong: color-mix(in srgb, var(--theme-shadow) 42%, transparent);
+  --ll-code-size: clamp(13px, 1.05vw, 14px);
+  --ll-editor-h: 276px;
+  --ll-radius: 18px;
+  --ll-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas,
+    "Liberation Mono", monospace;
+  --ll-ease: cubic-bezier(0.22, 0.7, 0.3, 1);
+
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Visible-only helper kept local in case global styles are absent */
+.live-lab-scene .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ------------------------------------------------------------------
+   1 / Source note — a separate memo ahead of the machine window.
+   ------------------------------------------------------------------ */
+
+.live-lab-source {
+  position: relative;
+  width: min(320px, 100%);
+  margin: 2px 0 18px 6px;
+  padding: 18px 22px 14px 26px;
+  background: var(--theme-surface);
+  color: var(--theme-ink);
+  border: 1px solid var(--ll-hairline);
+  border-radius: 6px;
+  box-shadow: 4px 4px 0 var(--ll-shadow);
+  transform: rotate(-2deg);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+/* small pin, theme-paired */
+.live-lab-source::before {
+  content: "";
+  position: absolute;
+  top: 11px;
+  left: 13px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--theme-cta);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-cta) 22%, transparent);
+}
+
+.live-lab-source > span:first-child {
+  font-family: var(--ll-mono);
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  color: var(--theme-muted);
+}
+
+.live-lab-source strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(23px, 2vw, 27px);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  color: var(--theme-ink);
+}
+
+.live-lab-source p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.62;
+  color: var(--theme-muted);
+}
+
+.lab-source-foot {
+  margin-top: 9px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--ll-hairline);
+  font-family: var(--ll-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--theme-muted);
+}
+
+/* ------------------------------------------------------------------
+   2 / Workbench window — one machine, IDE title bar and all.
+   ------------------------------------------------------------------ */
+
+.live-lab-window {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  width: 100%;
+  background: var(--theme-surface);
+  color: var(--theme-ink);
+  border: 1px solid var(--ll-hairline);
+  border-radius: var(--ll-radius);
+  box-shadow:
+    0 26px 52px -18px var(--ll-shadow-strong),
+    5px 5px 0 color-mix(in srgb, var(--theme-line) 46%, transparent);
+  overflow: hidden;
+}
+
+/* window title bar: swapped theme band (hero plate + hero ink) */
+.live-lab-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: var(--theme-hero);
+  color: var(--theme-heroInk);
+  border-bottom: 1px solid color-mix(in srgb, var(--theme-heroInk) 14%, transparent);
+}
+
+.live-lab-top > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.lab-window-dots {
+  display: inline-flex;
+  gap: 6px;
+  flex: none;
+  align-items: center;
+}
+
+.lab-window-dots i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid color-mix(in srgb, currentColor 52%, transparent);
+}
+
+.lab-window-dots i:first-child {
+  background: var(--theme-cta);
+  border-color: transparent;
+}
+
+.live-lab-top strong {
+  font-size: 14.5px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.live-lab-top > div > span:last-child {
+  font-size: 12.5px;
+  color: color-mix(in srgb, var(--theme-heroInk) 66%, transparent);
+}
+
+.live-lab-number {
+  margin-left: auto;
+  font-family: var(--ll-mono);
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  color: color-mix(in srgb, var(--theme-heroInk) 62%, transparent);
+  white-space: nowrap;
+}
+
+/* brief under the bar */
+.live-lab-brief {
+  display: grid;
+  gap: 6px;
+  padding: 20px 20px 0;
+}
+
+.live-lab-brief h2 {
+  margin: 0;
+  font-size: clamp(21px, 2.1vw, 26px);
+  line-height: 1.14;
+  letter-spacing: -0.025em;
+  color: var(--theme-ink);
+}
+
+.live-lab-brief p {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.62;
+  color: var(--theme-muted);
+}
+
+/* file tab + reset */
+.live-lab-file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 16px 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--ll-hairline);
+}
+
+.live-lab-file > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--ll-mono);
+  font-size: 12.5px;
+  color: var(--theme-ink);
+}
+
+.live-lab-file > span svg {
+  color: var(--theme-cta);
+}
+
+.live-lab-file button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--theme-muted);
+  background: transparent;
+  border: 1px solid var(--ll-hairline);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: color 150ms var(--ll-ease), border-color 150ms var(--ll-ease),
+    background 150ms var(--ll-ease);
+}
+
+.live-lab-file button:hover:not(:disabled) {
+  color: var(--theme-ink);
+  border-color: var(--theme-ink);
+  background: color-mix(in srgb, var(--theme-hero) 4%, var(--theme-surface));
+}
+
+.live-lab-file button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ------------------------------------------------------------------
+   3 / Editor — fixed height, internally scrollable, paired inks.
+   ------------------------------------------------------------------ */
+
+.live-lab-editor {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  height: var(--ll-editor-h);
+  margin: 12px 16px 0;
+  background: color-mix(in srgb, var(--theme-hero) 3%, var(--theme-surface));
+  border: 1px solid var(--ll-hairline);
+  border-radius: 12px;
+  overflow: hidden;
+  font-family: var(--ll-mono);
+  font-size: var(--ll-code-size);
+  line-height: 1.7;
+  transition: border-color 160ms var(--ll-ease), box-shadow 160ms var(--ll-ease);
+}
+
+.live-lab-editor:focus-within {
+  border-color: color-mix(in srgb, var(--theme-cta) 65%, var(--ll-hairline));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-cta) 17%, transparent);
+}
+
+/* gutter: line numbers ride the same roll as the code (see @supports) */
+.live-lab-editor > div {
+  padding: 12px 10px 14px;
+  text-align: right;
+  color: color-mix(in srgb, var(--theme-ink) 36%, transparent);
+  background: color-mix(in srgb, var(--theme-hero) 6%, var(--theme-surface));
+  border-right: 1px solid var(--ll-hairline);
+  user-select: none;
+  pointer-events: none;
+}
+
+.live-lab-editor > div span {
+  display: block;
+}
+
+.live-lab-editor textarea {
+  font: inherit;
+  color: var(--theme-ink);
+  caret-color: var(--theme-cta);
+  height: 100%;
+  min-width: 0;
+  padding: 12px 14px 14px 12px;
+  background: transparent;
+  border: 0;
+  resize: none;
+  white-space: pre;
+  overflow: auto;
+  tab-size: 2;
+}
+
+.live-lab-editor textarea:focus {
+  outline: none;
+}
+
+.live-lab-editor textarea:disabled {
+  opacity: 0.62;
+}
+
+/* Where `field-sizing` exists, the textarea grows to its content and the
+   whole editor (gutter included) scrolls as one roll. */
+@supports (field-sizing: content) {
+  .live-lab-editor {
+    overflow: auto;
+  }
+  .live-lab-editor textarea {
+    field-sizing: content;
+    height: auto;
+    min-height: 100%;
+  }
+}
+
+/* thin paired scrollbars for the panes that scroll */
+.live-lab-editor textarea::-webkit-scrollbar,
+.live-lab-output pre::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.live-lab-editor textarea::-webkit-scrollbar-thumb,
+.live-lab-output pre::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--theme-ink) 20%, transparent);
+  border: 3px solid transparent;
+  border-radius: 6px;
+  background-clip: content-box;
+}
+
+.live-lab-output pre {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--theme-ink) 20%, transparent)
+    transparent;
+}
+
+/* ------------------------------------------------------------------
+   4 / Run row and output — the loudest part of the workbench.
+   ------------------------------------------------------------------ */
+
+.live-lab-run {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 16px 4px;
+}
+
+.live-lab-run > span {
+  font-size: 12.5px;
+  color: var(--theme-muted);
+}
+
+.live-lab-run button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--theme-ctaInk);
+  background: var(--theme-cta);
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--ll-shadow);
+  transition: transform 160ms var(--ll-ease), box-shadow 160ms var(--ll-ease),
+    opacity 160ms var(--ll-ease);
+}
+
+.live-lab-run button:hover:not(:disabled) {
+  transform: translate(-1px, -2px);
+  box-shadow: 5px 5px 0 var(--ll-shadow);
+}
+
+.live-lab-run button:active:not(:disabled) {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--ll-shadow);
+}
+
+.live-lab-run button:disabled {
+  opacity: 0.55;
+  cursor: default;
+  box-shadow: 2px 2px 0 var(--ll-shadow);
+}
+
+.live-lab-output {
+  display: grid;
+  gap: 10px;
+  padding: 10px 16px 16px;
+  margin: 0;
+}
+
+.live-lab-output > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.live-lab-output > div > span {
+  font-family: var(--ll-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--theme-ink);
+}
+
+.live-lab-output svg {
+  color: var(--theme-cta);
+}
+
+.live-lab-output pre {
+  margin: 0;
+  padding: 13px 16px;
+  background: color-mix(in srgb, var(--theme-hero) 5%, var(--theme-surface));
+  border: 1px solid var(--ll-hairline);
+  border-radius: 10px;
+  font-family: var(--ll-mono);
+  font-size: var(--ll-code-size);
+  line-height: 1.66;
+  color: var(--theme-ink);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 224px;
+  overflow: auto;
+  min-height: 52px;
+}
+
+.live-lab-output.has-output pre {
+  border-left: 3px solid var(--theme-cta);
+}
+
+.live-lab-output p {
+  margin: 0;
+  padding: 13px 16px;
+  border: 1px dashed var(--ll-hairline);
+  border-radius: 10px;
+  color: var(--theme-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ------------------------------------------------------------------
+   5 / AI ask row (appears only after a real run)
+   ------------------------------------------------------------------ */
+
+.live-lab-ai {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px 16px;
+  border-top: 1px dashed var(--ll-hairline);
+}
+
+.live-lab-ask {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.live-lab-ask input {
+  flex: 1 1 200px;
+  min-width: 0;
+  padding: 11px 14px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--theme-ink);
+  background: var(--theme-surface);
+  border: 1px solid var(--ll-hairline);
+  border-radius: 10px;
+  transition: border-color 160ms var(--ll-ease), box-shadow 160ms var(--ll-ease);
+}
+
+.live-lab-ask input:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--theme-cta) 65%, var(--ll-hairline));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-cta) 17%, transparent);
+}
+
+.live-lab-ask button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 16px;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--theme-ink);
+  background: color-mix(in srgb, var(--theme-cta) 14%, var(--theme-surface));
+  border: 1px solid var(--ll-hairline);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 160ms var(--ll-ease), background 160ms var(--ll-ease);
+}
+
+.live-lab-ask button:hover:not(:disabled) {
+  border-color: var(--theme-ink);
+  background: color-mix(in srgb, var(--theme-cta) 20%, var(--theme-surface));
+}
+
+.live-lab-ask button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.live-lab-ai > small {
+  font-size: 11.5px;
+  color: var(--theme-muted);
+}
+
+.live-lab-ai p[role="alert"] {
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--theme-ink);
+  background: color-mix(in srgb, var(--theme-cta) 10%, var(--theme-surface));
+  border: 1px dashed var(--ll-hairline);
+  border-radius: 8px;
+}
+
+.live-lab-feedback {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  background: color-mix(in srgb, var(--theme-hero) 5%, var(--theme-surface));
+  border: 1px solid var(--ll-hairline);
+  border-left: 3px solid var(--theme-cta);
+  border-radius: 10px;
+}
+
+.live-lab-feedback p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.62;
+  color: var(--theme-ink);
+}
+
+.live-lab-feedback strong {
+  font-family: var(--ll-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--theme-muted);
+}
+
+.live-lab-feedback a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--theme-ink);
+  text-decoration: underline;
+  text-decoration-color: var(--ll-hairline);
+  text-underline-offset: 4px;
+}
+
+/* the runner iframe is infrastructure, never shown */
+.live-lab-window iframe {
+  display: none !important;
+}
+
+/* ------------------------------------------------------------------
+   6 / Caption under the scene
+   ------------------------------------------------------------------ */
+
+.live-lab-caption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--ll-hairline);
+  font-size: 12.5px;
+  color: var(--theme-muted);
+}
+
+.live-lab-caption span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ------------------------------------------------------------------
+   7 / Focus and selection
+   ------------------------------------------------------------------ */
+
+.live-lab-scene :focus-visible {
+  outline: 2px solid var(--theme-ink);
+  outline-offset: 2px;
+}
+
+.live-lab-scene ::selection {
+  background: color-mix(in srgb, var(--theme-cta) 26%, transparent);
+}
+
+/* ------------------------------------------------------------------
+   8 / Cinematic entrance (motion only if the user allows it).
+   Short (< ~0.9s active), opacity/transform only, non-blocking:
+   every control is laid out and clickable from first paint, and the
+   Run control carries zero delay.
+   ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes ll-note-in {
+    from {
+      opacity: 0;
+      transform: translateY(-16px) rotate(-4.5deg);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) rotate(-2deg);
+    }
+  }
+
+  @keyframes ll-window-in {
+    from {
+      opacity: 0;
+      transform: translateY(26px) scale(0.984);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes ll-caption-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes ll-glint {
+    from {
+      transform: translateX(-36%) skewX(-16deg);
+    }
+    to {
+      transform: translateX(430%) skewX(-16deg);
+    }
+  }
+
+  .live-lab-source {
+    animation: ll-note-in 0.55s var(--ll-ease) 0.05s both;
+  }
+
+  .live-lab-window {
+    animation: ll-window-in 0.6s var(--ll-ease) 0.14s both;
+  }
+
+  .live-lab-caption {
+    animation: ll-caption-in 0.5s var(--ll-ease) 0.3s both;
+  }
+
+  /* one soft light pass across the glass after it settles */
+  .live-lab-window::after {
+    content: "";
+    position: absolute;
+    top: -30%;
+    bottom: -30%;
+    left: -38%;
+    width: 36%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--theme-surface) 42%, transparent) 55%,
+      transparent
+    );
+    transform: translateX(-36%) skewX(-16deg);
+    pointer-events: none;
+    animation: ll-glint 0.95s var(--ll-ease) 0.5s both;
+  }
+}
+
+/* Reduced motion: system setting or the in-app appearance setting.
+   The entrance simply never runs; everything above stays visible. */
+@media (prefers-reduced-motion: reduce) {
+  .live-lab-scene,
+  .live-lab-scene *,
+  .live-lab-scene *::before,
+  .live-lab-scene *::after {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+html[data-motion="reduced"] .live-lab-scene,
+html[data-motion="reduced"] .live-lab-scene *,
+html[data-motion="reduced"] .live-lab-scene *::before,
+html[data-motion="reduced"] .live-lab-scene *::after {
+  animation: none !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* ------------------------------------------------------------------
+   9 / Responsive:
+   ------------------------------------------------------------------ */
+
+/* Under 940px the hero stacks (nordic-landing.css handles the grid),
+   so the lab becomes a centred full-width column. The connector wire
+   is already hidden there; hide it here too so the note stands alone. */
+@media (max-width: 940px) {
+  .nl-hero-live .nl-cord {
+    display: none;
+  }
+
+  .live-lab-scene {
+    width: 100%;
+    max-width: 620px;
+    margin: 0 auto;
+  }
+
+  .live-lab-source {
+    margin: 2px auto 16px;
+  }
+
+  .live-lab-editor {
+    --ll-editor-h: 250px;
+  }
+}
+
+@media (min-width: 941px) {
+  /* Wide screens: the note keeps its place, the wire is optional —
+     the composition already travels from copy to note to machine. */
+  .nl-hero-live .nl-cord {
+    display: none;
+  }
+}
+
+@media (max-width: 540px) {
+  .live-lab-scene {
+    --ll-editor-h: 216px;
+    --ll-radius: 14px;
+  }
+
+  .live-lab-source {
+    margin: 0 auto 14px;
+    padding: 16px 18px 12px 24px;
+  }
+
+  .live-lab-window {
+    border-radius: var(--ll-radius);
+  }
+
+  .live-lab-top {
+    padding: 10px 12px;
+  }
+
+  .live-lab-number {
+    flex-basis: 100%;
+    margin-left: 0;
+    order: 3;
+  }
+
+  .live-lab-brief,
+  .live-lab-file,
+  .live-lab-editor,
+  .live-lab-run,
+  .live-lab-output,
+  .live-lab-ai {
+    margin-left: 10px;
+    margin-right: 10px;
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+
+  .live-lab-brief {
+    margin-left: 0;
+    margin-right: 0;
+    padding: 16px 14px 0;
+  }
+
+  .live-lab-run {
+    margin-left: 12px;
+    margin-right: 12px;
+    padding: 12px 0 4px;
+  }
+
+  .live-lab-file button,
+  .live-lab-run button,
+  .live-lab-ask button {
+    font-size: 13px;
+  }
+
+  .live-lab-run button {
+    padding: 11px 18px;
+  }
+
+  .live-lab-output {
+    margin-left: 12px;
+    margin-right: 12px;
+    padding: 8px 0 14px;
+  }
+
+  .live-lab-ai {
+    margin-left: 12px;
+    margin-right: 12px;
+    padding: 12px 0 14px;
+  }
+
+  .live-lab-caption {
+    font-size: 12px;
+  }
+}
+
+/* Keep the entire first try within reach, rather than building a tall hero. */
+.nl-hero-live{padding-top:36px;padding-bottom:64px;gap:56px;align-items:center}
+.live-lab-scene{--ll-editor-h:204px;--ll-code-size:14px}
+.live-lab-source{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:6px 18px;width:100%;margin:0 0 20px;padding:18px 24px;transform:rotate(-1deg)}
+.live-lab-source>span:first-child{grid-column:1/-1}.live-lab-source strong{font-size:25px}.live-lab-source p{font-size:13px}.live-lab-source .lab-source-foot{display:none}
+.live-lab-top{padding:10px 16px}.live-lab-brief{padding-top:18px}.live-lab-brief h2{font-size:26px!important;line-height:1.18!important;letter-spacing:-1px!important}.live-lab-brief p{font-size:13px!important;line-height:1.5!important;margin-bottom:0}
+.live-lab-editor{margin-top:8px}.live-lab-editor textarea{caret-color:var(--theme-ink);font-size:inherit;line-height:inherit;border-radius:0}
+.live-lab-editor>div{color:var(--theme-muted)}
+.live-lab-output{gap:8px}.live-lab-output>div>span:last-child{font-size:11px}
+.live-lab-output details summary{font-size:11px;cursor:pointer;color:var(--theme-muted);padding:6px 0}
+.live-lab-output p{font-size:13px;padding:10px 12px}.live-lab-output pre{font-size:12px;max-height:120px}
+.live-player-results{display:grid;gap:8px;max-height:180px;overflow:auto}
+.live-player-results>div{display:flex;align-items:center;gap:12px;padding:12px;background:var(--theme-tint);border-radius:12px;color:var(--theme-ink);animation:lab-result-in .22s ease both}
+.live-player-avatar{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--theme-hero);color:var(--theme-heroInk);font-weight:800;font-size:14px}
+.live-player-results strong{font-size:15px}.live-player-results>div>span:last-child{margin-left:auto;font-size:11px;background:var(--theme-cta);color:var(--theme-ctaInk);border-radius:999px;padding:6px 10px}
+.live-lab-feedback{max-height:230px;overflow:auto}.live-lab-feedback p{font-size:14px}
+.live-lab-caption{font-size:11px;margin-top:14px}
+.lab-cinematic-thread{position:absolute;inset:-12px -16px;width:calc(100% + 32px);height:calc(100% + 24px);pointer-events:none;z-index:-1;overflow:visible}
+.lab-cinematic-thread path{stroke:var(--theme-hero);stroke-width:1;fill:none;opacity:.25;stroke-dasharray:1;stroke-dashoffset:0}
+.lab-thread-dot{fill:var(--theme-hero);opacity:0}
+.nl-hero-live .nl-hero-copy h1{font-size:clamp(62px,7vw,108px)}
+@keyframes lab-result-in{from{opacity:.4;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:no-preference){.lab-cinematic-thread path{animation:lab-thread-draw 1.4s cubic-bezier(.2,.8,.3,1) both}.lab-thread-dot{offset-path:path('M60 20C-45 100 610 90 575 200S20 520 60 650');animation:lab-thread-travel 1.5s ease-out .1s both}@keyframes lab-thread-draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}@keyframes lab-thread-travel{0%{offset-distance:0%;opacity:0}20%{opacity:.65}85%{opacity:.65}100%{offset-distance:100%;opacity:0}}}
+@media(max-width:1100px) and (min-width:941px){.nl-hero-live{gap:30px}.nl-hero-live .nl-hero-copy h1{font-size:68px}.live-lab-top>div>span:last-child{display:none}.live-lab-source{grid-template-columns:1fr}.live-lab-number{font-size:9px}}
+@media(max-width:940px){.nl-hero-live{gap:40px;align-items:start}.nl-hero-live .nl-hero-copy h1{font-size:clamp(62px,11vw,90px)}.live-lab-scene{--ll-editor-h:190px}.live-lab-editor{--ll-editor-h:190px}.live-lab-source{margin:0 0 20px;max-width:none}.lab-cinematic-thread{display:none}}
+@media(max-width:540px){.nl-hero-live{padding-top:32px}.nl-hero-live .nl-hero-copy h1{font-size:clamp(50px,13vw,68px)}.live-lab-source{padding:16px 20px;grid-template-columns:1fr;gap:8px}.live-lab-top>div>span:last-child{display:none}.live-lab-number{flex-basis:auto;margin-left:auto;order:0;font-size:9px}.live-lab-editor{--ll-editor-h:190px}.live-lab-brief h2{font-size:23px!important}.live-lab-ask{flex-direction:column}.live-lab-ask input{flex:auto}.live-lab-ask button{justify-content:center}.live-lab-caption{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.live-player-results>div,.lab-cinematic-thread *{animation:none!important}}
+html[data-motion=reduced] .live-player-results>div,html[data-motion=reduced] .lab-cinematic-thread *{animation:none!important}
+
+/* Keep focus scrolling on the page, not on an overflow-hidden window. */
+.live-lab-window{overflow:clip}
+.nl-hero-live .nl-hero-copy{gap:20px}
+.nl-hero-live .nl-hero-copy>.live-lab-source{--ll-hairline:var(--theme-line);--ll-shadow:color-mix(in srgb,var(--theme-shadow) 20%,transparent);width:min(100%,430px);margin:0;transform:rotate(-1deg)}
+.nl-hero-live .nl-cord{display:block;left:33%;bottom:24px;width:30%;opacity:.3}
+@media(max-width:940px){.nl-hero-live .nl-cord{display:none}.nl-hero-live .nl-hero-copy>.live-lab-source{display:grid;max-width:none}}
+
+/* Context before code. The example works as a small, understandable product. */
+.nl-hero-live .nl-hero-copy>.live-lab-source{transform:none!important;animation:none!important;border-radius:12px;box-shadow:none;border-left:3px solid var(--theme-hero)}
+.live-lab-source::before{display:none}.live-lab-source strong{font:800 18px/1.3 'Plus Jakarta Sans',sans-serif;letter-spacing:-.4px}.live-lab-source>span:first-child{font:600 11px/1.5 'Plus Jakarta Sans',sans-serif;letter-spacing:0}.live-lab-source p{font-size:13px}
+.live-lab-window{animation:none!important}.live-lab-window::after{display:none}
+.live-lab-brief p{font-size:15px!important;line-height:1.65!important;max-width:43ch}
+.lab-roster{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:20px 20px 0}
+.lab-roster>div{display:grid;justify-items:center;gap:8px;padding:16px 8px;background:var(--theme-bg);border-radius:14px;color:var(--theme-ink)}
+.lab-roster>div>span{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--theme-hero);color:var(--theme-heroInk);font-size:16px;font-weight:800}
+.lab-roster strong{font-size:15px}.lab-roster small{font-size:11px;color:var(--theme-muted);text-align:center}
+.lab-roster>div:nth-child(2){background:var(--theme-cta);color:var(--theme-ctaInk)}.lab-roster>div:nth-child(2) small{color:var(--theme-ctaInk)}
+.lab-rule{margin:20px 20px 0;display:grid;gap:10px}.lab-rule>span{font-size:13px;font-weight:700;color:var(--theme-ink)}
+.lab-rule>div{display:flex;gap:8px;flex-wrap:wrap}
+.lab-rule button{font:700 13px/1.4 'Plus Jakarta Sans',sans-serif;padding:10px 14px;min-height:42px;border:1px solid var(--theme-line);color:var(--theme-ink);background:var(--theme-surface);border-radius:999px;cursor:pointer}
+.lab-rule button[aria-pressed=true]{color:var(--theme-heroInk);background:var(--theme-hero);border-color:var(--theme-hero)}
+.lab-rule button:disabled{opacity:.6;cursor:default}
+.lab-code-details{margin:16px 20px 0;border-top:1px solid var(--theme-line);padding-top:12px}
+.lab-code-details>summary{display:flex;gap:8px;align-items:center;cursor:pointer;font-size:12px;min-height:32px;color:var(--theme-muted);font-weight:600;list-style:none}.lab-code-details>summary::-webkit-details-marker{display:none}
+.lab-code-details>summary::after{content:'+';margin-left:auto;font-size:20px}.lab-code-details[open]>summary::after{content:'−'}
+.lab-code-details .live-lab-file{margin-top:12px}.lab-code-details .live-lab-editor{margin:8px 0 0}
+.live-lab-run{padding:16px 20px 8px}.live-lab-run>span{font-size:12px}
+.live-lab-output{padding:12px 20px 20px}
+@media(max-width:540px){.lab-roster{margin:16px 14px 0;gap:8px}.lab-roster>div{padding:12px 4px}.lab-roster small{font-size:10px}.lab-rule{margin:16px 14px 0}.lab-rule button{font-size:12px;padding:10px 12px}.lab-code-details{margin:14px 14px 0}.live-lab-run{padding:14px}.live-lab-output{padding:8px 14px 16px}.live-lab-run>span{max-width:14ch}}
+
+/* Product controls, not nested marketing cards. */
+.nl-hero-live{min-height:0;padding-top:32px;padding-bottom:64px}
+.nl-hero-live .nl-hero-copy h1{letter-spacing:-.025em;line-height:1.05}
+.nl-hero-live .nl-rise{letter-spacing:-.03em;font-size:.92em;white-space:nowrap}
+.live-lab-window{box-shadow:0 16px 44px color-mix(in srgb,var(--theme-ink) 8%,transparent);border-color:var(--theme-line);border-radius:20px}
+.live-lab-top{background:var(--theme-surface);color:var(--theme-ink);border-bottom:1px solid var(--theme-line);padding:16px 20px}
+.live-lab-top>div{width:100%;justify-content:space-between}.live-lab-top strong{font-size:13px}.live-lab-top>div>span:last-child{font:500 11px/1.5 'Plus Jakarta Sans',sans-serif;color:var(--theme-muted)}
+.lab-roster{display:flex;flex-direction:column;gap:0;background:transparent;margin:18px 20px 0;border:1px solid var(--theme-line);border-radius:12px;overflow:clip}
+.lab-roster>div{display:flex;align-items:center;justify-content:flex-start;gap:12px;background:transparent!important;color:var(--theme-ink)!important;border-radius:0;padding:12px 14px;border-top:1px solid var(--theme-line)}
+.lab-roster>div>span{width:30px;height:30px;font-size:12px;background:var(--theme-tint);color:var(--theme-ink)}
+.lab-roster strong{font-size:14px}.lab-roster small{margin-left:auto;font-size:12px;color:var(--theme-muted)!important;text-align:right}
+.lab-roster>.lab-roster-head{border:0;padding:8px 14px;background:var(--theme-bg)!important;justify-content:space-between}
+.lab-roster>.lab-roster-head>span{display:inline;width:auto;height:auto;border-radius:0;background:none;font-size:10px;font-weight:600;color:var(--theme-muted)}
+.lab-rule{margin-top:18px;gap:10px}.lab-rule>div{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border:1px solid var(--theme-line);border-radius:11px;background:var(--theme-bg)}
+.lab-rule button{border:1px solid transparent;border-radius:7px;background:transparent;color:var(--theme-muted);min-height:40px;font-size:12px;padding:10px 12px;box-shadow:none;transition:background .15s,color .15s}
+.lab-rule button[aria-pressed=true]{border-color:var(--theme-line);background:var(--theme-surface);color:var(--theme-ink);box-shadow:0 1px 4px color-mix(in srgb,var(--theme-ink) 8%,transparent)}
+.lab-rule button:hover:not(:disabled){color:var(--theme-ink)}
+.live-lab-run{padding:16px 20px 8px}.live-lab-run button{width:100%;justify-content:space-between;background:var(--theme-hero)!important;color:var(--theme-heroInk)!important;border:1px solid var(--theme-hero);border-radius:10px;min-height:50px;padding:14px 18px;box-shadow:none;font-size:14px;letter-spacing:0}
+.live-lab-run button:hover:not(:disabled){transform:none;box-shadow:0 4px 12px color-mix(in srgb,var(--theme-hero) 16%,transparent);filter:brightness(1.07)}
+.live-lab-run button:active:not(:disabled){transform:translateY(1px);box-shadow:none}
+.live-lab-output>div:first-child{font:600 12px/1.5 'Plus Jakarta Sans',sans-serif;letter-spacing:0;text-transform:none;display:flex;justify-content:space-between}.live-lab-output>div:first-child>span:last-child{font-weight:500;color:var(--theme-muted)}
+.live-player-results>div{border:1px solid var(--theme-line);background:var(--theme-bg);border-radius:10px;padding:12px}.live-player-results>div>span:last-child{background:transparent;padding:0;color:var(--theme-muted);font-size:12px}
+.live-lab-ask button{background:var(--theme-surface);color:var(--theme-ink);border:1px solid var(--theme-line);min-height:44px;border-radius:9px;justify-content:space-between;white-space:nowrap}
+.live-lab-ask button:hover:not(:disabled){background:var(--theme-tint)}
+.live-lab-scene button:focus-visible,.lab-code-details>summary:focus-visible{outline:2px solid var(--theme-ink);outline-offset:3px}
+@media(max-width:540px){.live-lab-top{padding:12px 14px}.lab-roster{margin:16px 14px 0}.lab-rule{margin:16px 14px 0}.lab-rule button{padding:10px 6px;font-size:11px}.live-lab-run{padding:14px}.live-lab-run button{min-height:48px}.live-lab-ask button{padding:12px 16px}}
+/* Tactile keycaps: a firm edge, a short travel, a clear held state. */
+.nl-wrap .nl-btn-primary,.nl-wrap .site-header>.btn,.live-lab-run button{
+ border:1.5px solid var(--theme-ink)!important;border-radius:9px!important;
+ box-shadow:0 4px 0 var(--theme-ink),inset 0 1px 0 color-mix(in srgb,var(--theme-surface) 18%,transparent)!important;
+ transition:transform 90ms ease,box-shadow 90ms ease!important;
+}
+.nl-wrap .nl-btn-primary:hover,.nl-wrap .site-header>.btn:hover,.live-lab-run button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 5px 0 var(--theme-ink),inset 0 1px 0 color-mix(in srgb,var(--theme-surface) 18%,transparent)!important;filter:none}
+.nl-wrap .nl-btn-primary:active,.nl-wrap .site-header>.btn:active,.live-lab-run button:active:not(:disabled){transform:translateY(4px);box-shadow:0 0 0 var(--theme-ink)!important}
+.lab-rule>div{background:var(--theme-bg);gap:9px;border:0;padding:2px 0 5px;border-radius:0}
+.lab-rule button{border:1.5px solid color-mix(in srgb,var(--theme-ink) 38%,var(--theme-line));border-radius:8px;background:var(--theme-surface);color:var(--theme-ink);box-shadow:0 3px 0 color-mix(in srgb,var(--theme-ink) 38%,var(--theme-line));font-weight:700;transition:transform 90ms ease,box-shadow 90ms ease,background 120ms ease}
+.lab-rule button[aria-pressed=true]{transform:translateY(3px);background:var(--theme-hero);color:var(--theme-heroInk);border-color:var(--theme-hero);box-shadow:0 0 0 var(--theme-hero)}
+.lab-rule button:hover:not(:disabled):not([aria-pressed=true]){transform:translateY(-1px);box-shadow:0 4px 0 color-mix(in srgb,var(--theme-ink) 38%,var(--theme-line))}
+.lab-rule button:active:not(:disabled){transform:translateY(3px);box-shadow:none}
+.live-lab-ask button,.live-lab-file button{border:1px solid color-mix(in srgb,var(--theme-ink) 30%,var(--theme-line));border-radius:8px;box-shadow:0 3px 0 color-mix(in srgb,var(--theme-ink) 30%,var(--theme-line));transition:transform 90ms ease,box-shadow 90ms ease}
+.live-lab-ask button:active:not(:disabled),.live-lab-file button:active:not(:disabled){transform:translateY(3px);box-shadow:none}
+@media(prefers-reduced-motion:reduce){.nl-wrap button,.nl-wrap .nl-btn,.nl-wrap .site-header>.btn{transition:none!important}}
+html[data-motion=reduced] .nl-wrap button,html[data-motion=reduced] .nl-wrap .nl-btn,html[data-motion=reduced] .nl-wrap .site-header>.btn{transition:none!important}
+
+.lab-roster>[data-source-player]{transition:opacity .2s ease,background .2s ease}
+.lab-roster>[data-match=false]{opacity:.4}
+.lab-roster>[data-match=true]{background:var(--theme-tint)!important}
+.lab-travelling-player{position:fixed;z-index:1000;display:grid;place-items:center;pointer-events:none;border-radius:50%;background:var(--theme-hero);color:var(--theme-heroInk);font:800 13px/1 'Plus Jakarta Sans',sans-serif;box-shadow:0 4px 12px color-mix(in srgb,var(--theme-ink) 20%,transparent)}
+@media(prefers-reduced-motion:reduce){.lab-roster>[data-source-player]{transition:none}.lab-travelling-player{display:none}}
+html[data-motion=reduced] .lab-roster>[data-source-player]{transition:none}html[data-motion=reduced] .lab-travelling-player{display:none}
+.nl-hero-live .nl-hero-copy h1{letter-spacing:0}
+.lab-rule button{font-size:13px}.live-lab-run button{font-size:15px}
+@media(max-width:540px){.lab-rule button{font-size:12px}}

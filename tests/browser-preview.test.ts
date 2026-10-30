@@ -14,3 +14,5 @@ test('worker output is bounded and a successful synchronous run finishes once',(
  const messages:{line:string;done:boolean}[]=[];runInNewContext(JSON.parse(literal),{console:{},postMessage:(message:{line:string;done:boolean})=>messages.push(message)});
  assert.equal(messages.length,31);assert.equal(messages[0].line,'0');assert.equal(messages[29].line,'29');assert.equal(messages.at(-1)?.done,true);
 });
+
+test('console supports BigInt, circular values and common log methods without crashing valid code',()=>{const doc=browserPreview('const obj={};obj.self=obj;console.log(1n,obj);console.warn("warning");console.info("info");console.debug("debug");console.log("still running");','JavaScript','console-test');const literal=doc.match(/new Blob\(\[("(?:\\.|[^"\\])*")\]/)?.[1];assert.ok(literal);const lines:{line:string;done:boolean}[]=[];runInNewContext(JSON.parse(literal),{console:{},postMessage:(message:{line:string;done:boolean})=>lines.push(message)});assert.ok(lines.some(line=>line.line==='still running'));assert.ok(lines.some(line=>line.line==='warning'));assert.ok(lines.some(line=>line.line==='debug'));assert.equal(lines.at(-1)?.done,true);});

@@ -1,3 +1,16 @@
+# Current UI milestone — October 30, 2026
+
+- Nordic is now the default for new/unsaved appearance settings and first paint; existing saved themes remain intact. Today puts the next task beside the project and deadlines, with secondary tools below.
+- Landing introduces a concrete football team-finder problem before showing code. Visitors choose a filter and execute real JavaScript in an opaque-origin iframe/worker; the resulting player cards come from actual console output. Code editing is optional. This is a small sample project, not an import of private college files.
+- The landing can ask the configured NVIDIA/Nebius model to explain the submitted code and output. It reads no account/profile/library records, saves no work, and never claims server-side execution, authorship or mastery. Its live feedback uses bounded input/output, origin checks, 10 requests per client bucket and 60 globally per rolling day, plus the existing persistent inference allowance. Anonymous rate buckets reset on process restart; the persistent overall allowance does not.
+- Rebuilt the theme showcase as three detailed overlapping previews. Removed the tilted class note and stray connector, corrected headline tracking, and gave action controls physical press travel and visible edges. A completed real run animates matching player markers from roster to result and dims non-matches; there is no simulated AI progress. Motion respects system and in-app preferences. The floating launcher stays out of the landing demo controls; Pip remains available through links and in the app.
+- OpenCode drafted isolated landing/CSS work and reviewed the source-only changes. Its findings were independently checked: focus contrast, reduced-motion positioning, mobile navigation, bounded feedback payloads and console serialization were corrected. No private files or credentials were supplied to helpers.
+- Devlab TypeScript, all 235 tests and production build passed. Production browser verification exercised unassigned/assigned filters, optional code, real worker output and one live Nemotron explanation. Missing/foreign origins returned 403; invalid input returned 400. Narrow layout was checked at an observed 354px width without page overflow; this is not a complete device/accessibility audit.
+
+Earlier milestone history follows. Older capability statements describe their dates, not the current release.
+
+---
+
 # First development milestone
 
 Implemented: assignment intake/confirmation, Today planning, authored guided practice, attempt records, source-aware memory controls, live-provider adapters, role-source interface and browser-session persistence.

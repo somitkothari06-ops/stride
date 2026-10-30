@@ -132,6 +132,6 @@ export default function Companion() {
       </div>
       {review && pane==="capture" && <footer className="pip-actions"><p>Check dates and destinations before saving.</p><div><button className="btn primary" disabled={!!busy||listening||!items.some(item=>item.selected)} onClick={save}>{busy||`Save ${items.filter(item=>item.selected).length} selected`}<Check size={18}/></button><button className="pip-review-again" disabled={!!busy||listening} onClick={()=>{setReview(null);setItems([]);}}>Review again</button></div>{error && <p className="error-banner" role="alert">{error}</p>}</footer>}
     </section>
-    {pathname!=="/pip" && <button className="companion-launcher" ref={launcher} aria-expanded={open} aria-controls="pip-panel" aria-haspopup="dialog" aria-label={open ? "Minimize Pip companion" : "Open Pip companion"} disabled={locked} onClick={()=>{if(open)setOpen(false);else {setPane("chat");setOpen(true);}}}><PipMark listening={listening}/><span><strong>Pip</strong></span></button>}
+    {pathname!=="/pip" && pathname!=="/" && <button className="companion-launcher" ref={launcher} aria-expanded={open} aria-controls="pip-panel" aria-haspopup="dialog" aria-label={open ? "Minimize Pip companion" : "Open Pip companion"} disabled={locked} onClick={()=>{if(open)setOpen(false);else {setPane("chat");setOpen(true);}}}><PipMark listening={listening}/><span><strong>Pip</strong></span></button>}
   </div>;
 }

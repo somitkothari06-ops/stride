@@ -344,7 +344,7 @@ export const buttonStyleIds=["theme","bold","soft","focus"] as const;
 export type ButtonStyle=typeof buttonStyleIds[number];
 export const AppearanceSchema = z.object({ theme:z.enum(themeIds), textSize:z.enum(["standard","large"]), motion:z.enum(["system","reduced"]), pattern:z.boolean(), buttonStyle:z.enum(buttonStyleIds).optional().default("theme") }).strict();
 export type Appearance = z.infer<typeof AppearanceSchema>;
-export const defaultAppearance:Appearance={theme:"original",textSize:"standard",motion:"system",pattern:true,buttonStyle:"theme"};
+export const defaultAppearance:Appearance={theme:"nordic",textSize:"standard",motion:"system",pattern:false,buttonStyle:"theme"};
 const buttonSources={theme:["cta","ctaInk"],bold:["ink","surface"],soft:["tint","ink"],focus:["hero","heroInk"]} as const;
 export function buttonColors(theme:ThemeId,buttonStyle:ButtonStyle){ const p=themes[theme];const [bg,fg]=buttonSources[buttonStyle];return {background:p[bg],foreground:p[fg]}; }
 export function appearanceVars(theme:ThemeId,buttonStyle:ButtonStyle="theme"){ const vars=Object.fromEntries(Object.entries(themes[theme]).filter(([key])=>key!=="name"&&key!=="note").map(([key,value])=>["--theme-"+key,value]));const {background,foreground}=buttonColors(theme,buttonStyle);vars["--theme-cta"]=background;vars["--theme-ctaInk"]=foreground;return vars; }

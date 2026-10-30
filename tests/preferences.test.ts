@@ -13,7 +13,7 @@ test("appearance saves without changing coursework planning, survives account cl
  const result=savePreferences(guest.id,{...snapshot,preferences:{...snapshot.preferences,theme:"midnight",pattern:false,textSize:"large"}});
  assert.equal(result.workspaceRevision,before.revision);assert.deepEqual(getState(guest.id)?.works,before.works);
  const account=ownedWorkspace("appearance-owner",guest.token);assert.equal(preferencesSnapshot(account.state).preferences.theme,"midnight");
- assert.equal(preferencesSnapshot(ownedWorkspace("appearance-other").state).preferences.theme,"original");
+ assert.equal(preferencesSnapshot(ownedWorkspace("appearance-other").state).preferences.theme,"nordic");
  assert.throws(()=>savePreferences(account.id,{...snapshot,preferences:snapshot.preferences}),/SETTINGS_STALE/);
 });
 test("study settings invalidate prior planning but preserve unrelated personal records",()=>{
