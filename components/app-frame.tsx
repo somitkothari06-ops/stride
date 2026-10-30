@@ -11,6 +11,8 @@ import { usePathname } from "next/navigation";
 import {Sun,BookOpen,Hammer,MessageCircle,NotebookPen,Footprints,Compass,Settings2,Plug,Menu,UserRound,Bell,ArrowUpRight,Plus,Minus,Maximize2,Minimize2,RotateCcw} from "lucide-react";
 const icons={Today:Sun,Coursework:BookOpen,"My Build":Hammer,Pip:MessageCircle,Journal:NotebookPen,Progress:Footprints,Explore:Compass};
 
+import DesktopHost from "./desktop-host";
+import DesktopPanel from "./desktop-panel";
 import {clampDesktopWindow} from '@/lib/desktop-geometry';
 import type {NavigationActivity} from '@/lib/navigation-activity';
 type Identity = { name: string | null; demo: boolean; activity?:NavigationActivity };
@@ -44,7 +46,7 @@ function initials(name: string | null) {
     .map((part) => part[0].toUpperCase()).join("");
 }
 
-export default function AppFrame({ children }: { children: ReactNode }) {
+function LegacyAppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "";
   const framed = FRAME_ROUTE.test(pathname) && !EXCLUDED.test(pathname);
   const [view, setView] = useState("today");
@@ -264,4 +266,18 @@ export default function AppFrame({ children }: { children: ReactNode }) {
       </nav>
     </div>
   );
+}
+
+export default function AppFrame({children}:{children:ReactNode}){
+ const pathname=usePathname()||"";
+ const [mode,setMode]=useState<'pending'|'panel'|'desktop'|'compact'>('pending');
+ const [initialHref,setInitialHref]=useState('');
+ useEffect(()=>{setInitialHref(location.pathname+location.search);setMode(window.self!==window.top?'panel':window.innerWidth>860?'desktop':'compact');},[pathname]);
+ const framed=FRAME_ROUTE.test(pathname)&&!EXCLUDED.test(pathname);
+ useEffect(()=>{if(mode==='panel'&&!framed&&pathname==='/login')window.parent.postMessage({channel:'stride-desk',type:'signed-out'},location.origin);},[mode,framed,pathname]);
+ if(!framed)return <>{children}</>;
+ if(mode==='pending')return <div className="desk-boot" aria-label="Opening your desk">stride.</div>;
+ if(mode==='panel')return <DesktopPanel>{children}</DesktopPanel>;
+ if(mode==='desktop')return <DesktopHost initialHref={initialHref}/>;
+ return <LegacyAppFrame>{children}</LegacyAppFrame>;
 }

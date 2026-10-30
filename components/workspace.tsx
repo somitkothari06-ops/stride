@@ -42,6 +42,7 @@ import {
 import type { Intake, Mode, View, Work, Workspace } from "@/lib/types";
 import { nebiusPresentation, type Providers } from "@/lib/connection-status";
 import CourseLibrary from "./course-library";
+import {openAppTool} from "@/lib/desktop-tools";
 import { launchPipChat } from "@/lib/pip-navigation";
 import { CompanionInvite } from "./companion";
 
@@ -313,6 +314,7 @@ export default function WorkspaceApp() {
   }
 
   function go(next: View) {
+    if(openAppTool(`/workspace?view=${next}`))return;
     setView(next);
     setMobileNav(false);
     setError("");
@@ -449,7 +451,7 @@ export default function WorkspaceApp() {
           <button
             className="profile-button"
             aria-label={`Open profile for ${state.profile.name}`}
-            onClick={() => window.location.assign("/about-you")}
+            onClick={() => (openAppTool("/about-you")||window.location.assign("/about-you"))}
           >
             <span className="avatar">{state.profile.name.slice(0, 1)}</span>
             <span>
@@ -545,9 +547,9 @@ export default function WorkspaceApp() {
                 </div>
               )}
               <div className="day-context" aria-label="Your workspace at a glance">
-                <button onClick={() => setView("work")}><BookOpen size={18} /><span><strong>{active.length}</strong> open tasks</span><ArrowRight size={14} /></button>
+                <button onClick={() => go("work")}><BookOpen size={18} /><span><strong>{active.length}</strong> open tasks</span><ArrowRight size={14} /></button>
                 <button aria-expanded={timeOpen} aria-controls="today-time" onClick={() => {setTimeOpen(true);requestAnimationFrame(()=>document.getElementById("today-time")?.scrollIntoView({block:"center"}));}}><Clock3 size={18} /><span><strong>{state.profile.minutes} min</strong> to focus</span><Pencil size={13} /></button>
-                <button onClick={() => setView("memory")}><ListChecks size={18} /><span><strong>{state.observations.filter((o) => !o.removed).length}</strong> {state.observations.filter((o) => !o.removed).length === 1 ? "attempt" : "attempts"} saved</span><ArrowRight size={14} /></button>
+                <button onClick={() => go("memory")}><ListChecks size={18} /><span><strong>{state.observations.filter((o) => !o.removed).length}</strong> {state.observations.filter((o) => !o.removed).length === 1 ? "attempt" : "attempts"} saved</span><ArrowRight size={14} /></button>
               </div>
               {(state.focus&&!state.focus.closedAt||state.returnCard?.kind==="saved"&&!state.returnCard.skipped)&&<a className="journal-continue" href="/journal"><NotebookPen size={23}/><span><strong>{state.focus&&!state.focus.closedAt?"Continue your session":"Pick up where you left off"}</strong><span>{state.focus&&!state.focus.closedAt?state.focus.title:state.returnCard?.note}</span></span><ArrowRight size={20}/></a>}
               <div className="dashboard-grid">
@@ -1208,7 +1210,7 @@ export default function WorkspaceApp() {
 
       <nav className="mobile-tabs" aria-label="Mobile navigation">
         {navigation.map((n) => <button key={n.id} aria-current={view === n.id ? "page" : undefined} onClick={() => go(n.id)}><n.icon size={20} /><span>{n.name}</span></button>)}
-      <button onClick={()=>{window.location.href="/build";}}><NotebookPen size={20}/><span>My Build</span></button>
+      <button onClick={()=>{if(!openAppTool("/build"))window.location.href="/build";}}><NotebookPen size={20}/><span>My Build</span></button>
       <button onClick={()=>launchPipChat()}><MessageCircle size={20}/><span>Pip</span></button></nav>
       <div
           className="modal-overlay"

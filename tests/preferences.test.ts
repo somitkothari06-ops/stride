@@ -9,6 +9,7 @@ import { PreferencesInput,PreferencesSchema,preferencesSnapshot,savePreferences 
 import { themes,themeIds,buttonStyleIds,AppearanceSchema,appearanceVars,buttonColors,defaultAppearance } from "../lib/themes";
 process.env.STRIDE_DATA_DIR=mkdtempSync(join(tmpdir(),"stride-preferences-"));
 test("appearance saves without changing coursework planning, survives account claim and stays isolated",()=>{
+ assert.equal(defaultAppearance.theme,"pearl");assert.equal(defaultAppearance.wallpaper,"grid");assert.equal(defaultAppearance.dockSize,"roomy");assert.equal(defaultAppearance.windowStyle,"crisp");
  const guest=createSession(false),before=guest.state;const snapshot=preferencesSnapshot(before);
  const result=savePreferences(guest.id,{...snapshot,preferences:{...snapshot.preferences,theme:"midnight",pattern:false,textSize:"large"}});
  assert.equal(result.workspaceRevision,before.revision);assert.deepEqual(getState(guest.id)?.works,before.works);
@@ -56,4 +57,19 @@ test("same-field conflicts are rejected but a lost-response replay is idempotent
  assert.deepEqual(replayed,saved);
  assert.throws(()=>savePreferences(g.id,{...input,preferences:{...s.preferences,theme:"lemon"}}),/SETTINGS_STALE/);
  assert.equal(preferencesSnapshot(getState(g.id)!).preferences.theme,"midnight");
+});
+
+test("desktop preferences survive saving and stay separate from coursework plans",()=>{
+ const guest=createSession(false),base=preferencesSnapshot(guest.state);
+ const changed=savePreferences(guest.id,{...base,base:base.preferences,preferences:{...base.preferences,wallpaper:"grid",dockSize:"compact",windowStyle:"soft",deskFolders:false,deskClock:false}});
+ assert.equal(changed.preferences.wallpaper,"grid");assert.equal(changed.preferences.dockSize,"compact");assert.equal(changed.preferences.deskClock,false);
+ assert.equal(changed.workspaceRevision,base.workspaceRevision);assert.deepEqual(getState(guest.id)?.works,guest.state.works);
+ const saved=preferencesSnapshot(getState(guest.id)!);assert.deepEqual(saved.preferences,changed.preferences);
+ assert.equal(PreferencesSchema.safeParse({...changed.preferences,wallpaper:"url(https://outside.test)"}).success,false);
+ const text=savePreferences(guest.id,{...base,base:base.preferences,preferences:{...base.preferences,textSize:"large"}});
+ assert.equal(text.preferences.wallpaper,"grid");assert.equal(text.preferences.textSize,"large");
+});
+test("legacy appearance data gets desktop defaults without changing its chosen palette",()=>{
+ const parsed=AppearanceSchema.parse({theme:"forest",textSize:"standard",motion:"system",pattern:false});
+ assert.equal(parsed.theme,"forest");assert.equal(parsed.wallpaper,"grid");assert.equal(parsed.dockSize,"roomy");assert.equal(parsed.deskFolders,true);
 });

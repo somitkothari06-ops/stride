@@ -343,11 +343,13 @@ export const themes: Record<ThemeId,Palette> = {
 };
 export const buttonStyleIds=["theme","bold","soft","focus"] as const;
 export type ButtonStyle=typeof buttonStyleIds[number];
-export const AppearanceSchema = z.object({ theme:z.enum(themeIds), textSize:z.enum(["standard","large"]), motion:z.enum(["system","reduced"]), pattern:z.boolean(), buttonStyle:z.enum(buttonStyleIds).optional().default("theme") }).strict();
+export const AppearanceSchema = z.object({ theme:z.enum(themeIds), textSize:z.enum(["standard","large"]), motion:z.enum(["system","reduced"]), pattern:z.boolean(), buttonStyle:z.enum(buttonStyleIds).optional().default("theme"),wallpaper:z.enum(["plain","contour","grid","glow"]).default("grid"),dockSize:z.enum(["compact","roomy"]).default("roomy"),windowStyle:z.enum(["crisp","soft"]).default("crisp"),deskFolders:z.boolean().default(true),deskClock:z.boolean().default(true) }).strict();
 export type Appearance = z.infer<typeof AppearanceSchema>;
-export const defaultAppearance:Appearance={theme:"porcelain",textSize:"standard",motion:"system",pattern:false,buttonStyle:"theme"};
+export const defaultAppearance:Appearance={theme:"pearl",textSize:"standard",motion:"system",pattern:false,buttonStyle:"theme",wallpaper:"grid",dockSize:"roomy",windowStyle:"crisp",deskFolders:true,deskClock:true};
 const buttonSources={theme:["cta","ctaInk"],bold:["ink","surface"],soft:["tint","ink"],focus:["hero","heroInk"]} as const;
 export function buttonColors(theme:ThemeId,buttonStyle:ButtonStyle){ const p=themes[theme];const [bg,fg]=buttonSources[buttonStyle];return {background:p[bg],foreground:p[fg]}; }
 export function appearanceVars(theme:ThemeId,buttonStyle:ButtonStyle="theme"){ const vars=Object.fromEntries(Object.entries(themes[theme]).filter(([key])=>key!=="name"&&key!=="note").map(([key,value])=>["--theme-"+key,value]));const {background,foreground}=buttonColors(theme,buttonStyle);vars["--theme-cta"]=background;vars["--theme-ctaInk"]=foreground;return vars; }
 
 export function themeTone(id:ThemeId){const hex=themes[id].bg;const l=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)).reduce((n,v,i)=>n+v*[.2126,.7152,.0722][i],0);return l<120?"dark":"light";}
+
+export function appearanceFrom(value:Partial<Appearance>):Appearance {return AppearanceSchema.parse(Object.fromEntries(Object.keys(defaultAppearance).map(key=>[key,value[key as keyof Appearance]])));}

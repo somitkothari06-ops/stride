@@ -6,6 +6,7 @@ import type { Workspace } from "@/lib/types";
 import { connectionMessage, requestJson } from "@/lib/client-request";
 import { Dictation, SpeechPrivacy } from "@/components/voice-capture";
 import { PipMark } from "@/components/companion";
+import {openAppTool} from "@/lib/desktop-tools";
 import SignOut from "@/components/sign-out";
 import "../welcome.css";
 
@@ -67,7 +68,7 @@ export default function AboutYou(){
   try{
    await requestJson("/api/action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"aboutYou",name,year,minutes,goal,context:{...context,story:text}})});
    try{sessionStorage.removeItem("stride-intro-draft");}catch{}
-   savedRef.current=true;if(!signedOut.current)window.location.assign(destination);
+   savedRef.current=true;if(!signedOut.current&&!openAppTool(destination))window.location.assign(destination);
   }catch(e){setError(connectionMessage(e,"Couldn’t save. Your answers are still here."));setBusy(false);}
  }
  return <div className="welcome-page"><header className="site-header"><a className="site-brand" href="/workspace">stride.</a><nav><a href="/settings">Settings</a><SignOut/><a href="/workspace">Back to workspace ↗</a></nav></header>

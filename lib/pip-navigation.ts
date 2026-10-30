@@ -1,8 +1,9 @@
+import {openAppTool} from "./desktop-tools";
 export type PipLaunch = {id:string;text:string;autoSend:boolean;createdAt:number;threadId?:string};
 const key="stride-pip-launch";
 export function launchPipChat(text?:string,autoSend=true,threadId?:string) {
  if(text?.trim())try{sessionStorage.setItem(key,JSON.stringify({id:crypto.randomUUID(),text:text.trim().slice(0,3000),autoSend,createdAt:Date.now(),threadId}));}catch{if(!autoSend)return false;/* Lesson chat can still open without its request. */}
- window.location.assign("/pip");
+ if(!openAppTool("/pip"))window.location.assign("/pip");
  return true;
 }
 export function readPipLaunch():PipLaunch|undefined {

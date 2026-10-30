@@ -55,7 +55,7 @@ export default function Companion() {
       const detail=(event as CustomEvent<{captureText?:string;prompt?:string}>).detail;
       if(typeof detail?.captureText==="string") {editWords(detail.captureText.slice(0,6000));setPane("capture");setOpen(true);}
       else if(detail?.prompt) launchPipChat(detail.prompt);
-      else {setPane("chat");setOpen(true);}
+      else {if(window.self!==window.top){launchPipChat();return;}setPane("chat");setOpen(true);}
     };
     window.addEventListener("stride-companion-open",show);
     return () => window.removeEventListener("stride-companion-open",show);

@@ -11,6 +11,7 @@ import "./app-frame.css";
 import "./studio-system.css";
 import "./nordic-system.css";
 import "./desktop-system.css";
+import "./desktop-windows.css";
 import AppFrame from "@/components/app-frame";
 import AppearanceProvider from "@/components/appearance-provider";
 import { themes, defaultAppearance } from "@/lib/themes";
@@ -27,7 +28,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head><script dangerouslySetInnerHTML={{__html:`(()=>{try{const all=${JSON.stringify(themes)},fallback=${JSON.stringify(defaultAppearance)},sources={theme:['cta','ctaInk'],bold:['ink','surface'],soft:['tint','ink'],focus:['hero','heroInk']},p=JSON.parse(localStorage.getItem('stride-appearance')||'null')||fallback;const t=Object.hasOwn(all,p.theme)?all[p.theme]:all[fallback.theme];const bs=sources[p.buttonStyle]?p.buttonStyle:'theme';const pair=sources[bs];const h=document.documentElement;for(const [k,v]of Object.entries(t))if(k!=='name'&&k!=='note')h.style.setProperty('--theme-'+k,v);h.style.setProperty('--theme-cta',t[pair[0]]);h.style.setProperty('--theme-ctaInk',t[pair[1]]);h.dataset.appearance=Object.hasOwn(all,p.theme)?p.theme:fallback.theme;h.dataset.buttonStyle=bs;h.dataset.textSize=p.textSize==='large'?'large':'standard';h.dataset.motion=p.motion==='reduced'?'reduced':'system';h.dataset.pattern=String(p.pattern!==false);}catch{}})();`}}/></head>
+      <head><script dangerouslySetInnerHTML={{__html:`(()=>{try{const all=${JSON.stringify(themes)},fallback=${JSON.stringify(defaultAppearance)},sources={theme:['cta','ctaInk'],bold:['ink','surface'],soft:['tint','ink'],focus:['hero','heroInk']},p=JSON.parse(localStorage.getItem('stride-appearance')||'null')||fallback;const t=Object.hasOwn(all,p.theme)?all[p.theme]:all[fallback.theme];const bs=sources[p.buttonStyle]?p.buttonStyle:'theme';const pair=sources[bs];const h=document.documentElement;for(const [k,v]of Object.entries(t))if(k!=='name'&&k!=='note')h.style.setProperty('--theme-'+k,v);h.style.setProperty('--theme-cta',t[pair[0]]);h.style.setProperty('--theme-ctaInk',t[pair[1]]);h.dataset.appearance=Object.hasOwn(all,p.theme)?p.theme:fallback.theme;h.dataset.buttonStyle=bs;h.dataset.textSize=p.textSize==='large'?'large':'standard';h.dataset.motion=p.motion==='reduced'?'reduced':'system';h.dataset.pattern=String(p.pattern!==false);h.dataset.wallpaper=['plain','contour','grid','glow'].includes(p.wallpaper)?p.wallpaper:fallback.wallpaper;h.dataset.dockSize=p.dockSize==='compact'?'compact':'roomy';h.dataset.windowStyle=p.windowStyle==='soft'?'soft':'crisp';h.dataset.deskFolders=String(p.deskFolders!==false);h.dataset.deskClock=String(p.deskClock!==false);}catch{}})();`}}/></head>
       <body><AppearanceProvider><AppFrame>{children}</AppFrame><Companion/></AppearanceProvider></body>
     </html>
   );

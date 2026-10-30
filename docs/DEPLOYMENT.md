@@ -59,3 +59,7 @@ STRIDE_PUBLIC_ORIGIN is pinned to the HTTPS hostname in the ignored server envir
 Run `STRIDE_BASE_URL=https://stride-213-239-171-145.sslip.io node scripts/public-smoke.mjs --allow-write` with a private synthetic-session cleanup file. No model calls are made. The test creates a guest and cancels the temporary OAuth attempts.
 
 The free DNS hostname depends on the existing public IP, server availability and the team's compute balance. This establishes public access, not an indefinite hosting commitment or a production security audit. To roll back the proxy, restore /etc/caddy/Caddyfile.before-stride, validate and reload Caddy; the private preview/service and database remain available.
+
+## Desktop tool windows, October 30
+
+First-party app windows use same-origin frames. Caddy must return `X-Frame-Options: SAMEORIGIN` and `Content-Security-Policy: frame-ancestors 'self'`; `DENY` prevents the desktop from loading its own tools. Do not allow arbitrary external ancestors. The app bridge also validates message origin and owned frame source, and code examples retain their separate opaque-origin sandbox. The previous Caddy configuration was saved on the host before this change.

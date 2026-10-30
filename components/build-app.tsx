@@ -684,7 +684,7 @@ export default function BuildApp() {
                               createIdRef.current = "";
                             }}
                           />
-                          <span>{option} min</span>
+                          <span><strong>{option}</strong><small>min</small></span>
                         </label>
                       ))}
                     </div>
