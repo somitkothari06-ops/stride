@@ -159,6 +159,7 @@ export default function WorkspaceApp() {
       setError(connectionMessage(e, "Couldn’t connect to your workspace. Please try again."));
     }
   }, []);
+  useEffect(()=>{if(state)window.dispatchEvent(new Event("stride-activity-change"));},[state]);
   useEffect(() => {
     void load();
   }, [load]);

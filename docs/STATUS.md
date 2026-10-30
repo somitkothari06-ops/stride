@@ -1,3 +1,16 @@
+# Personal Desktop release — October 30, 2026
+
+- Replaced the rejected cinematic landing with the approved Porcelain / Editorial direction, true-black primary buttons and Paper cut secondary actions. Notes, My Build and Pip are connected working sample windows, with minimise/reopen, pointer/keyboard movement, reset layout and focus mode. The sample is labelled; private student files are not involved.
+- The OS note leads to a FIFO example executed by the existing opaque-origin iframe/worker. The code is editable; output comes from the actual browser run. Asking Pip uses the existing bounded NVIDIA/Nebius endpoint with that code, output and question. It does not save or claim mastery. One public live run returned `[2,3,4]`, and Nemotron correctly explained the eviction of page 1. Model correctness beyond this example is not guaranteed.
+- Added a desktop app dock, shared desk/activity header, editorial page headings, paired window surfaces and a labelled profile control. Existing pages and workflows remain intact; this is shared navigation/visual integration, not a rewrite of every tool. Porcelain is the default for new preferences, while saved themes remain intact.
+- Coursework and My Build badges use server-derived open-task / active-build counts. The activity panel links to real coursework, build and journal records. Counts refresh after workspace changes, on window focus and every 30 seconds while visible. Zero badges stay hidden. These are not unread-message counts. Pip only flags a newly returned sample explanation when its sample window is minimised; account-wide message-read tracking is not added.
+- OpenCode reviewed source-only code. Added completion-channel invalidation, explicit expand activation, clearer badge semantics and 16px narrow-screen inputs. Its delayed-worker claim was not reproduced because the existing worker terminates on completion. Its expanded-window stacking claim was contradicted by the focus CSS, but explicit activation improves clarity.
+- Took a private consistent SQLite backup before release; no workspace migration or credential change. Node 22 TypeScript, 237 tests and production build passed. Public health, sandbox run, model explanation, demo dock counts and activity links were checked. Desktop is the design focus at the user's request.
+
+Earlier milestones below are historical.
+
+---
+
 # Current UI milestone — October 30, 2026
 
 - Nordic is now the default for new/unsaved appearance settings and first paint; existing saved themes remain intact. Today puts the next task beside the project and deadlines, with secondary tools below.

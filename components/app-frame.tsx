@@ -8,10 +8,11 @@
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import {Sun,BookOpen,Hammer,MessageCircle,NotebookPen,Footprints,Compass,Settings2,Plug,Menu,UserRound} from "lucide-react";
+import {Sun,BookOpen,Hammer,MessageCircle,NotebookPen,Footprints,Compass,Settings2,Plug,Menu,UserRound,Bell,ArrowUpRight} from "lucide-react";
 const icons={Today:Sun,Coursework:BookOpen,"My Build":Hammer,Pip:MessageCircle,Journal:NotebookPen,Progress:Footprints,Explore:Compass};
 
-type Identity = { name: string | null; demo: boolean };
+import type {NavigationActivity} from '@/lib/navigation-activity';
+type Identity = { name: string | null; demo: boolean; activity?:NavigationActivity };
 
 const FRAME_ROUTE =
   /^\/(?:workspace|build|pip|journal|settings|about-you)(?:\/|$)|^\/study(?:\/|$)/;
@@ -48,7 +49,9 @@ export default function AppFrame({ children }: { children: ReactNode }) {
   const [view, setView] = useState("today");
   const [identity, setIdentity] = useState<Identity>({ name: null, demo: false });
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [activityOpen,setActivityOpen]=useState(false);
   const [leaving, setLeaving] = useState(false);
+  const navigationEpoch=useRef(0);
   const menuButton = useRef<HTMLButtonElement>(null);
   const drawer = useRef<HTMLDivElement>(null);
 
@@ -57,20 +60,24 @@ export default function AppFrame({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!framed) return;
     const source = new AbortController();
-    fetch("/api/navigation", { cache: "no-store", signal: source.signal })
+    const refresh=()=>{if(document.visibilityState!=="visible")return;const epoch=++navigationEpoch.current;fetch("/api/navigation", { cache: "no-store", signal: source.signal })
       .then(async (res) => {
+        if(epoch!==navigationEpoch.current)return;
         if (!res.ok) {
           if (res.status === 401 || res.status === 403) setIdentity({ name: null, demo: false });
           return;
         }
-        const data = (await res.json()) as { demo?: boolean; name?: string };
-        setIdentity({ name: data.name?.trim() || null, demo: !!data.demo });
+        const data = (await res.json()) as { demo?: boolean; name?: string; activity?:NavigationActivity };
+        if(epoch!==navigationEpoch.current)return;
+        setIdentity({ name: data.name?.trim() || null, demo: !!data.demo,activity:data.activity });
       })
-      .catch(() => {});
-    return () => source.abort();
+      .catch(() => {});};
+    refresh();const timer=window.setInterval(refresh,30000);window.addEventListener("focus",refresh);window.addEventListener("stride-activity-change",refresh);
+    return () => {navigationEpoch.current++;source.abort();clearInterval(timer);window.removeEventListener("focus",refresh);window.removeEventListener("stride-activity-change",refresh);};
   }, [framed, pathname]);
 
-  useEffect(()=>{const clear=()=>{setIdentity({name:null,demo:false});setDrawerOpen(false);};window.addEventListener("stride-signout",clear);return()=>window.removeEventListener("stride-signout",clear);},[]);
+  useEffect(()=>{const clear=()=>{navigationEpoch.current++;setActivityOpen(false);setIdentity({name:null,demo:false});setDrawerOpen(false);};window.addEventListener("stride-signout",clear);return()=>window.removeEventListener("stride-signout",clear);},[]);
+  useEffect(()=>{if(!activityOpen)return;const close=(event:KeyboardEvent)=>{if(event.key==='Escape'){setActivityOpen(false);document.querySelector<HTMLButtonElement>('.frame-activity-toggle')?.focus();}};window.addEventListener('keydown',close);return()=>window.removeEventListener('keydown',close);},[activityOpen]);
   // Workspace active view comes from the URL and follows in-page view changes.
   useEffect(() => {
     if (!framed) return;
@@ -137,6 +144,10 @@ export default function AppFrame({ children }: { children: ReactNode }) {
     </a>
   );
 
+  const badgeFor=(label:string)=>label==='Coursework'?identity.activity?.coursework||0:label==='My Build'?identity.activity?.build||0:0;
+  const badgeLabel=(label:string,count:number)=>label==='Coursework'?`${count} open ${count===1?"task":"tasks"}`:`${count} active ${count===1?"build":"builds"}`;
+  const countBadge=(label:string)=>{const count=badgeFor(label);return count>0?<span className="frame-count" title={badgeLabel(label,count)}><span aria-hidden="true">{count>99?'99+':count}</span><span className="sr-only">{badgeLabel(label,count)}</span></span>:null;};
+  const activityCount=(identity.activity?.coursework||0)+(identity.activity?.build||0);
   const navBody = (
     <>
       {NAV_GROUPS.map((group) => (
@@ -155,7 +166,7 @@ export default function AppFrame({ children }: { children: ReactNode }) {
                   if (drawerOpen) menuButton.current?.focus();
                 }}
               >
-                <Icon size={19}/>{link.label}
+                <span className="frame-icon"><Icon size={19}/></span><span>{link.label}</span>{countBadge(link.label)}
               </a>
             );
           })}
@@ -188,7 +199,7 @@ export default function AppFrame({ children }: { children: ReactNode }) {
       </div>
       <header className="frame-top">
         {brand}
-        <div className="frame-top-actions">
+        <div className="frame-top-actions"><a className="frame-top-settings" href="/settings"><Settings2 size={17}/><span>Settings</span></a>
           <button
             ref={menuButton} type="button" className="frame-menu-btn"
             aria-expanded={drawerOpen} aria-controls="frame-drawer"
@@ -197,7 +208,7 @@ export default function AppFrame({ children }: { children: ReactNode }) {
             <Menu size={18}/>Menu
           </button>
           <a className="frame-avatar" href="/about-you" aria-label={profileLabel}>
-            {initials(identity.name)}
+            <span className="frame-top-initial" aria-hidden="true">{initials(identity.name)||<UserRound size={18}/>}</span><span className="frame-top-profile-name">{identity.name||"Your profile"}<small>My profile</small></span><ArrowUpRight size={15}/>
           </a>
         </div>
       </header>
@@ -210,6 +221,7 @@ export default function AppFrame({ children }: { children: ReactNode }) {
             </button>
           </div>
         )}
+        <div className="frame-desk-bar"><span>Your desk <span aria-hidden="true">/</span> {pathname==='/workspace'?({today:'Today',work:'Coursework',memory:'Progress',direction:'Explore'}[view]||'Today'):pathname==='/build'?'My Build':pathname==='/pip'?'Pip':pathname==='/journal'?'Journal':pathname==='/settings'?'Settings':pathname==='/about-you'?'Your profile':'Notes'}</span><div className="frame-activity"><button type="button" className="frame-activity-toggle" onClick={()=>setActivityOpen(!activityOpen)} aria-expanded={activityOpen} aria-controls="desk-activity" aria-label={`On your desk: ${activityCount} open tasks and active builds`}><Bell size={17}/><span>On your desk</span>{activityCount>0&&<b>{activityCount>99?'99+':activityCount}</b>}</button>{activityOpen&&<div id="desk-activity" className="frame-activity-list"><strong>Ready when you are</strong>{identity.activity?<><a href="/workspace?view=work">{identity.activity.coursework} open tasks <ArrowUpRight size={16}/></a><a href="/build">{identity.activity.build?'Continue your build':'Start a build'}<ArrowUpRight size={16}/></a><a href="/journal">{identity.activity.journal} saved journal entries <ArrowUpRight size={16}/></a><small>Counts show saved work, not unread messages.</small></>:<p>Open your workspace to see your work.</p>}<button type="button" onClick={()=>setActivityOpen(false)}>Close</button></div>}</div></div>
         {children}
       </div>
       <div className={`frame-scrim${drawerOpen ? " open" : ""}`} onClick={closeDrawer} aria-hidden="true" />
@@ -225,7 +237,7 @@ export default function AppFrame({ children }: { children: ReactNode }) {
       </div>
       <nav className="frame-tabs" aria-label="Quick navigation">
         <a className="frame-tab" href="/workspace?view=today" aria-current={todayActive ? "page" : undefined}><Sun size={19}/>Today</a>
-        <a className="frame-tab" href="/build" aria-current={pathname === "/build" ? "page" : undefined}><Hammer size={19}/>Build</a>
+        <a className="frame-tab" href="/build" aria-current={pathname === "/build" ? "page" : undefined}><Hammer size={19}/>Build{countBadge("My Build")}</a>
         <a className="frame-tab" href="/pip" aria-current={pathname === "/pip" ? "page" : undefined}><MessageCircle size={19}/>Pip</a>
         <button
           type="button" className="frame-tab" aria-expanded={drawerOpen}

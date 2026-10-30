@@ -10,6 +10,7 @@ import "./build-portal.css";
 import "./app-frame.css";
 import "./studio-system.css";
 import "./nordic-system.css";
+import "./desktop-system.css";
 import AppFrame from "@/components/app-frame";
 import AppearanceProvider from "@/components/appearance-provider";
 import { themes, defaultAppearance } from "@/lib/themes";

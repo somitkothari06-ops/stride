@@ -1,8 +1,9 @@
 import { z } from "zod";
-export const themeIds = ["original", "pearl", "lilac", "peach", "midnight", "lemon", "nordic", "sandstone", "rosewood", "dracula", "arctic", "walnut", "mocha", "rose-night", "retro", "solar-paper", "cloud", "sepia", "forest", "obsidian", "ocean"] as const;
+export const themeIds = ["porcelain", "original", "pearl", "lilac", "peach", "midnight", "lemon", "nordic", "sandstone", "rosewood", "dracula", "arctic", "walnut", "mocha", "rose-night", "retro", "solar-paper", "cloud", "sepia", "forest", "obsidian", "ocean"] as const;
 export type ThemeId = typeof themeIds[number];
 export type Palette = { name:string;note:string;bg:string;surface:string;ink:string;muted:string;line:string;hero:string;heroInk:string;heroMuted:string;cta:string;ctaInk:string;tint:string;shadow:string };
 export const themes: Record<ThemeId,Palette> = {
+  "porcelain": {name:"Porcelain",note:"Warm paper · editorial headings · black buttons",bg:"#eeeae2",surface:"#fffdf7",ink:"#252722",muted:"#62645e",line:"#bdbbb2",hero:"#d5dfec",heroInk:"#252722",heroMuted:"#48515a",cta:"#101010",ctaInk:"#fffdf7",tint:"#e7e2d8",shadow:"#c1bcb1"},
   "original": {
     "name": "Original",
     "note": "The original Stride palette",
@@ -344,7 +345,7 @@ export const buttonStyleIds=["theme","bold","soft","focus"] as const;
 export type ButtonStyle=typeof buttonStyleIds[number];
 export const AppearanceSchema = z.object({ theme:z.enum(themeIds), textSize:z.enum(["standard","large"]), motion:z.enum(["system","reduced"]), pattern:z.boolean(), buttonStyle:z.enum(buttonStyleIds).optional().default("theme") }).strict();
 export type Appearance = z.infer<typeof AppearanceSchema>;
-export const defaultAppearance:Appearance={theme:"nordic",textSize:"standard",motion:"system",pattern:false,buttonStyle:"theme"};
+export const defaultAppearance:Appearance={theme:"porcelain",textSize:"standard",motion:"system",pattern:false,buttonStyle:"theme"};
 const buttonSources={theme:["cta","ctaInk"],bold:["ink","surface"],soft:["tint","ink"],focus:["hero","heroInk"]} as const;
 export function buttonColors(theme:ThemeId,buttonStyle:ButtonStyle){ const p=themes[theme];const [bg,fg]=buttonSources[buttonStyle];return {background:p[bg],foreground:p[fg]}; }
 export function appearanceVars(theme:ThemeId,buttonStyle:ButtonStyle="theme"){ const vars=Object.fromEntries(Object.entries(themes[theme]).filter(([key])=>key!=="name"&&key!=="note").map(([key,value])=>["--theme-"+key,value]));const {background,foreground}=buttonColors(theme,buttonStyle);vars["--theme-cta"]=background;vars["--theme-ctaInk"]=foreground;return vars; }
