@@ -6,11 +6,12 @@
 // that data anywhere else and never logs it.
 
 import { useEffect, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import type { ReactNode, PointerEvent as ReactPointerEvent } from "react";
 import { usePathname } from "next/navigation";
-import {Sun,BookOpen,Hammer,MessageCircle,NotebookPen,Footprints,Compass,Settings2,Plug,Menu,UserRound,Bell,ArrowUpRight} from "lucide-react";
+import {Sun,BookOpen,Hammer,MessageCircle,NotebookPen,Footprints,Compass,Settings2,Plug,Menu,UserRound,Bell,ArrowUpRight,Plus,Minus,Maximize2,Minimize2,RotateCcw} from "lucide-react";
 const icons={Today:Sun,Coursework:BookOpen,"My Build":Hammer,Pip:MessageCircle,Journal:NotebookPen,Progress:Footprints,Explore:Compass};
 
+import {clampDesktopWindow} from '@/lib/desktop-geometry';
 import type {NavigationActivity} from '@/lib/navigation-activity';
 type Identity = { name: string | null; demo: boolean; activity?:NavigationActivity };
 
@@ -51,6 +52,12 @@ export default function AppFrame({ children }: { children: ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activityOpen,setActivityOpen]=useState(false);
   const [leaving, setLeaving] = useState(false);
+  const [toolMinimised,setToolMinimised]=useState(false),[toolMaximised,setToolMaximised]=useState(false),[toolPosition,setToolPosition]=useState({x:0,y:0});
+  const appDesk=useRef<HTMLDivElement>(null),toolWindow=useRef<HTMLElement>(null),toolDrag=useRef<{x:number;y:number;dx:number;dy:number;left:number;top:number;width:number;height:number}|null>(null);
+  useEffect(()=>{setToolMinimised(false);setToolMaximised(false);setToolPosition({x:0,y:0});},[pathname,view]);
+  function beginToolDrag(event:ReactPointerEvent<HTMLDivElement>){if(event.button!==0||toolMaximised||window.innerWidth<861||(event.target as HTMLElement).closest('button'))return;const w=toolWindow.current;if(!w)return;event.preventDefault();event.currentTarget.focus({preventScroll:true});window.getSelection()?.removeAllRanges();toolDrag.current={x:event.clientX,y:event.clientY,dx:toolPosition.x,dy:toolPosition.y,left:w.offsetLeft-toolPosition.x,top:w.offsetTop-toolPosition.y,width:w.offsetWidth,height:w.offsetHeight};event.currentTarget.setPointerCapture(event.pointerId);}
+  function moveTool(event:ReactPointerEvent<HTMLDivElement>){const d=toolDrag.current,a=appDesk.current;if(!d||!a)return;setToolPosition(clampDesktopWindow({x:d.dx+event.clientX-d.x,y:d.dy+event.clientY-d.y},d,{width:a.clientWidth,height:a.clientHeight}));}
+  useEffect(()=>{const reset=()=>{toolDrag.current=null;setToolPosition({x:0,y:0});};window.addEventListener('resize',reset);return()=>window.removeEventListener('resize',reset);},[]);
   const navigationEpoch=useRef(0);
   const menuButton = useRef<HTMLButtonElement>(null);
   const drawer = useRef<HTMLDivElement>(null);
@@ -161,7 +168,8 @@ export default function AppFrame({ children }: { children: ReactNode }) {
                 href={link.href}
                 className={`frame-link${active ? " active" : ""}`}
                 aria-current={active ? "page" : undefined}
-                onClick={() => {
+                onClick={(event) => {
+                  if(active){event.preventDefault();setToolMinimised(false);requestAnimationFrame(()=>document.querySelector<HTMLElement>(".frame-window-titlebar")?.focus({preventScroll:true}));}
                   setDrawerOpen(false);
                   if (drawerOpen) menuButton.current?.focus();
                 }}
@@ -188,6 +196,8 @@ export default function AppFrame({ children }: { children: ReactNode }) {
 
   if (!framed) return <>{children}</>;
 
+  const toolTitle=pathname==='/workspace'?({today:'Today',work:'Coursework',memory:'Progress',direction:'Explore'}[view]||'Today'):pathname==='/build'?'My Build':pathname==='/pip'?'Pip':pathname==='/journal'?'Journal':pathname==='/settings'?'Settings':pathname==='/about-you'?'Your profile':'Your notes';
+  const titleTone=pathname==='/build'?'build':pathname==='/pip'?'pip':'notes';
   const todayActive = pathname === "/workspace" && view === "today";
 
   return (
@@ -199,7 +209,7 @@ export default function AppFrame({ children }: { children: ReactNode }) {
       </div>
       <header className="frame-top">
         {brand}
-        <div className="frame-top-actions"><a className="frame-top-settings" href="/settings"><Settings2 size={17}/><span>Settings</span></a>
+        <div className="frame-top-actions"><a className="frame-top-settings" href="/workspace?open=integrations"><Plug size={17}/><span>Connections</span></a><a className="frame-top-settings" href="/settings"><Settings2 size={17}/><span>Settings</span></a>
           <button
             ref={menuButton} type="button" className="frame-menu-btn"
             aria-expanded={drawerOpen} aria-controls="frame-drawer"
@@ -222,7 +232,13 @@ export default function AppFrame({ children }: { children: ReactNode }) {
           </div>
         )}
         <div className="frame-desk-bar"><span>Your desk <span aria-hidden="true">/</span> {pathname==='/workspace'?({today:'Today',work:'Coursework',memory:'Progress',direction:'Explore'}[view]||'Today'):pathname==='/build'?'My Build':pathname==='/pip'?'Pip':pathname==='/journal'?'Journal':pathname==='/settings'?'Settings':pathname==='/about-you'?'Your profile':'Notes'}</span><div className="frame-activity"><button type="button" className="frame-activity-toggle" onClick={()=>setActivityOpen(!activityOpen)} aria-expanded={activityOpen} aria-controls="desk-activity" aria-label={`On your desk: ${activityCount} open tasks and active builds`}><Bell size={17}/><span>On your desk</span>{activityCount>0&&<b>{activityCount>99?'99+':activityCount}</b>}</button>{activityOpen&&<div id="desk-activity" className="frame-activity-list"><strong>Ready when you are</strong>{identity.activity?<><a href="/workspace?view=work">{identity.activity.coursework} open tasks <ArrowUpRight size={16}/></a><a href="/build">{identity.activity.build?'Continue your build':'Start a build'}<ArrowUpRight size={16}/></a><a href="/journal">{identity.activity.journal} saved journal entries <ArrowUpRight size={16}/></a><small>Counts show saved work, not unread messages.</small></>:<p>Open your workspace to see your work.</p>}<button type="button" onClick={()=>setActivityOpen(false)}>Close</button></div>}</div></div>
-        {children}
+        <div className="frame-app-desk" ref={appDesk}>
+          <section ref={toolWindow} className={`frame-tool-window tone-${titleTone}${toolMaximised?' maximised':''}`} hidden={toolMinimised} style={toolMaximised?undefined:{left:`calc(3% + ${toolPosition.x}px)`,top:toolPosition.y}} aria-label={`${toolTitle} window`}>
+            <div className="frame-window-titlebar" tabIndex={0} role="group" aria-label={`Move ${toolTitle} window with arrow keys`} onPointerDown={beginToolDrag} onPointerMove={moveTool} onPointerUp={()=>toolDrag.current=null} onPointerCancel={()=>toolDrag.current=null} onKeyDown={event=>{if(event.target!==event.currentTarget||toolMaximised||window.innerWidth<861||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;event.preventDefault();const a=appDesk.current,w=toolWindow.current;if(!a||!w)return;setToolPosition(clampDesktopWindow({x:toolPosition.x+(event.key==='ArrowLeft'?-16:event.key==='ArrowRight'?16:0),y:toolPosition.y+(event.key==='ArrowUp'?-16:event.key==='ArrowDown'?16:0)},{left:w.offsetLeft-toolPosition.x,top:w.offsetTop-toolPosition.y,width:w.offsetWidth,height:w.offsetHeight},{width:a.clientWidth,height:a.clientHeight}));}}><span><span className="frame-window-dot" aria-hidden="true"/>{toolTitle}</span><div>{pathname==='/workspace'&&<button type="button" className="frame-window-action" onClick={()=>window.dispatchEvent(new Event("stride-add-work"))}><Plus size={15}/>Add work</button>}<button type="button" aria-label={`Reset ${toolTitle} window position`} onClick={()=>{setToolPosition({x:0,y:0});setToolMaximised(false);}}><RotateCcw size={15}/></button><button type="button" aria-label={toolMaximised?`Restore ${toolTitle} window`:`Expand ${toolTitle} window`} onClick={()=>{setToolMaximised(!toolMaximised);}}>{toolMaximised?<Minimize2 size={15}/>:<Maximize2 size={15}/>}</button><button type="button" aria-label={`Minimise ${toolTitle} window`} onClick={()=>{setToolMinimised(true);requestAnimationFrame(()=>document.querySelector<HTMLButtonElement>(".frame-window-restorer button")?.focus());}}><Minus size={17}/></button></div></div>
+            <div className="frame-window-content">{children}</div>
+          </section>
+          {toolMinimised&&<div className="frame-window-restorer"><p>{toolTitle} is minimised.</p><button type="button" onClick={()=>{setToolMinimised(false);requestAnimationFrame(()=>document.querySelector<HTMLElement>(".frame-window-titlebar")?.focus({preventScroll:true}));}}>Open {toolTitle} <ArrowUpRight size={16}/></button></div>}
+        </div>
       </div>
       <div className={`frame-scrim${drawerOpen ? " open" : ""}`} onClick={closeDrawer} aria-hidden="true" />
       <div

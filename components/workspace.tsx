@@ -93,6 +93,7 @@ export default function WorkspaceApp() {
   const [progressTab,setProgressTab]=useState<"attempts"|"work"|"context">("attempts");
   const [progressPage,setProgressPage]=useState(0);
   const [modal, setModal] = useState<Modal>(null);
+  useEffect(()=>{const open=()=>setModal("add");window.addEventListener("stride-add-work",open);return()=>window.removeEventListener("stride-add-work",open);},[]);
   const [busy, setBusy] = useState("");
   const [saveSequence,setSaveSequence]=useState(0);
   const [error, setError] = useState("");

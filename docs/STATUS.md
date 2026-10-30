@@ -1,3 +1,11 @@
+# Single-screen desktop follow-up — October 30, 2026
+
+- Removed all lower landing sections/footer; the desktop is one viewport with an always-visible dock. Moved the sample/data explanation into a small desk disclosure. Updated header links so none point to removed sections.
+- The sample windows can move across the desk; title-bar pointer capture now suppresses text selection explicitly, including WebKit selection rules. Pointer and keyboard movement share bounded geometry, and resize resets positions so windows cannot remain stranded outside a smaller desktop.
+- Core app routes now open inside a common coloured-title-bar window with expand, minimise, reset and dock restore controls. Page scrolling stays inside the window. Existing content stays mounted while minimised; an unsent Pip draft survived restore. Settings save controls stay inside the window, and Add work remains a named title-bar action. Connections/Profile/Settings stay accessible in the common header.
+- OpenCode reviewed source-only window code. Preserved dragged position across maximise/restore, added resize recovery and explicit keyboard focus on restore. Its concern about the earlier Pip height was checked against the later override and live geometry; the composer was visible inside the window.
+- Node 22 checks, all 238 tests and production build passed; private consistent backup taken first. Public landing document height equalled its 900px viewport, with zero lower sections; dock bottom was 882px. A real pointer drag moved the Build window 240px horizontally and 30px vertically with empty text selection, and the runner still produced `[2,3,4]`. Desktop website layout remains the focus, per the user's instruction.
+
 # Personal Desktop release — October 30, 2026
 
 - Replaced the rejected cinematic landing with the approved Porcelain / Editorial direction, true-black primary buttons and Paper cut secondary actions. Notes, My Build and Pip are connected working sample windows, with minimise/reopen, pointer/keyboard movement, reset layout and focus mode. The sample is labelled; private student files are not involved.
