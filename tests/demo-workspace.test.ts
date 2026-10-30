@@ -23,3 +23,15 @@ test('sample records disclose illustration and do not pretend to supply a real P
  assert.equal(s.evidence?.entries[0].assessment,'unassessed');
  assert.equal(s.evidence?.entries[0].observed.attachments.length,0);
 });
+
+
+test('sample month supplies twenty dated sessions without claiming real logins or model assessment',()=>{
+ const s=demoWorkspace(new Date('2026-10-30T12:00:00Z'));
+ const sessions=s.evidence!.entries.filter(e=>e.kind==='session');
+ assert.equal(sessions.length,20);
+ assert.equal(new Set(sessions.map(e=>e.activityDate)).size,20);
+ assert.ok(sessions.every(e=>e.assessment==='unassessed'&&e.uncertainty.includes('not measured logins')));
+ assert.ok(sessions.every(e=>e.createdAt<'2026-10-30T12:00:00Z'));
+ assert.ok(sessions.every(e=>e.nextSuggestion.length>0));
+ assert.equal(s.works.filter(w=>!w.completed).length,3);
+});

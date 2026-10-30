@@ -1,8 +1,9 @@
 import {randomUUID} from 'node:crypto';
 import {initialWorkspace} from './planner';
+import {addDemoMonth} from './demo-month';
 import type {Workspace, Work, PipThread} from './types';
 import type {BuildStep} from './build-types';
-export const DEMO_VERSION=1;
+export const DEMO_VERSION=2;
 export function demoWorkspace(now=new Date()):Workspace{
  const state=initialWorkspace(false),stamp=now.toISOString(),ago=(days:number)=>new Date(now.getTime()-days*86400000).toISOString();
  const date=(days:number)=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata'}).format(new Date(now.getTime()+days*86400000));
@@ -21,5 +22,5 @@ export function demoWorkspace(now=new Date()):Workspace{
  const thread=(title:string,question:string,answer:string):PipThread=>{const turnId=randomUUID();return{id:randomUUID(),title,titleMode:'auto',titledVersion:1,createdAt:ago(2),updatedAt:ago(2),chat:{version:1,messages:[{id:randomUUID(),turnId,role:'user',text:question,createdAt:ago(2)},{id:randomUUID(),turnId,role:'assistant',text:answer,intent:'teach',sources:[],createdAt:ago(2)}]}};};
  const chats=[thread('Why unmatched players stay','Why does Dev stay in a LEFT JOIN result?','Example conversation: Player is on the left, so every player stays. If no Team matches Dev, the Team columns are NULL. Try explaining what would change with an INNER JOIN.'),thread('Planning a small football organiser','How could my database assignment help Matchday?','Example conversation: use Team and Player as your first two tables. Then make a query that shows who has not joined a team. You will have a useful feature and a reason to understand the join.')];state.pipThreads={revision:0,activeId:chats[0].id,items:chats};
  state.plan={id:randomUUID(),workId:state.works[0].id,title:'Keep the player who has no team',description:'Use the sample notes, trace a LEFT JOIN and try the query in your Matchday build.',minutes:30,reasons:['The database assignment is due tomorrow.','This connects to the project you chose.'],sourceIds:[state.works[0].id],contextRevision:state.revision,mode:'guided',createdAt:stamp};
- state.returnCard={id:randomUUID(),createdAt:ago(1),kind:'saved',prompt:'Try showing an unmatched player in Matchday.',note:'Your last session ended with the schema. The query is a useful next step.',sourceEntryIds:[entryId],variant:0,skipped:false};state.dailyPreferences={enabled:false,hour:8,version:0};return state;
+ state.returnCard={id:randomUUID(),createdAt:ago(1),kind:'saved',prompt:'Try showing an unmatched player in Matchday.',note:'Your last session ended with the schema. The query is a useful next step.',sourceEntryIds:[entryId],variant:0,skipped:false};state.dailyPreferences={enabled:false,hour:8,version:0};addDemoMonth(state,now);return state;
 }

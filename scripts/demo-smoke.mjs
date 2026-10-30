@@ -9,6 +9,14 @@ const response=await fetch(base+'/api/workspace',{headers:{Cookie:original+'; '+
 const sample=(await response.json()).state;assert.equal(sample.demo,true);assert.equal(sample.profile.name,'Riya');assert.equal(sample.works.length,3);
 const account=await fetch(base+'/api/account',{headers:{Cookie:original+'; '+demo}}).then(r=>r.json());assert.equal(account.account,null);assert.equal(account.demo,true);
 const other=await start();const otherState=await fetch(base+'/api/workspace',{headers:{Cookie:other}}).then(r=>r.json());assert.notEqual(sample.build.project.id,otherState.state.build.project.id);
+assert.equal(sample.evidence.entries.filter(e=>e.kind==='session').length,20);
+const attachments=sample.evidence.entries.flatMap(e=>e.observed.attachments);
+assert.equal(attachments.length,2);
+for(const attachment of attachments){
+ const own=await fetch(base+'/api/evidence/attachment?key='+attachment.key,{headers:{Cookie:demo}});assert.equal(own.status,200);assert.ok((await own.text()).length>30);
+ const foreign=await fetch(base+'/api/evidence/attachment?key='+attachment.key,{headers:{Cookie:other}});assert.equal(foreign.status,404);
+}
+
 const bad=await fetch(base+'/api/workspace',{headers:{Cookie:original+'; stride_demo_mode=1; stride_demo_session='+'0'.repeat(64)}});assert.equal(bad.status,401);
 const forbidden=await fetch(base+'/api/demo',{method:'DELETE',headers:{Origin:'https://example.com',Cookie:demo}});assert.equal(forbidden.status,403);
 const leave=await fetch(base+'/api/demo',{method:'DELETE',headers:{Origin:base,Cookie:original+'; '+demo}});assert.equal(leave.status,200);assert.equal(leave.headers.getSetCookie().some(c=>c.startsWith('stride_session=')),false);

@@ -1,5 +1,13 @@
 # Stride — implementation status
 
+## Judge demo month — October 30 submission release
+- New isolated demos include 20 dated sample study sessions over a month, plus the existing project, coursework, chats and return point. Sample history is explicitly not measured login telemetry or verified achievement.
+- Two original downloadable demo artifacts are retained separately for each session. Live smoke checks passed own-file access, foreign-owner rejection, isolated sample IDs and preservation of the original workspace.
+- The filming session imported the supplied TCP Congestion PDF (31/31 pages processed) and original OS lecture slides. The connected vision/text model prepared a source-linked TCP lesson using the first three PDF pages with images. Development helpers did not read the course files. These private imports are not copied into the public fixture.
+- A real JavaScript project run and saved feedback increased the demo project to two attempts. A clean live Pip question retrieved the dated September 30 project thought and correctly retained its unresolved-question status. An earlier answer incorrectly called the question a decision; the prompt was strengthened and retrieval now weights distinctive terms and simple plural variants. This is a checked example, not a guarantee of semantic correctness.
+- Submission release: typecheck and all 247 tests pass on deployed Node 22; production build passes. The public repository is MIT licensed. The edited 2:18 full-HD film uses real screen captures, zooms, captions and an original instrumental score; sample history remains labelled. MP4 decode validation passed.
+
+
 ## Independent desktop windows — October 30
 
 - The main app now opens tools as independent, same-origin app windows. Multiple tools stay mounted together: moving, minimising, arranging or resizing a window preserves its current form and chat drafts. Tools are loaded on demand rather than all at startup.

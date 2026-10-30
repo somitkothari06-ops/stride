@@ -1,10 +1,11 @@
 import { createHash } from "node:crypto";
 import type { PipSource, Workspace } from "./types";
 
-const stop=new Set('the and this that with from have what about would could please help explain tell want your into some just does how'.split(' '));
+const stop=new Set('the and this that with from have what about would could please help explain tell want your into some just does how did next small step earlier month today'.split(' '));
 function terms(text:string){
  const words=text.toLowerCase().match(/[a-z0-9]{2,}/g)||[];
  const out=new Set(words.filter(word=>!stop.has(word)));
+ for(const word of [...out])if(word.length>4&&word.endsWith('s')&&!word.endsWith('ss'))out.add(word.slice(0,-1));
  const groups=[['sql','dbms','database','databases','joins','query','schema'],['os','operating','scheduling','paging','deadlock'],['dsa','algorithms','algorithm','structures','heap','graph'],['javascript','js','node','express'],['football','soccer'],['network','networks','networking']];
  for(const group of groups)if(group.some(word=>out.has(word)))for(const word of group)out.add(word);
  return out;
@@ -34,9 +35,10 @@ export function memoryRecords(state:Workspace,excludeThread?:string):RecordSourc
 }
 export function retrieveMemory(state:Workspace,query:string,options:{excludeThread?:string;budget?:number;limit?:number}={}):PipSource[]{
  const wanted=terms(query);if(!wanted.size)return [];
- const ranked=memoryRecords(state,options.excludeThread).map(record=>{
-  const heading=terms(record.title),body=terms(record.excerpt);
-  let score=0;for(const term of wanted)score+=(heading.has(term)?4:0)+(body.has(term)?1:0);
+ const records=memoryRecords(state,options.excludeThread).map(record=>({record,heading:terms(record.title),body:terms(record.excerpt)}));
+ const weights=new Map([...wanted].map(term=>[term,1+Math.log(1+records.length/(1+records.filter(r=>r.heading.has(term)||r.body.has(term)).length))]));
+ const ranked=records.map(({record,heading,body})=>{
+  let score=0;for(const term of wanted)score+=((heading.has(term)?4:0)+(body.has(term)?1:0))*(weights.get(term)||1);
   return {record,score};
  }).filter(item=>item.score>0).sort((a,b)=>b.score-a.score||b.record.at.localeCompare(a.record.at));
  let budget=options.budget??4800;const result:PipSource[]=[];
